@@ -1,0 +1,274 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  engineType      = "binary"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  password      String?
+  role          String    @default("MEMBER") // "ADMIN", "COACH", "MEMBER"
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  member        Member?
+  coach         Coach?
+}
+
+model Account {
+  id                 String  @id @default(uuid())
+  userId             String  @map("user_id")
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+
+model Member {
+  id             String        @id @default(uuid())
+  userId         String        @map("user_id") @unique
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName       String        @map("full_name")
+  memberNumber   String        @map("member_number") @unique
+  currentBelt    String        @default("Sabuk Putih (10 Geup)") @map("current_belt")
+  progress       Int           @default(0)
+  status         String        @default("PENDING_VERIFICATION")
+  selfieUrl      String?       @map("selfie_url")         // Foto profil member
+  kkUrl          String?       @map("kk_url")             // Kartu Keluarga
+  paymentProofUrl String?      @map("payment_proof_url")  // Bukti bayar registrasi
+  certDocUrl     String?       @map("cert_doc_url")       // Sertifikat sabuk / UKT
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  beltHistory    BeltHistory[]
+  uktEntries     UktParticipant[]
+  certificates   Certificate[]
+  payments       Payment[]
+  attendances    Attendance[]
+  achievements   Achievement[]
+}
+
+model Coach {
+  id           String   @id @default(uuid())
+  userId       String   @unique @map("user_id")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName     String   @map("full_name")
+  danRank      String   @map("dan_rank") // e.g. "Dan 4", "Dan 6"
+  specialty    String   @default("Kyorugi & Poomsae")
+  experience   String   @default("10+ Tahun")
+  photoUrl     String?  @map("photo_url")     // Foto profil pelatih (base64 atau URL)
+  certDocUrl   String?  @map("cert_doc_url")  // Sertifikat Kukkiwon / KTA / lisensi
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  uktExams     UktExam[] // Exams verified or conducted by this coach
+  schedules    Schedule[] // Jadwal latihan yang diampu
+}
+
+model BeltRank {
+  id          String   @id @default(uuid())
+  name        String   @unique // e.g., "Sabuk Putih (10 Geup)"
+  level       Int      // Higher value = higher rank, or custom order
+  nextBeltId  String?  @map("next_belt_id")
+}
+
+model BeltHistory {
+  id           String   @id @default(uuid())
+  memberId     String   @map("member_id")
+  member       Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  fromBelt     String   @map("from_belt")
+  toBelt       String   @map("to_belt")
+  promotedAt   DateTime @default(now()) @map("promoted_at")
+}
+
+model UktExam {
+  id           String   @id @default(uuid())
+  title        String
+  date         DateTime
+  location     String
+  examinerId   String?  @map("examiner_id")
+  examiner     Coach?   @relation(fields: [examinerId], references: [id], onDelete: SetNull)
+  status       String   @default("UPCOMING") // "UPCOMING", "ONGOING", "COMPLETED"
+  createdAt    DateTime @default(now())
+  participants UktParticipant[]
+}
+
+model UktParticipant {
+  id           String    @id @default(uuid())
+  uktExamId    String    @map("ukt_exam_id")
+  uktExam      UktExam   @relation(fields: [uktExamId], references: [id], onDelete: Cascade)
+  memberId     String    @map("member_id")
+  member       Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  targetBelt   String    @map("target_belt")
+  status       String    @default("PENDING") // "PENDING", "APPROVED", "GRADED", "REMEDIAL", "FAILED"
+  
+  // Penilaian UKT Components
+  poomsaeScore     Float @default(0) @map("poomsae_score")
+  kyorugiScore     Float @default(0) @map("kyorugi_score")
+  basicTechScore   Float @default(0) @map("basic_tech_score")
+  physicalScore    Float @default(0) @map("physical_score")
+  theoryScore      Float @default(0) @map("theory_score")
+  finalScore       Float @default(0) @map("final_score")
+  
+  permissionLetter String?   @map("permission_letter") // Path/URL
+  photoUrl         String?   @map("photo_url")
+  uploadedDocs     Json?     @map("uploaded_docs")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Certificate {
+  id             String   @id @default(uuid())
+  memberId       String   @map("member_id")
+  member         Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  certNumber     String   @unique @map("cert_number")
+  oldBelt        String   @map("old_belt")
+  newBelt        String   @map("new_belt")
+  issueDate      DateTime @default(now()) @map("issue_date")
+  qrCodeUrl      String   @map("qr_code_url")
+  isValid        Boolean  @default(true) @map("is_valid")
+  createdAt      DateTime @default(now())
+}
+
+model Article {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  author    String
+  imageUrl  String?  @map("image_url")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Gallery {
+  id        String   @id @default(uuid())
+  imageUrl  String   @map("image_url")
+  category  String   // "UKT", "KEJUARAAN", "LATIHAN", "SEMINAR"
+  title     String?
+  createdAt DateTime @default(now())
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  memberId    String   @map("member_id")
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  title       String   // e.g., "Juara 1 Kyorugi Putra U-45"
+  eventName   String   @map("event_name") // e.g., "Kejurda DKI Jakarta 2024"
+  date        DateTime
+  rank           String?  // e.g., "Emas", "Perak", "Perunggu"
+  photoUrl       String?  @map("photo_url")
+  certificateUrl String?  @map("certificate_url") // Bukti Piagam
+  status         String   @default("PENDING")     // "PENDING", "APPROVED", "REJECTED"
+  createdAt      DateTime @default(now())
+}
+
+model Payment {
+  id              String    @id @default(uuid())
+  memberId        String    @map("member_id")
+  member          Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  amount          Float
+  purpose         String
+  status          String    @default("PENDING") // "PENDING", "COMPLETED", "OVERDUE", "FAILED"
+  dueDate         DateTime? @map("due_date")
+  paymentProofUrl String?   @map("payment_proof_url")
+  externalId      String?   @map("external_id")   // ID unik transaksi Xendit QRIS
+  paidAt          DateTime? @map("paid_at")        // Timestamp pembayaran dari webhook Xendit
+  createdAt       DateTime  @default(now())
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  memberId  String   @map("member_id")
+  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  date      DateTime
+  present   Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  userId    String   @map("user_id")
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now())
+}
+
+model Setting {
+  id              String   @id @default("default")
+  logoUrl         String?  @map("logo_url")
+  heroBgUrl       String?  @map("hero_bg_url")
+  dojangName      String   @default("TAEKWONDO ACADEMY") @map("dojang_name")
+  motto           String   @default("Disiplin • Integritas • Prestasi")
+  heroTitle       String   @default("TAEKWONDO ACADEMY - Bangun Mental Juara, Disiplin dan Prestasi Bersama Kami") @map("hero_title")
+  description     String   @default("Membangun karakter pemenang melalui dedikasi fisik, moral tinggi, dan prestasi yang terstruktur.")
+  address         String   @default("Jl. Pahlawan Olahraga No. 88, Senayan, Jakarta Selatan, DKI Jakarta")
+  email           String   @default("info@taekwondo.com")
+  phone           String   @default("+62 812-3456-7890")
+  registrationFee Float    @default(150000) @map("registration_fee")
+  sppFee          Float    @default(100000) @map("spp_fee")
+  sessionFee      Float    @default(15000) @map("session_fee")
+  uktFee          Float    @default(150000) @map("ukt_fee")
+  uktRequirements Json?    @map("ukt_requirements")
+  uktFees         Json?    @map("ukt_fees")
+  showIntro       Boolean  @default(true) @map("show_intro")
+  updatedAt       DateTime @updatedAt
+}
+
+model Schedule {
+  id          String   @id @default(uuid())
+  dayOfWeek   String   @map("day_of_week") // "Senin", "Selasa", dll
+  startTime   String   @map("start_time")  // "17:00"
+  endTime     String   @map("end_time")    // "19:00"
+  className   String   @map("class_name")  // "Kelas Pemula (Kids)"
+  location    String   
+  coachId     String   @map("coach_id")
+  coach       Coach    @relation(fields: [coachId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model HeroSlide {
+  id        String   @id @default(uuid())
+  imageUrl  String   @map("image_url")
+  caption   String?
+  subtext   String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

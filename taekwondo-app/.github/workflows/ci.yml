@@ -1,0 +1,57 @@
+name: Next.js Enterprise CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    name: Build & Test Project
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: taekwondo_user
+          POSTGRES_PASSWORD: taekwondo_password
+          POSTGRES_DB: taekwondo_academy
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-size: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd taekwondo-app
+          npm ci
+
+      - name: Run Prisma Database Migrations
+        env:
+          DATABASE_URL: postgresql://taekwondo_user:taekwondo_password@localhost:5432/taekwondo_academy?schema=public
+        run: |
+          cd taekwondo-app
+          npx prisma migrate deploy
+
+      - name: Next.js Production Build
+        env:
+          DATABASE_URL: postgresql://taekwondo_user:taekwondo_password@localhost:5432/taekwondo_academy?schema=public
+          JWT_SECRET: super_secure_ci_test_jwt_secret
+        run: |
+          cd taekwondo-app
+          npm run build

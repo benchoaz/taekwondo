@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Elite Taekwondo Academy</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Poppins:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed-dim": "#bec6e0",
+                      "primary-container": "#e10600",
+                      "tertiary": "#705d00",
+                      "surface-container-high": "#e6e8ea",
+                      "on-primary-fixed": "#410100",
+                      "surface-container": "#eceef0",
+                      "inverse-on-surface": "#eff1f3",
+                      "surface-bright": "#f7f9fb",
+                      "surface-container-lowest": "#ffffff",
+                      "primary": "#b30400",
+                      "on-primary": "#ffffff",
+                      "primary-fixed": "#ffdad4",
+                      "secondary-container": "#dae2fd",
+                      "surface-tint": "#c00500",
+                      "on-secondary-container": "#5c647a",
+                      "tertiary-fixed": "#ffe16d",
+                      "on-tertiary-fixed": "#221b00",
+                      "outline": "#936e68",
+                      "on-secondary": "#ffffff",
+                      "on-background": "#191c1e",
+                      "on-surface-variant": "#5e3f3a",
+                      "error-container": "#ffdad6",
+                      "on-error-container": "#93000a",
+                      "outline-variant": "#e9bcb5",
+                      "secondary": "#565e74",
+                      "surface-container-low": "#f2f4f6",
+                      "surface-dim": "#d8dadc",
+                      "on-primary-container": "#fff2f0",
+                      "on-error": "#ffffff",
+                      "on-surface": "#191c1e",
+                      "error": "#ba1a1a",
+                      "on-secondary-fixed-variant": "#3f465c",
+                      "tertiary-container": "#c9a900",
+                      "inverse-surface": "#2d3133",
+                      "surface": "#f7f9fb",
+                      "on-secondary-fixed": "#131b2e",
+                      "tertiary-fixed-dim": "#e9c400",
+                      "on-tertiary": "#ffffff",
+                      "on-primary-fixed-variant": "#930300",
+                      "surface-container-highest": "#e0e3e5",
+                      "on-tertiary-container": "#4c3f00",
+                      "primary-fixed-dim": "#ffb4a8",
+                      "secondary-fixed": "#dae2fd",
+                      "background": "#f7f9fb",
+                      "surface-variant": "#e0e3e5",
+                      "inverse-primary": "#ffb4a8",
+                      "on-tertiary-fixed-variant": "#544600"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "gutter": "24px",
+                      "stack-sm": "8px",
+                      "stack-md": "16px",
+                      "margin-mobile": "16px",
+                      "section-gap": "80px",
+                      "unit": "4px",
+                      "stack-lg": "32px",
+                      "margin-desktop": "48px",
+                      "container-max": "1280px"
+              },
+              "fontFamily": {
+                      "headline-lg": [
+                              "Poppins"
+                      ],
+                      "display-lg-mobile": [
+                              "Poppins"
+                      ],
+                      "headline-md": [
+                              "Poppins"
+                      ],
+                      "headline-xl": [
+                              "Poppins"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Poppins"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "label-bold": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.3",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-lg-mobile": [
+                              "40px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.4",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-xl": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "display-lg": [
+                              "64px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "800"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-bold": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        body {
+            background-color: #f7f9fb;
+            background-image: radial-gradient(at 0% 0%, rgba(179, 4, 0, 0.05) 0px, transparent 50%),
+                              radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.05);
+        }
+    </style>
+</head>
+<body class="text-on-background font-body-md min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-surface/70 backdrop-blur-xl dark:bg-surface-dim/70 border-b border-white/20 shadow-[0_20px_40px_rgba(15,23,42,0.05)]">
+<div class="flex justify-between items-center px-gutter py-4 max-w-container-max mx-auto">
+<div class="font-headline-lg text-headline-lg-mobile md:text-headline-lg font-black text-primary uppercase tracking-tighter">
+                Elite Taekwondo Academy
+            </div>
+<div class="hidden md:flex items-center gap-stack-lg font-label-bold text-label-bold">
+<a class="text-secondary dark:text-secondary-fixed-dim hover:text-primary transition-colors hover:scale-105 duration-300" href="#programs">Programs</a>
+<a class="text-secondary dark:text-secondary-fixed-dim hover:text-primary transition-colors hover:scale-105 duration-300" href="#academy">Academy</a>
+<a class="text-secondary dark:text-secondary-fixed-dim hover:text-primary transition-colors hover:scale-105 duration-300" href="#achievements">Achievements</a>
+<a class="text-secondary dark:text-secondary-fixed-dim hover:text-primary transition-colors hover:scale-105 duration-300" href="#gallery">Gallery</a>
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="hidden md:block text-primary dark:text-primary-fixed-dim font-label-bold text-label-bold hover:scale-105 transition-transform duration-300 active:scale-95 ease-in-out">
+                    Member Login
+                </button>
+<button class="bg-gradient-to-r from-primary to-surface-tint text-on-primary px-6 py-2 rounded-lg font-label-bold text-label-bold hover:scale-105 transition-transform duration-300 shadow-lg shadow-primary/20 active:scale-95 ease-in-out">
+                    Join Now
+                </button>
+</div>
+</div>
+</nav>
+<main class="flex-grow pt-[80px]">
+<!-- Hero Section -->
+<section class="relative w-full min-h-[819px] flex items-center justify-center overflow-hidden">
+<div class="absolute inset-0 z-0">
+<div class="bg-cover bg-center w-full h-full" data-alt="A dynamic action shot of two high-level taekwondo athletes mid-sparring in a modern, brightly lit arena. The scene captures explosive motion, with one athlete executing a high kick. The lighting is crisp, highlighting the textures of their doboks. The overall mood is intense, disciplined, and premium, utilizing a color palette of deep blacks, pristine whites, and vibrant reds." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBqqeCAgD-51EGnFwJOvSZvs-QGVEF-DlN1MxpzL4KeKlI1ApJ1wU9h9Hcmbf3FG9G2wrAXPCJQCtHh0NAiKlL06ZWFjFA3kqsVzcZmftQfZJswf1gjjRcF4HpHxaACRK-6mCFaohg27LcZWfQx_B9qkeaWBY6Il6hipYxjDVbOA1ow6N5YP5YGqgEm4qziPjx2rdEqFudebm1yWg2yXaSIa-FqK2YTK3P6VRoY5VaEhgoMZR1Ls-3Hh3OpqzpAu8okimFQ3LexPe4')"></div>
+<div class="absolute inset-0 bg-gradient-to-br from-[#660000]/50 to-[#110000]/85 mix-blend-multiply"></div>
+</div>
+<div class="relative z-10 max-w-container-max mx-auto px-gutter text-center flex flex-col items-center gap-stack-lg">
+<h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-primary max-w-4xl drop-shadow-lg">
+                    TAEKWONDO ACADEMY - Bangun Mental Juara, Disiplin dan Prestasi Bersama Kami
+                </h1>
+<div class="flex flex-col sm:flex-row gap-stack-md mt-stack-md">
+<button class="bg-on-primary text-primary px-8 py-4 rounded-xl font-label-bold text-label-bold hover:scale-105 transition-transform duration-300 shadow-xl active:scale-95">
+                        Join Now
+                    </button>
+<button class="bg-surface-tint/30 backdrop-blur-md border border-white/50 text-on-primary px-8 py-4 rounded-xl font-label-bold text-label-bold hover:bg-surface-tint/50 transition-colors duration-300 active:scale-95">
+                        View Schedule
+                    </button>
+</div>
+<div class="flex flex-wrap justify-center gap-stack-lg mt-stack-lg pt-stack-lg border-t border-white/20 text-on-primary">
+<div class="text-center">
+<div class="font-headline-xl text-headline-xl">500+</div>
+<div class="font-label-bold text-label-bold opacity-80 uppercase tracking-widest mt-unit">Members</div>
+</div>
+<div class="text-center">
+<div class="font-headline-xl text-headline-xl">20</div>
+<div class="font-label-bold text-label-bold opacity-80 uppercase tracking-widest mt-unit">Certified Coaches</div>
+</div>
+<div class="text-center">
+<div class="font-headline-xl text-headline-xl">100+</div>
+<div class="font-label-bold text-label-bold opacity-80 uppercase tracking-widest mt-unit">Medals</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Programs Section -->
+<section class="py-section-gap max-w-container-max mx-auto px-gutter" id="programs">
+<div class="text-center mb-stack-lg">
+<h2 class="font-headline-xl text-headline-xl text-on-surface">Our Programs</h2>
+<p class="font-body-lg text-body-lg text-secondary mt-stack-sm max-w-2xl mx-auto">Tailored training for every age and skill level.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-stack-md">
+<!-- Kids -->
+<div class="glass-card rounded-xl p-stack-md hover:scale-[1.02] transition-transform duration-300 flex flex-col items-center text-center group cursor-pointer">
+<div class="w-16 h-16 rounded-full bg-secondary-container flex items-center justify-center text-primary mb-stack-md group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-3xl">child_care</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-unit">Kids Class</h3>
+<p class="font-body-md text-body-md text-secondary">Ages 4-12. Focus on discipline, coordination, and fun.</p>
+</div>
+<!-- Teens -->
+<div class="glass-card rounded-xl p-stack-md hover:scale-[1.02] transition-transform duration-300 flex flex-col items-center text-center group cursor-pointer">
+<div class="w-16 h-16 rounded-full bg-secondary-container flex items-center justify-center text-primary mb-stack-md group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-3xl">sports_martial_arts</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-unit">Teens Class</h3>
+<p class="font-body-md text-body-md text-secondary">Ages 13-17. Building strength, confidence, and technique.</p>
+</div>
+<!-- Adults -->
+<div class="glass-card rounded-xl p-stack-md hover:scale-[1.02] transition-transform duration-300 flex flex-col items-center text-center group cursor-pointer">
+<div class="w-16 h-16 rounded-full bg-secondary-container flex items-center justify-center text-primary mb-stack-md group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-3xl">fitness_center</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-unit">Adults Class</h3>
+<p class="font-body-md text-body-md text-secondary">Ages 18+. Fitness, self-defense, and advanced forms.</p>
+</div>
+<!-- Athletes -->
+<div class="glass-card rounded-xl p-stack-md hover:scale-[1.02] transition-transform duration-300 flex flex-col items-center text-center group cursor-pointer ring-1 ring-primary">
+<div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-stack-md group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-3xl">emoji_events</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mb-unit">Athlete Team</h3>
+<p class="font-body-md text-body-md text-secondary">Intensive training for national and international competitions.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="relative w-full py-stack-lg bg-inverse-surface dark:bg-surface-dim border-t border-outline-variant">
+<div class="max-w-container-max mx-auto px-gutter flex flex-col md:flex-row justify-between items-center gap-stack-md">
+<div class="font-headline-md text-headline-md text-primary-fixed">
+                Elite Taekwondo Academy
+            </div>
+<div class="flex flex-wrap justify-center gap-stack-md font-body-md text-body-md font-label-bold text-label-bold">
+<a class="text-surface-variant hover:text-on-primary transition-colors hover:opacity-80 cursor-pointer" href="#">Privacy Policy</a>
+<a class="text-surface-variant hover:text-on-primary transition-colors hover:opacity-80 cursor-pointer" href="#">Terms of Service</a>
+<a class="text-surface-variant hover:text-on-primary transition-colors hover:opacity-80 cursor-pointer" href="#">Contact Academy</a>
+<a class="text-surface-variant hover:text-on-primary transition-colors hover:opacity-80 cursor-pointer" href="#">Affiliate Program</a>
+</div>
+<div class="text-on-primary dark:text-on-surface font-body-md text-body-md font-label-bold text-label-bold text-center md:text-right">
+                © 2026 Elite Taekwondo Academy. Precision. Power. Prestige.
+            </div>
+</div>
+</footer>
+</body></html>

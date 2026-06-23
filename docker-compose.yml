@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: taekwondo_db
+    environment:
+      POSTGRES_USER: taekwondo_user
+      POSTGRES_PASSWORD: taekwondo_password
+      POSTGRES_DB: taekwondo_academy
+    ports:
+      - "5439:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

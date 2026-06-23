@@ -1,0 +1,79 @@
+.stitch-theme {
+  --color-primary: #001b44;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #002f6c;
+  --color-on-primary-container: #7999dc;
+  
+  --color-secondary: #b80e21;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #dc2f36;
+  --color-on-secondary-container: #fffbff;
+  
+  --color-tertiary: #1b1d1d;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #303232;
+  --color-on-tertiary-container: #999a9a;
+
+  --color-surface: #fcf9f8;
+  --color-on-surface: #1c1b1b;
+  --color-on-surface-variant: #434750;
+  
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f6f3f2;
+  --color-surface-container: #f0eded;
+  --color-surface-container-high: #eae7e7;
+  --color-surface-container-highest: #e5e2e1;
+  
+  --color-outline: #747781;
+  --color-outline-variant: #c4c6d2;
+
+  --color-background: #fcf9f8;
+  --color-on-background: #1c1b1b;
+
+  /* Font mappings */
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* Map specific tailwind utility overrides just for this theme scope */
+.stitch-theme .bg-primary { background-color: var(--color-primary); }
+.stitch-theme .text-primary { color: var(--color-primary); }
+.stitch-theme .text-on-primary { color: var(--color-on-primary); }
+.stitch-theme .bg-primary-container { background-color: var(--color-primary-container); }
+.stitch-theme .text-on-primary-container { color: var(--color-on-primary-container); }
+.stitch-theme .border-primary { border-color: var(--color-primary); }
+.stitch-theme .border-primary-container { border-color: var(--color-primary-container); }
+
+.stitch-theme .bg-secondary { background-color: var(--color-secondary); }
+.stitch-theme .text-secondary { color: var(--color-secondary); }
+.stitch-theme .text-on-secondary { color: var(--color-on-secondary); }
+.stitch-theme .bg-secondary-container { background-color: var(--color-secondary-container); }
+.stitch-theme .text-on-secondary-container { color: var(--color-on-secondary-container); }
+
+.stitch-theme .bg-surface-container-lowest { background-color: var(--color-surface-container-lowest); }
+.stitch-theme .bg-surface-container-low { background-color: var(--color-surface-container-low); }
+.stitch-theme .bg-surface-container { background-color: var(--color-surface-container); }
+.stitch-theme .bg-surface { background-color: var(--color-surface); }
+.stitch-theme .text-on-surface { color: var(--color-on-surface); }
+.stitch-theme .text-on-surface-variant { color: var(--color-on-surface-variant); }
+
+.stitch-theme .border-outline-variant { border-color: var(--color-outline-variant); }
+.stitch-theme .border-outline { border-color: var(--color-outline); }
+.stitch-theme .text-outline { color: var(--color-outline); }
+
+/* Utility */
+.stitch-theme .bg-background { background-color: var(--color-background); }
+.stitch-theme .text-on-background { color: var(--color-on-background); }
+
+/* Typography */
+.stitch-theme .font-headline-xl { font-size: 40px; font-weight: 800; line-height: 48px; letter-spacing: -0.02em; }
+.stitch-theme .font-headline-lg { font-size: 24px; font-weight: 700; line-height: 32px; }
+.stitch-theme .font-headline-md { font-size: 20px; font-weight: 700; line-height: 28px; }
+.stitch-theme .font-body-lg { font-size: 18px; font-weight: 400; line-height: 28px; }
+.stitch-theme .font-body-md { font-size: 16px; font-weight: 400; line-height: 24px; }
+.stitch-theme .font-label-bold { font-size: 14px; font-weight: 700; line-height: 20px; letter-spacing: 0.05em; }
+.stitch-theme .font-label-sm { font-size: 12px; font-weight: 500; line-height: 16px; }
+
+/* Gradients and Spacing used in HTML */
+.stitch-theme .belt-gradient-blue {
+    background: linear-gradient(90deg, #002f6c 0%, #001b44 100%);
+}

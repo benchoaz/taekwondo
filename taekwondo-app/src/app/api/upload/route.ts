@@ -45,17 +45,24 @@ export async function POST(request: Request) {
     }
 
     // 2. LOCAL STORAGE FALLBACK (If Cloudinary is NOT configured)
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const filename = `${uniqueSuffix}-${originalName}`;
+    const crypto = require('crypto');
+    const ext = file.name.split('.').pop()?.toLowerCase();
     
-    const path = join(process.cwd(), 'public', 'uploads', filename);
+    // Strict extension allowlist
+    const allowedExtensions = ['png', 'jpg', 'jpeg', 'gif', 'pdf'];
+    if (!ext || !allowedExtensions.includes(ext)) {
+      return NextResponse.json({ error: 'Format file tidak diizinkan.' }, { status: 400 });
+    }
+
+    // Generate secure random UUID filename to prevent traversal attacks
+    const secureFilename = `${crypto.randomUUID()}.${ext}`;
+    const path = join(process.cwd(), 'public', 'uploads', secureFilename);
 
     await writeFile(path, buffer);
 
     return NextResponse.json({ 
       success: true, 
-      url: `/uploads/${filename}`,
+      url: `/uploads/${secureFilename}`,
       note: "Stored locally (Cloudinary not configured)"
     });
   } catch (error: any) {

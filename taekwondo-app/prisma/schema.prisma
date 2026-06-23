@@ -203,11 +203,21 @@ model Payment {
   amount          Float
   purpose         String
   status          String    @default("PENDING") // "PENDING", "COMPLETED", "OVERDUE", "FAILED"
+  paymentMethod   String    @default("TRANSFER_MANUAL") @map("payment_method") // "QRIS_ONLINE", "TRANSFER_MANUAL", "TUNAI_CASH"
   dueDate         DateTime? @map("due_date")
   paymentProofUrl String?   @map("payment_proof_url")
   externalId      String?   @map("external_id")   // ID unik transaksi Xendit QRIS
   paidAt          DateTime? @map("paid_at")        // Timestamp pembayaran dari webhook Xendit
   createdAt       DateTime  @default(now())
+}
+
+model Expense {
+  id              String   @id @default(uuid())
+  amount          Float
+  description     String
+  date            DateTime @default(now())
+  recordedBy      String?  @map("recorded_by") // Admin/Bendahara Name
+  createdAt       DateTime @default(now())
 }
 
 model Attendance {

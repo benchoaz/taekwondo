@@ -16,14 +16,18 @@ export async function POST(request: Request) {
     // In a real app, query database with credentials
     const user = await prisma.user.findUnique({
       where: { email: formattedEmail },
+      include: {
+        member: true,
+        coach: true
+      }
     });
 
     if (!user) {
-      return NextResponse.json({ error: "Akun dengan email tersebut tidak ditemukan." }, { status: 404 });
+      return NextResponse.json({ error: "Email atau kata sandi yang Anda masukkan salah." }, { status: 401 });
     }
 
     if (user.password !== password) {
-      return NextResponse.json({ error: "Kata sandi yang Anda masukkan salah." }, { status: 401 });
+      return NextResponse.json({ error: "Email atau kata sandi yang Anda masukkan salah." }, { status: 401 });
     }
 
     // Generate JWT Token
@@ -35,6 +39,16 @@ export async function POST(request: Request) {
     const response = NextResponse.json({
       success: true,
       role: user.role.toLowerCase(),
+      token: token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        name: user.role === "ADMIN" ? "Administrator" : (user.role === "COACH" ? user.coach?.fullName : user.member?.fullName),
+        memberNumber: user.member?.memberNumber,
+        currentBelt: user.member?.currentBelt,
+        progress: user.member?.progress
+      }
     });
 
     // Set HttpOnly Cookie

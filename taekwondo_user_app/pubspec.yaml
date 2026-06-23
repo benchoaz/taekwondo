@@ -32,6 +32,7 @@ dependencies:
   
   # Utility
   intl: ^0.18.1
+  url_launcher: ^6.2.0
 
 dev_dependencies:
   flutter_test:
@@ -46,6 +47,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # assets:
-  #   - assets/images/
+  assets:
+    - assets/images/
   #   - assets/icons/

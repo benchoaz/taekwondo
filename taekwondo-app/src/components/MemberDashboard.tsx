@@ -1007,106 +1007,361 @@ export default function MemberDashboard({
   <meta charset="UTF-8" />
   <title>Sertifikat UKT — ${dynamicFullName}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Playfair+Display:ital,wght@0,600;0,800;1,700&family=Inter:wght@400;500;600;700&family=Noto+Serif+KR:wght@600;900&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 297mm; height: 210mm; }
-    body { font-family: 'Inter', sans-serif; background: #fff; display: flex; align-items: center; justify-content: center; }
-    .cert { width: 285mm; height: 200mm; background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #0f172a 100%); border: 6px solid #ca8a04; border-radius: 4mm; position: relative; overflow: hidden; padding: 12mm 14mm; display: flex; flex-direction: column; justify-content: space-between; }
-    .cert::before { content: ''; position: absolute; inset: 3mm; border: 1.5px solid rgba(202,138,4,0.35); border-radius: 2.5mm; pointer-events: none; }
-    .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-family: 'Cinzel',serif; font-size: 72pt; font-weight: 700; color: rgba(202,138,4,0.04); white-space: nowrap; pointer-events: none; z-index: 0; letter-spacing: 8px; }
-    .corner { position: absolute; width: 18mm; height: 18mm; border-color: #ca8a04; border-style: solid; opacity: 0.5; }
-    .corner-tl { top:5mm;left:5mm;border-width:2px 0 0 2px;border-radius:1mm 0 0 0; }
-    .corner-tr { top:5mm;right:5mm;border-width:2px 2px 0 0;border-radius:0 1mm 0 0; }
-    .corner-bl { bottom:5mm;left:5mm;border-width:0 0 2px 2px;border-radius:0 0 0 1mm; }
-    .corner-br { bottom:5mm;right:5mm;border-width:0 2px 2px 0;border-radius:0 0 1mm 0; }
-    .content { position: relative; z-index: 1; }
-    .header { display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(202,138,4,0.3);padding-bottom:5mm;margin-bottom:5mm; }
-    .org-left { display:flex;align-items:center;gap:4mm; }
-    .logo-circle { width:16mm;height:16mm;background:linear-gradient(135deg,#e10600,#ca8a04);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:700;font-size:7pt;color:white;text-align:center;letter-spacing:0.5px;line-height:1.1; }
-    .org-name { font-family:'Cinzel',serif;font-size:8pt;font-weight:700;color:#ca8a04;letter-spacing:1px;text-transform:uppercase; }
-    .org-sub { font-size:6.5pt;color:rgba(255,255,255,0.5);margin-top:1mm; }
-    .cert-badge { background:linear-gradient(135deg,#e10600,#9f0500);color:white;padding:2mm 5mm;border-radius:1mm;font-size:6.5pt;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;text-align:center; }
-    .cert-badge span { display:block;font-size:5pt;opacity:0.8;margin-top:0.5mm;font-weight:400; }
-    .body { display:flex;gap:8mm;align-items:flex-start; }
-    .body-main { flex:1; }
-    .body-side { width:46mm;flex-shrink:0;text-align:center; }
-    .awarded-to { font-size:6pt;color:rgba(255,255,255,0.45);letter-spacing:3px;text-transform:uppercase;margin-bottom:1.5mm; }
-    .recipient-name { font-family:'Cinzel',serif;font-size:22pt;font-weight:700;color:white;letter-spacing:1px;line-height:1.1;margin-bottom:3mm; }
-    .description { font-size:7pt;color:rgba(255,255,255,0.6);line-height:1.7;max-width:140mm;margin-bottom:4mm; }
-    .description strong { color:#fbbf24;font-weight:600; }
-    .gold-divider { width:30mm;height:1px;background:linear-gradient(to right,#ca8a04,transparent);margin-bottom:4mm; }
-    .details-grid { display:grid;grid-template-columns:1fr 1fr 1fr;gap:3mm 5mm; }
-    .detail-label { font-size:5.5pt;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:0.5mm; }
-    .detail-value { font-size:7.5pt;color:rgba(255,255,255,0.85);font-weight:600; }
-    .belt-badge { background:rgba(255,255,255,0.04);border:1px solid rgba(202,138,4,0.2);border-radius:2mm;padding:4mm;text-align:center;margin-bottom:3mm; }
-    .belt-rank-label { font-size:5.5pt;color:rgba(202,138,4,0.7);text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:2mm; }
-    .belt-rank-value { font-family:'Cinzel',serif;font-size:10pt;font-weight:700;color:#ca8a04;line-height:1.2; }
-    .belt-rank-sub { font-size:6pt;color:rgba(255,255,255,0.4);display:block;margin-top:1mm; }
-    .qr-box { background:white;border-radius:1.5mm;padding:2mm;display:inline-block;margin-bottom:1.5mm; }
-    .qr-label { font-size:5pt;color:rgba(255,255,255,0.3);text-align:center;display:block; }
-    .footer { border-top:1px solid rgba(202,138,4,0.2);padding-top:4mm;display:flex;justify-content:space-between;align-items:flex-end; }
-    .sig-block { text-align:center;min-width:40mm; }
-    .sig-line { width:35mm;height:1px;background:rgba(255,255,255,0.2);margin:6mm auto 1.5mm; }
-    .sig-name { font-size:7pt;color:white;font-weight:600; }
-    .sig-title { font-size:5.5pt;color:rgba(255,255,255,0.4);margin-top:0.5mm; }
-    .cert-number { font-size:5.5pt;font-family:'Courier New',monospace;color:rgba(202,138,4,0.5);letter-spacing:0.5px; }
-    .validity { font-size:5pt;color:rgba(255,255,255,0.25);margin-top:1mm; }
-    @media print { @page { size: A4 landscape; margin: 0; } html, body { width: 297mm; height: 210mm; } }
+    html, body { width: 297mm; height: 210mm; background: #f1f5f9; }
+    body { font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center; padding: 5mm; }
+    
+    .cert { 
+      width: 287mm; 
+      height: 200mm; 
+      background: #ffffff; 
+      border: 8px double #ca8a04; 
+      padding: 10mm 15mm; 
+      position: relative; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+    
+    .cert::before {
+      content: '';
+      position: absolute;
+      inset: 2.5mm;
+      border: 1px solid rgba(202, 138, 0, 0.4);
+      pointer-events: none;
+    }
+    
+    .watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 80pt;
+      font-weight: 900;
+      color: rgba(15, 23, 42, 0.025);
+      font-family: 'Cinzel', serif;
+      z-index: 0;
+      letter-spacing: 12px;
+      pointer-events: none;
+    }
+
+    .korean-decor {
+      position: absolute;
+      top: 8mm;
+      left: 8mm;
+      font-family: 'Noto Serif KR', serif;
+      font-size: 8.5pt;
+      color: #334155;
+      line-height: 1.5;
+      font-weight: 900;
+      writing-mode: vertical-rl;
+      text-orientation: upright;
+      opacity: 0.85;
+      z-index: 1;
+      letter-spacing: 2px;
+    }
+
+    .geup-indicator {
+      position: absolute;
+      top: 8mm;
+      right: 12mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 1;
+    }
+    .geup-text {
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-family: 'Cinzel', serif;
+      font-size: 11pt;
+      font-weight: 800;
+      letter-spacing: 3px;
+      color: #0f172a;
+    }
+    .geup-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 36pt;
+      font-weight: 900;
+      color: #e10600;
+      line-height: 1;
+      margin-top: 1mm;
+    }
+
+    .header-group {
+      text-align: center;
+      position: relative;
+      z-index: 10;
+      margin-bottom: 2mm;
+    }
+    .main-logo {
+      width: 15mm;
+      height: 15mm;
+      margin: 0 auto 1.5mm;
+      background: #0f172a;
+      border-radius: 50%;
+      border: 2px solid #ca8a04;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cinzel', serif;
+      font-size: 7.5pt;
+      font-weight: 700;
+      color: #fff;
+    }
+    .org-title {
+      font-family: 'Cinzel', serif;
+      font-size: 13pt;
+      font-weight: 800;
+      letter-spacing: 4px;
+      color: #0f172a;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+    .sub-org-title {
+      font-size: 6.5pt;
+      color: #64748b;
+      letter-spacing: 1px;
+      margin-top: 0.5mm;
+      font-weight: 600;
+    }
+
+    .cert-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 26pt;
+      font-weight: 900;
+      font-style: italic;
+      color: #0f172a;
+      text-align: center;
+      letter-spacing: 2px;
+      margin: 1.5mm 0;
+      position: relative;
+    }
+    .reg-number {
+      font-size: 8.5pt;
+      color: #334155;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+      margin-bottom: 4mm;
+    }
+    .reg-number span {
+      border-bottom: 1.5px solid #0f172a;
+      padding: 0 4mm 0.5mm;
+      font-weight: 700;
+    }
+
+    .details-section {
+      display: flex;
+      gap: 12mm;
+      align-items: center;
+      margin: 2mm auto;
+      max-width: 220mm;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .photo-container {
+      width: 30mm;
+      height: 40mm;
+      border: 1px solid #cbd5e1;
+      position: relative;
+      flex-shrink: 0;
+      background: #f8fafc;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .photo-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .info-table {
+      flex-grow: 1;
+      font-size: 9.5pt;
+      color: #0f172a;
+      border-collapse: collapse;
+    }
+    .info-table td {
+      padding: 2.2mm 0;
+    }
+    .info-table .label {
+      width: 32mm;
+      color: #475569;
+      font-weight: 500;
+    }
+    .info-table .dots {
+      width: 4mm;
+      text-align: center;
+      font-weight: bold;
+      color: #334155;
+    }
+    .info-table .value {
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: 0.5px;
+    }
+
+    .verdict-paragraph {
+      text-align: center;
+      font-size: 8.5pt;
+      color: #334155;
+      line-height: 1.6;
+      margin: 3mm auto;
+      max-width: 220mm;
+      position: relative;
+      z-index: 10;
+    }
+    .verdict-paragraph strong {
+      color: #0f172a;
+      font-weight: 800;
+    }
+
+    .footer-signatures {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 0 10mm;
+      margin-top: 1mm;
+      position: relative;
+      z-index: 10;
+    }
+    .sig-block {
+      text-align: center;
+      min-width: 55mm;
+      position: relative;
+    }
+    .sig-label {
+      font-size: 7.5pt;
+      font-weight: 800;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12mm;
+    }
+    .sig-underline {
+      width: 50mm;
+      height: 1px;
+      background: #0f172a;
+      margin: 1.5mm auto;
+    }
+    .sig-name {
+      font-size: 8.5pt;
+      font-weight: 800;
+      color: #0f172a;
+      text-transform: uppercase;
+    }
+    .sig-title {
+      font-size: 7pt;
+      font-weight: 600;
+      color: #64748b;
+      margin-top: 0.5mm;
+    }
+    
+    .qr-verify-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5mm;
+    }
+    .qr-stamp-box {
+      border: 1px solid #e2e8f0;
+      padding: 1.2mm;
+      border-radius: 1.5mm;
+      background: #fff;
+    }
+
+    @media print { 
+      @page { size: A4 landscape; margin: 0; } 
+      html, body { width: 297mm; height: 210mm; background: #fff; } 
+      .cert { width: 297mm; height: 210mm; border-radius: 0; box-shadow: none; border-color: #ca8a04; }
+    }
   </style>
 </head>
 <body>
   <div class="cert">
     <div class="watermark">TAEKWONDO</div>
-    <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
-    <div class="corner corner-bl"></div><div class="corner corner-br"></div>
-    <div class="content header">
-      <div class="org-left">
-        <div class="logo-circle">${dojangShort}</div>
-        <div>
-          <div class="org-name">${dojangName}</div>
-          <div class="org-sub">Dojang Pusat &middot; Terdaftar di bawah PBTI / World Taekwondo</div>
-        </div>
-      </div>
-      <div class="cert-badge">${dojangName}<span>Certificate of Rank Promotion &middot; Geup Examination</span></div>
+    
+    <div class="korean-decor">국기원 태권도</div>
+
+    <div class="geup-indicator">
+      <span class="geup-text">GEUP</span>
+      <span class="geup-number">${currentBelt.includes("Geup") ? currentBelt.match(/\\d+/)?.[0] || "10" : "1"}</span>
     </div>
-    <div class="content body">
-      <div class="body-main">
-        <div class="awarded-to">Diberikan Kepada &nbsp;/&nbsp; Awarded To</div>
-        <div class="recipient-name">${dynamicFullName}</div>
-        <div class="gold-divider"></div>
-        <p class="description">Telah berhasil mengikuti dan dinyatakan <strong>LULUS</strong> dalam Ujian Kenaikan Tingkat (UKT) sesuai standar <strong>Kukkiwon / PBTI</strong> dengan nilai memenuhi batas kelulusan minimum yang ditetapkan.</p>
-        <div class="details-grid">
-          <div><span class="detail-label">No. Anggota</span><span class="detail-value">${memberNum}</span></div>
-          <div><span class="detail-label">Dojang</span><span class="detail-value">${dojangName}</span></div>
-          <div><span class="detail-label">Tanggal Ujian</span><span class="detail-value">${lastPassed}</span></div>
-          <div><span class="detail-label">Tingkat yang Diraih</span><span class="detail-value" style="color:#fbbf24">${belt}</span></div>
-          <div><span class="detail-label">Status</span><span class="detail-value" style="color:#4ade80">LULUS / PASSED</span></div>
-          <div><span class="detail-label">No. Sertifikat</span><span class="detail-value" style="font-size:6pt;font-family:monospace">${certNo}</span></div>
-        </div>
-      </div>
-      <div class="body-side">
-        <div class="belt-badge">
-          <span class="belt-rank-label">Tingkat yang Dicapai</span>
-          <div class="belt-rank-value">${belt}</div>
-          <span class="belt-rank-sub">LULUS &middot; PASSED</span>
-        </div>
-        <div><div class="qr-box"><img src="${qrUrl}" width="80" height="80" alt="QR"/></div>
-        <span class="qr-label">Scan untuk verifikasi keaslian</span></div>
-      </div>
+
+    <div class="header-group">
+      <div class="main-logo">WTT</div>
+      <h2 class="org-title">PENGURUS BESAR TAEKWONDO INDONESIA</h2>
+      <p class="sub-org-title">Dojang Pusat ${dojangName} &middot; Afiliasi Resmi Pengprov Taekwondo Indonesia</p>
     </div>
-    <div class="content footer">
-      <div>
-        <div class="cert-number">No. Sertifikat: ${certNo}</div>
-        <div class="validity">Sertifikat ini diterbitkan secara resmi oleh ${dojangName}.</div>
+
+    <div>
+      <h1 class="cert-title">Sertifikat</h1>
+      <div class="reg-number">No Reg. <span>${numPart}${now.getFullYear()}${Math.floor(1000 + Math.random() * 9000)}</span></div>
+    </div>
+
+    <div class="details-section">
+      <div class="photo-container">
+        ${profile?.selfieUrl ? `<img src="${profile.selfieUrl}" alt="Foto Anggota" class="photo-img" />` : `<div style="width:100%;height:100%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:7pt;font-weight:bold;text-align:center;padding:2mm">FOTO 3X4</div>`}
       </div>
-      <div class="sig-block"><div class="sig-line"></div><div class="sig-name">Master Ahmad</div><div class="sig-title">Penguji Utama &middot; 6th Dan (Kukkiwon)</div></div>
-      <div class="sig-block"><div class="sig-line"></div><div class="sig-name">Ketua Pengurus Dojang</div><div class="sig-title">${dojangName}</div></div>
-      <div class="sig-block"><div class="sig-line"></div><div class="sig-name">Saksi / Sekretaris</div><div class="sig-title">Ujian Kenaikan Tingkat</div></div>
+      
+      <table class="info-table">
+        <tr>
+          <td class="label">Nama</td>
+          <td class="dots">:</td>
+          <td class="value">${dynamicFullName.toUpperCase()}</td>
+        </tr>
+        <tr>
+          <td class="label">Tingkat Sabuk</td>
+          <td class="dots">:</td>
+          <td class="value">${currentBelt}</td>
+        </tr>
+        <tr>
+          <td class="label">PENGPROV</td>
+          <td class="dots">:</td>
+          <td class="value">Jawa Timur</td>
+        </tr>
+        <tr>
+          <td class="label">Dojang Asal</td>
+          <td class="dots">:</td>
+          <td class="value">${dojangName}</td>
+        </tr>
+      </table>
+    </div>
+
+    <p class="verdict-paragraph">
+      Telah dinyatakan lulus <strong>UJIAN KENAIKAN TINGKAT</strong> yang diselenggarakan oleh 
+      <strong>Pengurus Besar Taekwondo Indonesia (P.B.T.I.)</strong> pada tanggal <strong>${lastPassed}</strong> di <strong>Dojang Pusat ${dojangName}</strong>.
+    </p>
+
+    <div class="footer-signatures">
+      <div class="sig-block">
+        <div class="sig-label">PENGUJI</div>
+        <div class="sig-name">Master Ahmad</div>
+        <div class="sig-underline"></div>
+        <div class="sig-title">DAN 6 / Kukkiwon</div>
+      </div>
+
+      <div class="qr-verify-group">
+        <div class="qr-stamp-box">
+          <img src="${qrUrl}" width="52" height="52" alt="QR Verify" />
+        </div>
+        <span style="font-size:5pt;color:#64748b;font-weight:700;letter-spacing:0.5px">PINDAI UNTUK VERIFIKASI</span>
+      </div>
+
+      <div class="sig-block">
+        <div class="sig-label">PENGPROV TI Jawa Timur</div>
+        <div class="sig-name">YUSMAN MADAYUN, S.I.P.</div>
+        <div class="sig-underline"></div>
+        <div class="sig-title">KETUA</div>
+      </div>
     </div>
   </div>
   <script>window.onload=function(){setTimeout(function(){window.print();},600);};<\/script>
-</body></html>`;
-
+</body>
+</html>`;
     const pw = window.open("", "_blank", "width=1120,height=800");
     if (pw) { pw.document.write(htmlContent); pw.document.close(); }
     else alert("Pop-up diblokir browser. Izinkan pop-up untuk mencetak sertifikat.");

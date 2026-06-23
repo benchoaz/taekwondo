@@ -131,10 +131,10 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
                 <span className="text-4xl font-black text-white italic tracking-tighter drop-shadow-md">TKD</span>
               </div>
             </motion.div>
-            <div className="flex flex-col items-center">
-              <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="text-5xl md:text-7xl font-black text-white tracking-widest font-display text-center">TAEKWONDO</motion.h1>
-              <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }} className="text-3xl md:text-5xl font-black text-[#E10600] tracking-widest font-display text-center mt-[-10px]">ACADEMY</motion.h1>
-              <motion.p initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.8 }} className="text-gray-300 text-xs md:text-sm mt-6 font-medium tracking-[0.4em] uppercase">Disiplin • Integritas • Prestasi</motion.p>
+            <div className="flex flex-col items-center w-full px-4">
+              <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="text-3xl sm:text-5xl md:text-7xl font-black text-white tracking-[0.1em] sm:tracking-widest font-display text-center">TAEKWONDO</motion.h1>
+              <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }} className="text-2xl sm:text-3xl md:text-5xl font-black text-[#E10600] tracking-[0.1em] sm:tracking-widest font-display text-center mt-[-5px] md:mt-[-10px]">ACADEMY</motion.h1>
+              <motion.p initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.8 }} className="text-gray-300 text-[10px] sm:text-xs md:text-sm mt-6 font-medium tracking-[0.15em] sm:tracking-[0.4em] uppercase text-center">Disiplin • Integritas • Prestasi</motion.p>
             </div>
           </motion.div>
         )}
@@ -307,63 +307,65 @@ function ChampionSlider({ onEnter }: { onEnter: () => void }) {
         ))}
 
         {/* ── CONTENT OVERLAY — hanya untuk slide aktif ── */}
-        <div className="absolute inset-0 z-30 flex flex-col justify-center px-12 md:px-24 pointer-events-none">
+        <div className="absolute inset-0 z-30 flex flex-col justify-center px-6 md:px-16 lg:px-24 pointer-events-none">
           {/* Hall of Champions badge */}
           <motion.div
             key={ordered[0]?.id + "-badge"}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex items-center gap-2 mb-6"
+            className="flex items-center gap-2 mb-4 md:mb-6"
           >
-            <Trophy className="w-5 h-5 text-yellow-400" />
-            <span className="text-yellow-400 font-black text-sm uppercase tracking-[0.3em]">
+            <Trophy className="w-4 h-4 md:w-5 md:h-5 text-yellow-400" />
+            <span className="text-yellow-400 font-black text-xs md:text-sm uppercase tracking-[0.3em]">
               Hall of Champions
             </span>
           </motion.div>
 
           {/* Caption — slide dengan re-key agar re-animate */}
-          <motion.div
-            key={ordered[0]?.id + "-content"}
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -30 }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
-          >
-            {/* 🏆 Badge prestasi */}
-            <div className="inline-flex items-center gap-2 bg-[#E10600]/20 border border-[#E10600]/40 rounded-full px-4 py-1.5 mb-4">
-              <span className="text-[#E10600] text-xs font-black uppercase tracking-widest">
-                🥇 Sang Juara
-              </span>
-            </div>
+          <div className="h-[240px] md:h-[340px] flex flex-col justify-end mb-6 md:mb-8">
+            <motion.div
+              key={ordered[0]?.id + "-content"}
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+            >
+              {/* 🏆 Badge prestasi */}
+              <div className="inline-flex items-center gap-2 bg-[#E10600]/20 border border-[#E10600]/40 rounded-full px-3 py-1 md:px-4 md:py-1.5 mb-3 md:mb-4">
+                <span className="text-[#E10600] text-[10px] md:text-xs font-black uppercase tracking-widest">
+                  🥇 Sang Juara
+                </span>
+              </div>
 
-            {ordered[0]?.caption && (
-              <h2 className="text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight mb-4 max-w-xl"
-                style={{ textShadow: "0 4px 20px rgba(0,0,0,0.8)" }}>
-                {ordered[0].caption}
-              </h2>
-            )}
+              {ordered[0]?.caption && (
+                <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-black text-white leading-tight mb-3 md:mb-4 max-w-xl"
+                  style={{ textShadow: "0 4px 20px rgba(0,0,0,0.8)" }}>
+                  {ordered[0].caption}
+                </h2>
+              )}
 
-            {ordered[0]?.subtext && (
-              <p className="text-[#E10600] text-base md:text-xl font-bold uppercase tracking-widest mb-8">
-                {ordered[0].subtext}
-              </p>
-            )}
-          </motion.div>
+              {ordered[0]?.subtext && (
+                <p className="text-[#E10600] text-sm sm:text-base md:text-xl font-bold uppercase tracking-widest mb-2">
+                  {ordered[0].subtext}
+                </p>
+              )}
+            </motion.div>
+          </div>
 
           {/* ── ENTER BUTTON ── */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8, duration: 0.6 }}
-            className="pointer-events-auto flex items-center gap-6"
+            className="pointer-events-auto flex flex-col sm:flex-row items-start sm:items-center gap-6"
           >
             <button
               onClick={onEnter}
-              className="group relative flex items-center gap-3 bg-[#E10600] hover:bg-white text-white hover:text-[#E10600] px-8 py-4 rounded-full font-black text-base uppercase tracking-widest shadow-[0_0_40px_rgba(225,6,0,0.5)] hover:shadow-none transition-all duration-300 hover:scale-105 active:scale-95"
+              className="group relative flex items-center justify-center gap-3 bg-[#E10600] hover:bg-white text-white hover:text-[#E10600] px-6 py-3 md:px-8 md:py-4 rounded-full font-black text-sm md:text-base uppercase tracking-widest shadow-[0_0_40px_rgba(225,6,0,0.5)] hover:shadow-none transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap"
             >
               <span>Masuk ke Dojang</span>
-              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-1" />
               {/* Pulsing ring */}
               <span className="absolute inset-0 rounded-full border-2 border-[#E10600] animate-ping opacity-30 pointer-events-none" />
             </button>
@@ -376,8 +378,8 @@ function ChampionSlider({ onEnter }: { onEnter: () => void }) {
                   onClick={() => setActive(i)}
                   className={`transition-all duration-500 rounded-full pointer-events-auto ${
                     i === active
-                      ? "w-8 h-2.5 bg-[#E10600] shadow-md shadow-[#E10600]/50"
-                      : "w-2.5 h-2.5 bg-white/30 hover:bg-white/70"
+                      ? "w-6 h-2 md:w-8 md:h-2.5 bg-[#E10600] shadow-md shadow-[#E10600]/50"
+                      : "w-2 h-2 md:w-2.5 md:h-2.5 bg-white/30 hover:bg-white/70"
                   }`}
                 />
               ))}
@@ -386,19 +388,20 @@ function ChampionSlider({ onEnter }: { onEnter: () => void }) {
         </div>
 
         {/* ── Navigation Arrows ── */}
-        <button
-          onClick={prev}
-          className="absolute bottom-12 left-24 z-40 bg-white/10 hover:bg-[#E10600] backdrop-blur-md border border-white/20 text-white rounded-full p-3 transition-all hover:scale-110 md:left-24"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <button
-          onClick={next}
-          className="absolute bottom-12 z-40 bg-white/10 hover:bg-[#E10600] backdrop-blur-md border border-white/20 text-white rounded-full p-3 transition-all hover:scale-110"
-          style={{ left: "calc(6rem + 52px)" }}
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
+        <div className="absolute bottom-8 right-6 md:bottom-12 md:right-24 z-40 flex items-center gap-3 md:gap-4">
+          <button
+            onClick={prev}
+            className="bg-black/50 md:bg-white/10 hover:bg-[#E10600] backdrop-blur-md border border-white/20 text-white rounded-full p-2.5 md:p-3 transition-all hover:scale-110 shadow-lg"
+          >
+            <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
+          <button
+            onClick={next}
+            className="bg-black/50 md:bg-white/10 hover:bg-[#E10600] backdrop-blur-md border border-white/20 text-white rounded-full p-2.5 md:p-3 transition-all hover:scale-110 shadow-lg"
+          >
+            <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
+        </div>
 
         {/* Slide counter */}
         <div className="absolute top-8 right-8 z-40 text-white/50 text-xs font-bold tracking-widest">

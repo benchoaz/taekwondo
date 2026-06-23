@@ -1,3 +1,4 @@
+// Cache buster: 2026-06-23 v2
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -14,7 +15,6 @@ import {
   DollarSign,
   AlertCircle,
   Edit,
-  Clipboard,
   Trash2,
   Upload,
   Globe,
@@ -304,19 +304,40 @@ export default function AdminDashboard({
   const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1); // 1-12
   const [reportYear, setReportYear] = useState(new Date().getFullYear());
 
-  // Load initial data
+  // Load essential settings on mount
   useEffect(() => {
     fetchSettings();
-    fetchUsers();
-    fetchArticles();
-    fetchCoaches();
-    fetchPayments();
-    fetchCandidates();
-    fetchSchedules();
-    fetchAchievements();
-    fetchHeroSlides();
-    fetchExpenses();
   }, []);
+
+  // Lazy load data based on active tab to optimize initial load speed and reduce network load
+  useEffect(() => {
+    if (activeTab === "payments") {
+      fetchPayments();
+      fetchUsers(); // Needed for billing/member selection
+    } else if (activeTab === "ukt_candidates") {
+      fetchCandidates();
+      fetchUsers(); // Needed for member selection
+    } else if (activeTab === "users") {
+      fetchUsers();
+    } else if (activeTab === "coaches") {
+      fetchCoaches();
+    } else if (activeTab === "schedules") {
+      fetchSchedules();
+      fetchCoaches(); // Needed for assigning coaches to schedules
+    } else if (activeTab === "achievements") {
+      fetchAchievements();
+    } else if (activeTab === "hero_slides") {
+      fetchHeroSlides();
+    } else if (activeTab === "settings") {
+      fetchSettings();
+    } else if (activeTab === "events") {
+      fetchArticles();
+    } else if (activeTab === "analytics") {
+      fetchPayments();
+      fetchExpenses();
+      fetchCoaches();
+    }
+  }, [activeTab]);
 
   const fetchSettings = async () => {
     try {
@@ -1414,41 +1435,98 @@ export default function AdminDashboard({
                   </form>
                 </div>
 
-                {/* Generator Laporan Bulanan */}
-                <div className="bg-white border border-[#0F172A]/5 rounded-2xl p-6 shadow-sm flex flex-col gap-6">
-                  <div>
-                    <h3 className="font-extrabold text-sm text-[#0F172A]">Generator Laporan WhatsApp</h3>
-                    <p className="text-gray-400 text-xs mt-1">Salin format laporan ini untuk di-share ke grup orang tua murid (Bendahara).</p>
+                {/* Unduh Laporan Keuangan */}
+                <div className="bg-white border border-[#0F172A]/5 rounded-2xl p-6 shadow-sm flex flex-col justify-center items-center text-center gap-4">
+                  <div className="bg-[#E10600]/10 w-16 h-16 rounded-full flex items-center justify-center mb-2">
+                    <svg className="w-8 h-8 text-[#E10600]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                   </div>
-                  <div className="bg-[#F8FAFC] rounded-xl p-4 text-xs font-mono text-[#0F172A] whitespace-pre-wrap flex-grow overflow-auto border border-[#0F172A]/5 h-[280px]">
-{`*LAPORAN KEUANGAN DOJANG TAEKWONDO*
-Periode: ${new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
-
-*Pemasukan Lunas:*
-• Iuran & SPP: Rp ${(sppTotal + iuranTotal).toLocaleString("id-ID")}
-• UKT & Event: Rp ${(uktTotal + perlombaanTotal).toLocaleString("id-ID")}
----------------------------
-Total Pemasukan: Rp ${(sppTotal + iuranTotal + uktTotal + perlombaanTotal).toLocaleString("id-ID")}
-
-*Pengeluaran:*
-• Beli Alat/Operasional: Rp ${pengeluaranTotal.toLocaleString("id-ID")}
----------------------------
-
-*SALDO KAS SAAT INI: Rp ${kasBersih.toLocaleString("id-ID")}*
-
-*Catatan Piutang:*
-Total iuran belum lunas/pending: Rp ${piutangTotal.toLocaleString("id-ID")} (${pendingCount} Tagihan)
-
-_Mohon bagi member yang masih memiliki tunggakan iuran mingguan untuk segera melunasinya. Terima kasih!_`}
+                  <div>
+                    <h3 className="font-extrabold text-lg text-[#0F172A]">Laporan Keuangan Bulanan</h3>
+                    <p className="text-gray-400 text-sm mt-2 max-w-[250px] mx-auto">
+                      Unduh ringkasan kas masuk, kas keluar, dan rekap piutang dalam format CSV (Excel).
+                    </p>
                   </div>
                   <button onClick={() => {
-                    const text = `*LAPORAN KEUANGAN DOJANG TAEKWONDO*\nPeriode: ${new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}\n\n*Pemasukan Lunas:*\n• Iuran & SPP: Rp ${(sppTotal + iuranTotal).toLocaleString("id-ID")}\n• UKT & Event: Rp ${(uktTotal + perlombaanTotal).toLocaleString("id-ID")}\n---------------------------\nTotal Pemasukan: Rp ${(sppTotal + iuranTotal + uktTotal + perlombaanTotal).toLocaleString("id-ID")}\n\n*Pengeluaran:*\n• Beli Alat/Operasional: Rp ${pengeluaranTotal.toLocaleString("id-ID")}\n---------------------------\n\n*SALDO KAS SAAT INI: Rp ${kasBersih.toLocaleString("id-ID")}*\n\n*Catatan Piutang:*\nTotal iuran belum lunas/pending: Rp ${piutangTotal.toLocaleString("id-ID")} (${pendingCount} Tagihan)\n\n_Mohon bagi member yang masih memiliki tunggakan iuran mingguan untuk segera melunasinya. Terima kasih!_`;
-                    navigator.clipboard.writeText(text);
-                    alert("Teks Laporan berhasil disalin ke Clipboard!");
-                  }} className="h-12 border border-[#0F172A] hover:bg-[#0F172A] hover:text-white text-[#0F172A] font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2">
-                    <Clipboard className="w-4 h-4" /> Salin Laporan ke WhatsApp
+                    const csvContent = "LAPORAN KEUANGAN DOJANG TAEKWONDO\\n" +
+                      `Periode,${new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}\\n\\n` +
+                      "KATEGORI,NOMINAL\\n" +
+                      `Iuran & SPP Lunas,${sppTotal + iuranTotal}\\n` +
+                      `UKT & Event Lunas,${uktTotal + perlombaanTotal}\\n` +
+                      `Total Pemasukan,${sppTotal + iuranTotal + uktTotal + perlombaanTotal}\\n\\n` +
+                      `Pengeluaran Operasional,${pengeluaranTotal}\\n\\n` +
+                      `SALDO KAS SAAT INI,${kasBersih}\\n\\n` +
+                      `Piutang Belum Lunas,${piutangTotal}\\n` +
+                      `Jumlah Tagihan Pending,${pendingCount}\\n`;
+
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `Laporan_Keuangan_${new Date().toISOString().slice(0,10)}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }} className="h-12 px-8 mt-4 bg-[#0F172A] hover:bg-[#E10600] text-white font-bold text-sm rounded-xl transition-colors flex items-center justify-center gap-2 w-full md:w-auto">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Download Laporan CSV
                   </button>
                 </div>
+              </div>
+
+              {/* Riwayat Pengeluaran */}
+              <div className="bg-white border border-[#0F172A]/5 rounded-2xl p-6 shadow-sm mt-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                  <div>
+                    <h3 className="font-extrabold text-sm text-[#0F172A]">Riwayat Pengeluaran (Buku Kas Keluar)</h3>
+                    <p className="text-gray-400 text-xs mt-1">Daftar semua pengeluaran yang telah dicatat.</p>
+                  </div>
+                </div>
+                {isLoadingExpenses ? (
+                  <div className="flex justify-center py-8">
+                    <div className="w-8 h-8 border-4 border-[#E10600] border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                ) : expenses.length === 0 ? (
+                  <div className="text-center py-8 bg-[#F8FAFC] rounded-xl border border-[#0F172A]/5">
+                    <p className="text-xs text-gray-500 font-medium">Belum ada catatan pengeluaran.</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm whitespace-nowrap">
+                      <thead>
+                        <tr className="border-b border-[#0F172A]/5">
+                          <th className="pb-3 font-bold text-[#0F172A] text-xs uppercase">Tanggal</th>
+                          <th className="pb-3 font-bold text-[#0F172A] text-xs uppercase">Keterangan</th>
+                          <th className="pb-3 font-bold text-[#0F172A] text-xs uppercase text-right">Nominal</th>
+                          <th className="pb-3 font-bold text-[#0F172A] text-xs uppercase text-right">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {expenses.map((exp) => (
+                          <tr key={exp.id} className="border-b border-[#0F172A]/5 hover:bg-[#F8FAFC]/50 transition-colors">
+                            <td className="py-4 text-[#0F172A] font-medium text-xs">
+                              {new Date(exp.date).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
+                            </td>
+                            <td className="py-4 text-gray-600 text-xs">{exp.description}</td>
+                            <td className="py-4 text-[#E10600] font-bold text-xs text-right">
+                              Rp {exp.amount.toLocaleString("id-ID")}
+                            </td>
+                            <td className="py-4 text-right">
+                              <button
+                                onClick={() => handleDeleteExpense(exp.id)}
+                                className="text-gray-400 hover:text-red-600 p-2 transition-colors cursor-pointer"
+                                title="Hapus Pengeluaran"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
 
               {/* Card Pengaturan Tarif Iuran */}

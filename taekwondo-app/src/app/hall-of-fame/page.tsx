@@ -116,9 +116,74 @@ export default function HallOfFamePage() {
                         </div>
                       )}
                     </div>
-                    <div className="pb-3">
+                    <div className="pb-3 flex-grow">
                       <h3 className="font-black text-2xl text-white tracking-tight drop-shadow-md">{ach.member?.fullName}</h3>
-                      <span className="text-sm font-bold text-yellow-400 tracking-wider uppercase">{ach.member?.currentBelt}</span>
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        <span className="text-[10px] font-bold text-yellow-400 tracking-wider uppercase bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded-md">{ach.member?.currentBelt}</span>
+                        {(() => {
+                          const memberId = ach.member?.id;
+                          if (!memberId) return null;
+                          const memberAchievements = achievements.filter(a => a.member?.id === memberId);
+                          const gold = memberAchievements.filter(a => a.rank === "Emas").length;
+                          const silver = memberAchievements.filter(a => a.rank === "Perak").length;
+                          const bronze = memberAchievements.filter(a => a.rank === "Perunggu" || a.rank === "Amber" || (!["Emas", "Perak"].includes(a.rank || ""))).length;
+                          
+                          if (gold === 0 && silver === 0 && bronze === 0) return null;
+
+                          return (
+                            <div className="flex items-center gap-1.5 bg-slate-950/80 border border-white/10 px-2.5 py-1 rounded-lg backdrop-blur-md shadow-inner">
+                              {gold > 0 && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-yellow-400" title={`${gold} Medali Emas`}>
+                                  <svg className="w-3.5 h-3.5 filter drop-shadow-[0_0_2px_rgba(250,204,21,0.5)]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" fill="url(#goldGradient)" stroke="#FACC15" strokeWidth="1.5"/>
+                                    <path d="M12 6L13.5 9.5H17L14.2 11.5L15.5 15L12 13L8.5 15L9.8 11.5L7 9.5H10.5L12 6Z" fill="#713F12"/>
+                                    <defs>
+                                      <linearGradient id="goldGradient" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+                                        <stop stopColor="#FEF08A"/>
+                                        <stop offset="0.5" stopColor="#CA8A04"/>
+                                        <stop offset="1" stopColor="#854D0E"/>
+                                      </linearGradient>
+                                    </defs>
+                                  </svg>
+                                  {gold}
+                                </span>
+                              )}
+                              {silver > 0 && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-slate-200" title={`${silver} Medali Perak`}>
+                                  <svg className="w-3.5 h-3.5 filter drop-shadow-[0_0_2px_rgba(226,232,240,0.5)]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" fill="url(#silverGradient)" stroke="#E2E8F0" strokeWidth="1.5"/>
+                                    <path d="M12 6L13.5 9.5H17L14.2 11.5L15.5 15L12 13L8.5 15L9.8 11.5L7 9.5H10.5L12 6Z" fill="#334155"/>
+                                    <defs>
+                                      <linearGradient id="silverGradient" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+                                        <stop stopColor="#F8FAFC"/>
+                                        <stop offset="0.5" stopColor="#94A3B8"/>
+                                        <stop offset="1" stopColor="#475569"/>
+                                      </linearGradient>
+                                    </defs>
+                                  </svg>
+                                  {silver}
+                                </span>
+                              )}
+                              {bronze > 0 && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-500" title={`${bronze} Medali Perunggu`}>
+                                  <svg className="w-3.5 h-3.5 filter drop-shadow-[0_0_2px_rgba(249,115,22,0.5)]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="12" cy="12" r="10" fill="url(#bronzeGradient)" stroke="#F97316" strokeWidth="1.5"/>
+                                    <path d="M12 6L13.5 9.5H17L14.2 11.5L15.5 15L12 13L8.5 15L9.8 11.5L7 9.5H10.5L12 6Z" fill="#7C2D12"/>
+                                    <defs>
+                                      <linearGradient id="bronzeGradient" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+                                        <stop stopColor="#FFEDD5"/>
+                                        <stop offset="0.5" stopColor="#EA580C"/>
+                                        <stop offset="1" stopColor="#9A3412"/>
+                                      </linearGradient>
+                                    </defs>
+                                  </svg>
+                                  {bronze}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
                     </div>
                   </div>
 

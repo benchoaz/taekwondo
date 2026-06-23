@@ -8,6 +8,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/login',
     routes: [
       GoRoute(
+        path: '/',
+        redirect: (context, state) => '/login',
+      ),
+      GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
       ),

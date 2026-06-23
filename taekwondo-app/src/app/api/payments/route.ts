@@ -1,21 +1,33 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+// Store last check time globally to survive Hot Module Reloading in Next.js development mode
+if (!(global as any).lastOverdueCheck) {
+  (global as any).lastOverdueCheck = 0;
+}
+
+const TEN_MINUTES = 10 * 60 * 1000;
+
 export async function GET() {
   try {
-    // Dynamically check and update past-due PENDING payments to OVERDUE status
     const now = new Date();
-    await prisma.payment.updateMany({
-      where: {
-        status: "PENDING",
-        dueDate: {
-          lt: now,
+    
+    // Only run updateMany if at least 10 minutes have passed since the last check
+    if (Date.now() - (global as any).lastOverdueCheck > TEN_MINUTES) {
+      (global as any).lastOverdueCheck = Date.now();
+      // Run update asynchronously without awaiting it to avoid blocking the GET request
+      prisma.payment.updateMany({
+        where: {
+          status: "PENDING",
+          dueDate: {
+            lt: now,
+          },
         },
-      },
-      data: {
-        status: "OVERDUE",
-      },
-    });
+        data: {
+          status: "OVERDUE",
+        },
+      }).catch((err) => console.error("Error updating overdue payments in background:", err));
+    }
 
     const payments = await prisma.payment.findMany({
       include: {

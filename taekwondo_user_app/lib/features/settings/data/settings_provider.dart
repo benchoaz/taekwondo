@@ -3,11 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_constants.dart';
 import '../domain/setting_model.dart';
 
-final dioProvider = Provider((ref) => Dio());
+// ✅ TIDAK lagi mendefinisikan dioProvider di sini (sudah ada di core/network/dio_client.dart)
+// settingsProvider menggunakan dioProvider dari dio_client
 
 final settingsProvider = FutureProvider<SettingModel>((ref) async {
-  final dio = ref.watch(dioProvider);
-  
+  // Buat Dio sederhana untuk settings (tidak butuh auth token)
+  final dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 10),
+  ));
+
   try {
     final response = await dio.get('${ApiConstants.baseUrl}${ApiConstants.settingsEndpoint}');
     
@@ -17,10 +22,10 @@ final settingsProvider = FutureProvider<SettingModel>((ref) async {
       throw Exception('Failed to load settings');
     }
   } catch (e) {
-    // If backend is unreachable, return a default fallback model
+    // Jika backend tidak bisa diakses, kembalikan data default
     return SettingModel(
-      dojangName: 'DOJO MASTER',
-      motto: 'PRECISION & DISCIPLINE',
+      dojangName: 'TAEKWONDO ACADEMY',
+      motto: 'Disiplin • Integritas • Prestasi',
     );
   }
 });

@@ -103,7 +103,7 @@ class MemberDashboardScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF0F172A),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey.withOpacity(0.3)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
             ),
             child: IconButton(
               icon: const Icon(Icons.notifications_none, color: Colors.white),
@@ -129,7 +129,7 @@ class MemberDashboardScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.red.withOpacity(0.4),
+            color: Colors.red.withValues(alpha: 0.4),
             blurRadius: 20,
             offset: const Offset(0, 10),
           )
@@ -166,7 +166,7 @@ class MemberDashboardScreen extends ConsumerWidget {
           Text(
             'ID: ${user.memberNumber ?? "-"}',
             style: GoogleFonts.inter(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: 13,
               letterSpacing: 1.5,
             ),
@@ -199,7 +199,7 @@ class MemberDashboardScreen extends ConsumerWidget {
             child: LinearProgressIndicator(
               value: (user.progress ?? 0) / 100.0,
               minHeight: 8,
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
             ),
           ),
@@ -241,7 +241,7 @@ class MemberDashboardScreen extends ConsumerWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF1E293B),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.05)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
             ),
             child: Icon(icon, color: color, size: 24),
           ),
@@ -299,7 +299,7 @@ class MemberDashboardScreen extends ConsumerWidget {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.1),
+            color: iconColor.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: iconColor, size: 20),

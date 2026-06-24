@@ -1,27 +1,35 @@
+import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../constants/api_constants.dart';
 
 final dioProvider = Provider<Dio>((ref) {
-  // Replace with your actual server IP or domain when running on a physical device.
-  // Using 10.0.2.2 for Android Emulator connecting to localhost.
   final dio = Dio(BaseOptions(
-    baseUrl: 'http://10.0.2.2:3002/api',
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 10),
+    // ✅ Menggunakan URL yang sama dengan ApiConstants (Production / Cloudflare Tunnel)
+    baseUrl: ApiConstants.baseUrl,
+    connectTimeout: const Duration(seconds: 15),
+    receiveTimeout: const Duration(seconds: 15),
     headers: {
       'Content-Type': 'application/json',
     },
   ));
 
-  // Add interceptors for logging and adding tokens
+  // ✅ Interceptor mengirim JWT token dari SecureStorage ke setiap request
+  const storage = FlutterSecureStorage();
   dio.interceptors.add(InterceptorsWrapper(
-    onRequest: (options, handler) {
-      // TODO: Get token from secure storage and add to headers
-      // final token = await secureStorage.read(key: 'token');
-      // if (token != null) {
-      //   options.headers['Authorization'] = 'Bearer $token';
-      // }
+    onRequest: (options, handler) async {
+      final token = await storage.read(key: 'auth_token');
+      if (token != null) {
+        options.headers['Authorization'] = 'Bearer $token';
+      }
       return handler.next(options);
+    },
+    onError: (DioException e, handler) {
+      // Log error untuk debugging
+      // ignore: avoid_print
+      debugPrint('[DioError] ${e.requestOptions.path}: ${e.message}');
+      return handler.next(e);
     },
   ));
 

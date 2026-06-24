@@ -31,6 +31,7 @@ import {
   User
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import SppManagement from "./SppManagement";
 
 interface SettingData {
   logoUrl: string | null;
@@ -1335,6 +1336,7 @@ export default function AdminDashboard({
                 { id: "ukt_candidates", label: "Pendaftar Ujian UKT", icon: <UserCheck className="w-4 h-4" /> },
                 { id: "analytics", label: "Dashboard Analytics", icon: <TrendingUp className="w-4 h-4" /> },
                 { id: "schedules", label: "Pengaturan Jadwal", icon: <Calendar className="w-4 h-4" /> },
+                { id: "spp", label: "Manajemen SPP", icon: <DollarSign className="w-4 h-4" /> },
                 { id: "users", label: "Manajemen User", icon: <Users className="w-4 h-4" /> },
                 { id: "events", label: "Agenda Kegiatan (Event)", icon: <FileText className="w-4 h-4" /> },
                 { id: "coaches", label: "Manajemen Pelatih", icon: <Shield className="w-4 h-4" /> },
@@ -2071,6 +2073,10 @@ export default function AdminDashboard({
                 </table>
               </div>
             </div>
+          )}
+
+          {activeTab === "spp" && (
+            <SppManagement />
           )}
 
           {activeTab === "ukt_candidates" && (

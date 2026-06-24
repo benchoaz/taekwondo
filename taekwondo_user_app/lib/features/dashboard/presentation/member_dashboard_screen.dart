@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:ui';
 import '../../auth/domain/user_model.dart';
+import '../../spp/presentation/spp_screen.dart';
 
 class MemberDashboardScreen extends ConsumerWidget {
   final UserModel user;
@@ -38,7 +38,7 @@ class MemberDashboardScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: _buildQuickActions(),
+              child: _buildQuickActions(context),
             ),
             const SizedBox(height: 30),
             Padding(
@@ -208,7 +208,7 @@ class MemberDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(BuildContext context) {
     return GridView.count(
       crossAxisCount: 4,
       shrinkWrap: true,
@@ -216,38 +216,46 @@ class MemberDashboardScreen extends ConsumerWidget {
       mainAxisSpacing: 16,
       crossAxisSpacing: 16,
       children: [
-        _buildActionItem(Icons.calendar_month, 'Jadwal', const Color(0xFF3B82F6)),
-        _buildActionItem(Icons.payments_outlined, 'Bayar', const Color(0xFF10B981)),
-        _buildActionItem(Icons.assignment_turned_in, 'UKT', const Color(0xFFF59E0B)),
-        _buildActionItem(Icons.military_tech, 'Sertifikat', const Color(0xFF8B5CF6)),
+        _buildActionItem(Icons.calendar_month, 'Jadwal', const Color(0xFF3B82F6), () {}),
+        _buildActionItem(Icons.payments_outlined, 'SPP', const Color(0xFF10B981), () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SppScreen(user: user)),
+          );
+        }),
+        _buildActionItem(Icons.assignment_turned_in, 'UKT', const Color(0xFFF59E0B), () {}),
+        _buildActionItem(Icons.military_tech, 'Sertifikat', const Color(0xFF8B5CF6), () {}),
       ],
     );
   }
 
-  Widget _buildActionItem(IconData icon, String label, Color color) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.05)),
+  Widget _buildActionItem(IconData icon, String label, Color color, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withOpacity(0.05)),
+            ),
+            child: Icon(icon, color: color, size: 24),
           ),
-          child: Icon(icon, color: color, size: 24),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            color: Colors.white70,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              color: Colors.white70,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

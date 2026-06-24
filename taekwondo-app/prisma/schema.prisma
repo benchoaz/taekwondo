@@ -73,6 +73,7 @@ model Member {
   kkUrl          String?       @map("kk_url")             // Kartu Keluarga
   paymentProofUrl String?      @map("payment_proof_url")  // Bukti bayar registrasi
   certDocUrl     String?       @map("cert_doc_url")       // Sertifikat sabuk / UKT
+  phone          String?       @map("phone")              // Nomor WhatsApp
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   beltHistory    BeltHistory[]
@@ -81,6 +82,7 @@ model Member {
   payments       Payment[]
   attendances    Attendance[]
   achievements   Achievement[]
+  sppInvoices    SppInvoice[]
 }
 
 model Coach {
@@ -209,6 +211,24 @@ model Payment {
   externalId      String?   @map("external_id")   // ID unik transaksi Xendit QRIS
   paidAt          DateTime? @map("paid_at")        // Timestamp pembayaran dari webhook Xendit
   createdAt       DateTime  @default(now())
+  sppInvoice      SppInvoice?
+}
+
+model SppInvoice {
+  id          String   @id @default(uuid())
+  memberId    String   @map("member_id")
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  month       Int
+  year        Int
+  amount      Float
+  dueDate     DateTime @map("due_date")
+  status      String   @default("UNPAID") // "UNPAID", "PAID", "OVERDUE"
+  paymentId   String?  @map("payment_id") @unique
+  payment     Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@unique([memberId, month, year])
 }
 
 model Expense {

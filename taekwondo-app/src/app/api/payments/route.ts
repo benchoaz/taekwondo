@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
+import { sendSppReceipt } from "@/lib/whatsapp";
 
 // Store last check time globally to survive Hot Module Reloading in Next.js development mode
 if (!(global as any).lastOverdueCheck) {
@@ -56,7 +57,33 @@ export async function POST(request: Request) {
       const updated = await prisma.payment.update({
         where: { id },
         data: { status },
+        include: {
+          member: true,
+          sppInvoice: true
+        }
       });
+
+      // Sinkronisasi SppInvoice
+      if (status === "COMPLETED" && updated.sppInvoice) {
+        await prisma.sppInvoice.update({
+          where: { id: updated.sppInvoice.id },
+          data: { status: "PAID" }
+        });
+
+        // Kirim WhatsApp Receipt
+        if (updated.member.phone) {
+          const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+          const monthName = monthNames[updated.sppInvoice.month - 1];
+          await sendSppReceipt(
+            updated.member.phone,
+            updated.member.fullName,
+            monthName,
+            updated.sppInvoice.year,
+            updated.amount
+          );
+        }
+      }
+
       return NextResponse.json(updated);
     }
 

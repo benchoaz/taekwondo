@@ -68,7 +68,7 @@ export async function POST(request: Request) {
       }
 
       // ─── 4. Update Status Payment ──────────────────────────────────────────
-      await prisma.payment.update({
+      const updatedPayment = await prisma.payment.update({
         where: { id: payment.id },
         data: {
           status: "COMPLETED",
@@ -76,12 +76,39 @@ export async function POST(request: Request) {
           // Simpan nominal yang benar-benar dibayar sebagai referensi
           amount: paidAmount ?? payment.amount,
         },
+        include: {
+          member: true,
+          sppInvoice: true
+        }
       });
 
       console.log(
         `[webhook] ✅ Payment "${payment.id}" berhasil diverifikasi. ` +
         `Nominal: Rp ${paidAmount?.toLocaleString("id-ID") ?? "-"}`
       );
+
+      // Sinkronisasi SppInvoice jika payment terkait dengan SPP
+      if (updatedPayment.sppInvoice) {
+        await prisma.sppInvoice.update({
+          where: { id: updatedPayment.sppInvoice.id },
+          data: { status: "PAID" }
+        });
+
+        // Kirim WhatsApp Receipt
+        if (updatedPayment.member.phone) {
+          const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+          const monthName = monthNames[updatedPayment.sppInvoice.month - 1];
+          const { sendSppReceipt } = await import("@/lib/whatsapp");
+          
+          await sendSppReceipt(
+            updatedPayment.member.phone,
+            updatedPayment.member.fullName,
+            monthName,
+            updatedPayment.sppInvoice.year,
+            updatedPayment.amount
+          );
+        }
+      }
 
       return NextResponse.json({ received: true });
     }

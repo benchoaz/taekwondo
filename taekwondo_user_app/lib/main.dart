@@ -4,7 +4,7 @@ import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 
 void main() {
-  print("FLUTTER APP MAIN STARTED");
+  debugPrint("FLUTTER APP MAIN STARTED");
   runApp(
     const ProviderScope(
       child: TaekwondoUserApp(),

@@ -136,7 +136,7 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.receipt_long, color: Colors.white.withOpacity(0.2), size: 64),
+                              Icon(Icons.receipt_long, color: Colors.white.withValues(alpha: 0.2), size: 64),
                               const SizedBox(height: 16),
                               Text(
                                 'Belum ada tagihan SPP',
@@ -162,9 +162,9 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                           color: const Color(0xFF1E293B),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isPaid ? Colors.green.withOpacity(0.3) 
-                                 : isOverdue ? Colors.red.withOpacity(0.3) 
-                                 : Colors.white.withOpacity(0.05),
+                            color: isPaid ? Colors.green.withValues(alpha: 0.3) 
+                                 : isOverdue ? Colors.red.withValues(alpha: 0.3) 
+                                 : Colors.white.withValues(alpha: 0.05),
                           ),
                         ),
                         child: Padding(
@@ -186,9 +186,9 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: isPaid ? Colors.green.withOpacity(0.1) 
-                                           : isOverdue ? Colors.red.withOpacity(0.1) 
-                                           : Colors.orange.withOpacity(0.1),
+                                      color: isPaid ? Colors.green.withValues(alpha: 0.1) 
+                                           : isOverdue ? Colors.red.withValues(alpha: 0.1) 
+                                           : Colors.orange.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(

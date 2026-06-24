@@ -56,6 +56,9 @@ export async function POST(request: Request) {
       uktRequirements,
       uktFees,
       showIntro,
+      dojangLat,
+      dojangLng,
+      dojangRadius,
     } = body;
 
     const setting = await prisma.setting.upsert({
@@ -77,6 +80,9 @@ export async function POST(request: Request) {
         uktRequirements: uktRequirements !== undefined ? uktRequirements : undefined,
         uktFees: uktFees !== undefined ? uktFees : undefined,
         showIntro: showIntro !== undefined ? showIntro : undefined,
+        dojangLat: dojangLat !== undefined ? parseFloat(dojangLat) : undefined,
+        dojangLng: dojangLng !== undefined ? parseFloat(dojangLng) : undefined,
+        dojangRadius: dojangRadius !== undefined ? parseInt(dojangRadius) : undefined,
       },
       create: {
         id: "default",
@@ -96,6 +102,9 @@ export async function POST(request: Request) {
         uktRequirements: uktRequirements || ["Surat Izin Orang Tua", "Foto Selfie 3x4"],
         uktFees: uktFees || {},
         showIntro: showIntro !== undefined ? showIntro : true,
+        dojangLat: dojangLat !== undefined ? parseFloat(dojangLat) : undefined,
+        dojangLng: dojangLng !== undefined ? parseFloat(dojangLng) : undefined,
+        dojangRadius: dojangRadius !== undefined ? parseInt(dojangRadius) : 50,
       },
     });
 

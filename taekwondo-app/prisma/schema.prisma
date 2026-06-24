@@ -84,6 +84,8 @@ model Member {
   attendances    Attendance[]
   achievements   Achievement[]
   sppInvoices    SppInvoice[]
+  exerciseLogs   MemberExerciseLog[]
+  badges         MemberBadge[]
 }
 
 model Coach {
@@ -107,6 +109,14 @@ model BeltRank {
   name        String   @unique // e.g., "Sabuk Putih (10 Geup)"
   level       Int      // Higher value = higher rank, or custom order
   nextBeltId  String?  @map("next_belt_id")
+
+  // Belt Requirements
+  minAttendance Int @default(80) @map("min_attendance") // Persentase kehadiran
+  minTechScore  Int @default(70) @map("min_tech_score")
+  minPoomsae    Int @default(70) @map("min_poomsae")
+  minPhysical   Int @default(70) @map("min_physical")
+
+  categories    CurriculumCategory[]
 }
 
 model BeltHistory {
@@ -279,6 +289,9 @@ model Setting {
   uktRequirements Json?    @map("ukt_requirements")
   uktFees         Json?    @map("ukt_fees")
   showIntro       Boolean  @default(true) @map("show_intro")
+  dojangLat       Float?   @map("dojang_lat")
+  dojangLng       Float?   @map("dojang_lng")
+  dojangRadius    Int      @default(100) @map("dojang_radius")
   updatedAt       DateTime @updatedAt
 }
 
@@ -304,4 +317,80 @@ model HeroSlide {
   isActive  Boolean  @default(true) @map("is_active")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// ==========================================
+// LMS & CMS ADDITIONS
+// ==========================================
+
+model CurriculumCategory {
+  id       String   @id @default(uuid())
+  beltId   String   @map("belt_id")
+  belt     BeltRank @relation(fields: [beltId], references: [id], onDelete: Cascade)
+  name     String   // "Teknik Dasar", "Poomsae", "Fisik"
+  order    Int      @default(0)
+  materials CurriculumMaterial[]
+}
+
+model CurriculumMaterial {
+  id         String   @id @default(uuid())
+  categoryId String   @map("category_id")
+  category   CurriculumCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  title      String   // "Ap Chagi", "Taegeuk 2"
+  videoUrl   String?  @map("video_url")
+  order      Int      @default(0)
+}
+
+model TrainingProgram {
+  id          String   @id @default(uuid())
+  title       String   // "Program Latihan Minggu 1"
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now())
+  exercises   Exercise[]
+}
+
+model Exercise {
+  id        String   @id @default(uuid())
+  programId String   @map("program_id")
+  program   TrainingProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name      String   // "Push Up"
+  reps      Int?     // 50
+  sets      Int?     // 3
+  order     Int      @default(0)
+  memberLogs MemberExerciseLog[]
+}
+
+model MemberExerciseLog {
+  id          String   @id @default(uuid())
+  memberId    String   @map("member_id")
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  exerciseId  String   @map("exercise_id")
+  exercise    Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  completedAt DateTime @default(now()) @map("completed_at")
+  notes       String?  // Siswa mengisi apa yang dilakukan di rumah
+}
+
+model Badge {
+  id          String   @id @default(uuid())
+  name        String   // "Master Ap Chagi"
+  iconUrl     String   @map("icon_url")
+  description String?
+  condition   String   // Identifier rule logika (contoh: "STREAK_7")
+  members     MemberBadge[]
+}
+
+model MemberBadge {
+  id       String   @id @default(uuid())
+  memberId String   @map("member_id")
+  member   Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  badgeId  String   @map("badge_id")
+  badge    Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  earnedAt DateTime @default(now()) @map("earned_at")
+}
+
+model VirtualCoachRule {
+  id        String   @id @default(uuid())
+  condition String   // "TECH_SCORE < 70"
+  recommend String   // "Fokus latihan keseimbangan kuda-kuda"
 }

@@ -45,10 +45,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     if (success) {
-      final user = ref.read(authProvider);
-      if (user != null) {
-        final fcmService = FirebaseMessagingService(ref.read(dioProvider));
-        fcmService.initNotifications(user);
+      final userState = ref.read(authProvider);
+      if (userState.value != null) {
+        try {
+          final fcmService = FirebaseMessagingService(ref.read(dioProvider));
+          fcmService.initNotifications(userState.value!);
+        } catch (e) {
+          debugPrint("FCM Init failed during login (Safe to ignore if Firebase is not fully configured): $e");
+        }
       }
 
       Navigator.of(context).pushReplacement(

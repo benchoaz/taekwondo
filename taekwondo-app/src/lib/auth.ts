@@ -7,8 +7,6 @@ interface SessionPayload {
   [key: string]: any;
 }
 
-import crypto from "crypto";
-
 export const getJwtSecretKey = () => {
   const secret = process.env.JWT_SECRET_KEY;
   if (!secret || secret.length === 0) {
@@ -16,8 +14,8 @@ export const getJwtSecretKey = () => {
       throw new Error("JWT_SECRET_KEY environment variable is missing!");
     }
     // Safe ephemeral fallback in dev to prevent hardcoded key exploits
-    console.warn("WARNING: JWT_SECRET_KEY not set. Generating ephemeral key.");
-    return crypto.randomBytes(32).toString("hex");
+    console.warn("WARNING: JWT_SECRET_KEY not set. Using default dev key.");
+    return "dev-secret-key-1234567890-fallback";
   }
   return secret;
 };

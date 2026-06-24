@@ -32,6 +32,9 @@ import {
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import SppManagement from "./SppManagement";
+import CurriculumBuilder from "./CurriculumBuilder";
+import ExerciseBuilder from "./ExerciseBuilder";
+import BeltRequirementBuilder from "./BeltRequirementBuilder";
 
 interface SettingData {
   logoUrl: string | null;
@@ -50,6 +53,9 @@ interface SettingData {
   uktRequirements?: string[];
   uktFees?: Record<string, number>;
   showIntro?: boolean;
+  dojangLat?: number | null;
+  dojangLng?: number | null;
+  dojangRadius?: number;
 }
 
 interface UserData {
@@ -193,7 +199,10 @@ export default function AdminDashboard({
     uktFee: 150000,
     uktRequirements: ["Surat Izin Orang Tua", "Foto Selfie 3x4"],
     uktFees: {},
-    showIntro: true
+    showIntro: true,
+    dojangLat: null,
+    dojangLng: null,
+    dojangRadius: 50
   });
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
@@ -1335,6 +1344,9 @@ export default function AdminDashboard({
                 { id: "payments", label: "Administrasi Keuangan", icon: <CreditCard className="w-4 h-4" /> }, 
                 { id: "ukt_candidates", label: "Pendaftar Ujian UKT", icon: <UserCheck className="w-4 h-4" /> },
                 { id: "analytics", label: "Dashboard Analytics", icon: <TrendingUp className="w-4 h-4" /> },
+                { id: "curriculum", label: "Curriculum Builder", icon: <BookOpen className="w-4 h-4" /> },
+                { id: "exercises", label: "Daily Quests", icon: <Edit className="w-4 h-4" /> },
+                { id: "belt_requirements", label: "Syarat Ujian (Belt Req)", icon: <Check className="w-4 h-4" /> },
                 { id: "schedules", label: "Pengaturan Jadwal", icon: <Calendar className="w-4 h-4" /> },
                 { id: "spp", label: "Manajemen SPP", icon: <DollarSign className="w-4 h-4" /> },
                 { id: "users", label: "Manajemen User", icon: <Users className="w-4 h-4" /> },
@@ -2448,6 +2460,42 @@ export default function AdminDashboard({
             </div>
           )}
 
+          {activeTab === "curriculum" && (
+            <div className="flex flex-col gap-6 animate-fade-in pb-12">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-black text-[#0F172A] font-display">Curriculum Builder</h1>
+                  <p className="text-sm text-gray-500 mt-1">Susun materi dan kategori pembelajaran untuk setiap tingkatan sabuk secara terstruktur.</p>
+                </div>
+              </div>
+              <CurriculumBuilder />
+            </div>
+          )}
+
+          {activeTab === "exercises" && (
+            <div className="flex flex-col gap-6 animate-fade-in pb-12">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-black text-[#0F172A] font-display">Daily Quests Builder</h1>
+                  <p className="text-sm text-gray-500 mt-1">Buat program latihan, tentukan repetisi, dan kirimkan ke siswa sebagai Daily Quests.</p>
+                </div>
+              </div>
+              <ExerciseBuilder />
+            </div>
+          )}
+
+          {activeTab === "belt_requirements" && (
+            <div className="flex flex-col gap-6 animate-fade-in pb-12">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-black text-[#0F172A] font-display">Syarat Ujian (Belt Requirements)</h1>
+                  <p className="text-sm text-gray-500 mt-1">Konfigurasi batas minimal kehadiran, nilai teknik, poomsae, dan fisik untuk kenaikan sabuk.</p>
+                </div>
+              </div>
+              <BeltRequirementBuilder />
+            </div>
+          )}
+
           {activeTab === "schedules" && (
             <div className="flex flex-col gap-6 animate-fade-in pb-12">
               <div className="flex items-center justify-between">
@@ -2727,6 +2775,56 @@ export default function AdminDashboard({
                       />
                       <div className="relative w-11 h-6 bg-slate-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-[#E10600]/30 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#E10600]"></div>
                     </label>
+                  </div>
+                </div>
+
+                {/* Geofencing Settings Panel */}
+                <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-8 shadow-sm flex flex-col gap-6">
+                  <div>
+                    <h3 className="font-extrabold text-sm text-[#0F172A] border-b border-[#0F172A]/5 pb-3">Pengaturan Lokasi Latihan (Geofencing)</h3>
+                    <p className="text-gray-400 text-xs mt-1">Tentukan titik pusat lokasi latihan (Dojang) dan batas radius absensi siswa. Siswa tidak dapat melakukan absensi jika berada di luar radius ini.</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Latitude</label>
+                      <input 
+                        type="number" 
+                        step="any"
+                        placeholder="Contoh: -6.2088"
+                        value={settings.dojangLat ?? ""}
+                        onChange={(e) => setSettings({ ...settings, dojangLat: e.target.value ? parseFloat(e.target.value) : null })}
+                        className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Longitude</label>
+                      <input 
+                        type="number" 
+                        step="any"
+                        placeholder="Contoh: 106.8456"
+                        value={settings.dojangLng ?? ""}
+                        onChange={(e) => setSettings({ ...settings, dojangLng: e.target.value ? parseFloat(e.target.value) : null })}
+                        className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Radius (Meter)</label>
+                      <input 
+                        type="number" 
+                        placeholder="Contoh: 50"
+                        value={settings.dojangRadius ?? 50}
+                        onChange={(e) => setSettings({ ...settings, dojangRadius: e.target.value ? parseInt(e.target.value) : 50 })}
+                        className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                      />
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
+                    <MapPin className="w-5 h-5 text-blue-500 shrink-0" />
+                    <div>
+                      <p className="text-xs text-blue-900 font-medium">Tips Mendapatkan Koordinat:</p>
+                      <p className="text-[11px] text-blue-700 mt-0.5">Buka Google Maps, klik kanan pada lokasi Dojang, lalu klik angka koordinat (contoh: -6.2088, 106.8456) untuk menyalinnya. Angka pertama adalah Latitude, kedua adalah Longitude.</p>
+                    </div>
                   </div>
                 </div>
 

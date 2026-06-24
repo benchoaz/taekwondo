@@ -28,6 +28,26 @@ export async function POST(request: Request) {
     
     targetMemberId = member.id;
 
+    // Geofencing Validation
+    const setting = await prisma.setting.findUnique({ where: { id: "default" } });
+    if (setting && setting.dojangLat && setting.dojangLng && latitude && longitude) {
+      const R = 6371e3; // Earth radius in meters
+      const lat1 = setting.dojangLat * Math.PI / 180;
+      const lat2 = latitude * Math.PI / 180;
+      const deltaLat = (latitude - setting.dojangLat) * Math.PI / 180;
+      const deltaLng = (longitude - setting.dojangLng) * Math.PI / 180;
+
+      const a = Math.sin(deltaLat/2) * Math.sin(deltaLat/2) +
+                Math.cos(lat1) * Math.cos(lat2) *
+                Math.sin(deltaLng/2) * Math.sin(deltaLng/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distance = Math.round(R * c);
+
+      if (distance > setting.dojangRadius) {
+        return NextResponse.json({ error: `Gagal: Anda berada di luar area latihan! (Jarak: ${distance} meter)` }, { status: 400 });
+      }
+    }
+
     // Set target date to start of today in UTC
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);

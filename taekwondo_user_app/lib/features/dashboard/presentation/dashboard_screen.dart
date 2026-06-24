@@ -47,17 +47,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
           // Tab Riwayat (placeholder)
           Scaffold(
-            backgroundColor: const Color(0xFF0F172A),
+            backgroundColor: const Color(0xFFF8FAFC),
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.history, color: Colors.white.withValues(alpha: 0.3), size: 64),
+                  Icon(Icons.history, color: Colors.grey.shade300, size: 64),
                   const SizedBox(height: 16),
                   Text('Riwayat Aktivitas',
-                      style: GoogleFonts.inter(color: Colors.white54, fontSize: 16)),
+                      style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 16)),
                   Text('Segera hadir',
-                      style: GoogleFonts.inter(color: Colors.white30, fontSize: 12)),
+                      style: GoogleFonts.inter(color: Colors.grey.shade400, fontSize: 12)),
                 ],
               ),
             ),
@@ -65,7 +65,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
           // Tab Profil + Logout
           Scaffold(
-            backgroundColor: const Color(0xFF0F172A),
+            backgroundColor: const Color(0xFFF8FAFC),
             body: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -101,7 +101,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       child: Text(
                         user.name ?? 'Pengguna',
                         style: GoogleFonts.inter(
-                          color: Colors.white,
+                          color: const Color(0xFF0F172A),
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -110,7 +110,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     Center(
                       child: Text(
                         user.email,
-                        style: GoogleFonts.inter(color: Colors.white54, fontSize: 13),
+                        style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 13),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -180,6 +180,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ];
 
         return Scaffold(
+          backgroundColor: const Color(0xFFF8FAFC), // Premium Light Background
           body: screens[_currentIndex],
           bottomNavigationBar: Theme(
             data: ThemeData(
@@ -187,12 +188,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               highlightColor: Colors.transparent,
             ),
             child: BottomNavigationBar(
-              backgroundColor: const Color(0xFF1E293B),
-              selectedItemColor: const Color(0xFFE50914),
-              unselectedItemColor: Colors.grey,
+              backgroundColor: Colors.white,
+              selectedItemColor: const Color(0xFFE50914), // Premium Red
+              unselectedItemColor: Colors.grey.shade400,
               currentIndex: _currentIndex,
               type: BottomNavigationBarType.fixed,
-              elevation: 20,
+              elevation: 0,
               onTap: (index) => setState(() => _currentIndex = index),
               items: const [
                 BottomNavigationBarItem(
@@ -227,20 +228,34 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
+        ],
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFFE50914), size: 20),
-          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE50914).withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: const Color(0xFFE50914), size: 20),
+          ),
+          const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: GoogleFonts.inter(color: Colors.white54, fontSize: 11)),
+              Text(label, style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 11)),
               Text(value,
                   style: GoogleFonts.inter(
-                      color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                      color: const Color(0xFF0F172A), fontSize: 14, fontWeight: FontWeight.bold)),
             ],
           ),
         ],

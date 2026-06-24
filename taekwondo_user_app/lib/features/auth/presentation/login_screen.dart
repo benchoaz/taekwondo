@@ -5,6 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../settings/data/settings_provider.dart';
 import '../data/auth_provider.dart';
 import '../../dashboard/presentation/dashboard_screen.dart';
+import '../../../core/network/dio_client.dart';
+import '../../../core/network/firebase_messaging_service.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -43,6 +45,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     if (success) {
+      final user = ref.read(authProvider);
+      if (user != null) {
+        final fcmService = FirebaseMessagingService(ref.read(dioProvider));
+        fcmService.initNotifications(user);
+      }
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const DashboardScreen()),
       );

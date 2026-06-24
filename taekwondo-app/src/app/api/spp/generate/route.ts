@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendSppInvoiceNotification } from "@/lib/whatsapp";
+import { sendPushNotification } from "@/lib/firebase-admin";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,9 +19,10 @@ export async function POST(req: NextRequest) {
     
     const sppFee = setting?.sppFee || 100000; // default 100k
 
-    // Ambil semua member aktif
+    // Ambil semua member aktif beserta relasi user-nya untuk fcmToken
     const activeMembers = await prisma.member.findMany({
-      where: { status: "ACTIVE" } // Sesuaikan dengan status member aktif di sistem Anda
+      where: { status: "ACTIVE" },
+      include: { user: true }
     });
 
     const dueDate = new Date(year, month - 1, 10); // Jatuh tempo tanggal 10 bulan berjalan
@@ -69,10 +71,19 @@ export async function POST(req: NextRequest) {
         generatedCount++;
 
         // Kirim WhatsApp (Mock / Fonnte)
+        const paymentLink = `https://taekwondo.com/payment/${newPayment.id}`;
         if (member.phone) {
-          // Asumsi ada halaman untuk bayar: /spp/pay?memberId=xxx
-          const paymentLink = `https://taekwondo.com/payment/${newPayment.id}`;
           await sendSppInvoiceNotification(member.phone, member.fullName, monthName, year, sppFee, paymentLink);
+        }
+
+        // Kirim Push Notification (FCM)
+        if (member.user?.fcmToken) {
+          const title = "Tagihan SPP Baru 📝";
+          const body = `Halo ${member.fullName}, tagihan SPP bulan ${monthName} ${year} sebesar Rp${sppFee.toLocaleString("id-ID")} telah diterbitkan.`;
+          await sendPushNotification(member.user.fcmToken, title, body, {
+            type: "SPP_INVOICE",
+            paymentId: newPayment.id
+          });
         }
       }
     }

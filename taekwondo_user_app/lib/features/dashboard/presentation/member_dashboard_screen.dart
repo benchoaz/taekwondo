@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../auth/domain/user_model.dart';
 import '../../spp/presentation/spp_screen.dart';
+import '../../../core/network/dio_client.dart';
+import '../data/member_attendance_service.dart';
 
 class MemberDashboardScreen extends ConsumerWidget {
   final UserModel user;
@@ -53,7 +55,7 @@ class MemberDashboardScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            _buildRecentActivityList(),
+            _buildRecentActivityList(context, ref),
             const SizedBox(height: 40),
           ],
         ),
@@ -259,11 +261,26 @@ class MemberDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentActivityList() {
+  Widget _buildRecentActivityList(BuildContext context, WidgetRef ref) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
         children: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => _handleSelfAttendance(context, ref),
+              icon: const Icon(Icons.location_on),
+              label: Text('Absen Sekarang (Scan Lokasi)', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           _buildActivityTile(
             Icons.check_circle,
             Colors.green,
@@ -322,5 +339,38 @@ class MemberDashboardScreen extends ConsumerWidget {
         trailing: const Icon(Icons.chevron_right, color: Colors.white54),
       ),
     );
+  }
+
+  Future<void> _handleSelfAttendance(BuildContext context, WidgetRef ref) async {
+    try {
+      // Show loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (c) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final service = AttendanceService(ref.read(dioProvider));
+      final success = await service.checkInWithLocation(user);
+
+      // Hide loading
+      Navigator.pop(context);
+
+      if (success && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Absensi berhasil dicatat beserta lokasi Anda!'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      // Hide loading if error
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal absen: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 }

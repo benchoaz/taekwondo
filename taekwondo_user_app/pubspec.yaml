@@ -33,6 +33,7 @@ dependencies:
   # Utility
   intl: ^0.18.1
   url_launcher: ^6.2.0
+  geolocator: ^14.0.2
 
 dev_dependencies:
   flutter_test:

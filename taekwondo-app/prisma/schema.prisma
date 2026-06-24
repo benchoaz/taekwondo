@@ -246,6 +246,8 @@ model Attendance {
   member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
   date      DateTime
   present   Boolean  @default(true)
+  latitude  Float?
+  longitude Float?
   createdAt DateTime @default(now())
 }
 

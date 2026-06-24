@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../auth/data/auth_provider.dart';
 import '../../auth/presentation/login_screen.dart';
 import 'member_dashboard_screen.dart';
+import '../../coach/presentation/coach_schedule_screen.dart';
+import '../../coach/presentation/coach_attendance_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -287,11 +289,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   style: GoogleFonts.inter(
                       color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
-              _buildFeatureTile(Icons.assignment_turned_in, 'Absensi Latihan', 'Catat kehadiran member'),
+              _buildFeatureTile(
+                context, 
+                Icons.assignment_turned_in, 
+                'Absensi Latihan', 
+                'Catat kehadiran member',
+                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CoachAttendanceScreen())),
+              ),
               const SizedBox(height: 8),
-              _buildFeatureTile(Icons.emoji_events, 'Penilaian UKT', 'Input nilai ujian kenaikan tingkat'),
+              _buildFeatureTile(
+                context, 
+                Icons.emoji_events, 
+                'Penilaian UKT', 
+                'Input nilai ujian kenaikan tingkat',
+                () {}, // TBD
+              ),
               const SizedBox(height: 8),
-              _buildFeatureTile(Icons.schedule, 'Jadwal Latihan', 'Lihat jadwal kelas yang diampu'),
+              _buildFeatureTile(
+                context, 
+                Icons.schedule, 
+                'Jadwal Latihan', 
+                'Lihat jadwal kelas yang diampu',
+                () => Navigator.push(context, MaterialPageRoute(builder: (_) => CoachScheduleScreen(user: user))),
+              ),
             ],
           ),
         ),
@@ -299,7 +319,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  // Dashboard Admin (Web-only, tampilan info)
   Widget _buildAdminDashboard(user) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
@@ -356,13 +375,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildFeatureTile(IconData icon, String title, String subtitle) {
+  Widget _buildFeatureTile(BuildContext context, IconData icon, String title, String subtitle, VoidCallback onTap) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(16),
       ),
       child: ListTile(
+        onTap: onTap,
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(

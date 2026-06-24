@@ -1,9 +1,25 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+
+    let whereClause = {};
+    if (userId) {
+      // Find coach id by userId
+      const coach = await prisma.coach.findUnique({ where: { userId } });
+      if (coach) {
+        whereClause = { coachId: coach.id };
+      } else {
+        // If not a coach, return empty schedules
+        return NextResponse.json([]);
+      }
+    }
+
     const schedules = await prisma.schedule.findMany({
+      where: whereClause,
       include: {
         coach: {
           select: {

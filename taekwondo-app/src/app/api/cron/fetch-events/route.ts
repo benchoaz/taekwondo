@@ -13,8 +13,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Membaca feed dari Google News untuk kata kunci Kejuaraan Taekwondo Jawa Timur
-    const feed = await parser.parseURL('https://news.google.com/rss/search?q=Kejuaraan+Taekwondo+Jawa+Timur&hl=id&gl=ID&ceid=ID:id');
+    // Membaca feed dari Google News untuk kata kunci Kejuaraan Taekwondo Indonesia
+    const feed = await parser.parseURL('https://news.google.com/rss/search?q=Kejuaraan+Taekwondo+Indonesia&hl=id&gl=ID&ceid=ID:id');
     
     let addedCount = 0;
 

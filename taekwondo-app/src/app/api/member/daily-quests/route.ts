@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { PrismaClient, QuestCategory } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { QuestCategory } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 
 // Get Daily Quests for a Member
 export async function GET(request: Request) {

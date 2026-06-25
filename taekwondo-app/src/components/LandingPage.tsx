@@ -49,6 +49,7 @@ export default function LandingPage({
   const [dbCoaches, setDbCoaches] = useState<any[]>([]);
   const [dbGallery, setDbGallery] = useState<any[]>([]);
   const [dbAchievements, setDbAchievements] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
 
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
 
@@ -93,6 +94,14 @@ export default function LandingPage({
         if (Array.isArray(data)) setDbAchievements(data);
       })
       .catch(err => console.error("Error fetching achievements:", err));
+
+    // Fetch Events from Database
+    fetch("/api/events")
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data)) setEvents(data.data.slice(0, 3));
+      })
+      .catch(err => console.error("Error fetching events:", err));
   }, []);
 
   const programs = [
@@ -561,6 +570,66 @@ export default function LandingPage({
               </motion.div>
             ))}
           </AnimatePresence>
+        </div>
+      </section>
+
+      {/* Upcoming Events Section */}
+      <section className="py-24 bg-[#0F172A] text-white border-y border-white/10" id="events">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row items-end justify-between mb-12">
+            <div>
+              <span className="text-xs font-black uppercase text-[#E10600] tracking-widest">JADWAL PERTANDINGAN</span>
+              <h2 className="text-4xl font-extrabold mt-2 font-display">Kalender Kejuaraan 🏆</h2>
+            </div>
+            <Link href="/events" className="mt-4 md:mt-0 px-6 py-3 bg-[#E10600] text-white font-bold rounded-lg hover:bg-red-700 transition-colors shadow-[2px_2px_0px_#FFFFFF] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
+              Lihat Semua Event &rarr;
+            </Link>
+          </div>
+
+          {events.length === 0 ? (
+            <div className="text-center py-12 border border-white/10 rounded-xl bg-white/5">
+              <span className="material-symbols-outlined text-4xl text-gray-500 mb-2 block">event_busy</span>
+              <p className="text-gray-400 font-medium">Belum ada jadwal kejuaraan terdekat.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {events.map((evt) => {
+                const isNews = evt.source === 'AUTOMATIC_RSS';
+                const start = new Date(evt.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                const end = new Date(evt.endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+                return (
+                  <div key={evt.id} className="bg-white/5 border border-white/10 rounded-xl p-6 hover:-translate-y-2 transition-transform group shadow-lg">
+                    <div className="flex justify-between items-start mb-4">
+                      <span className={`px-2 py-1 text-[10px] font-bold rounded uppercase ${isNews ? 'bg-yellow-500/20 text-yellow-300' : 'bg-blue-500/20 text-blue-300'}`}>
+                        {isNews ? 'Berita/Rumor' : 'Terverifikasi'}
+                      </span>
+                      <span className="text-[10px] text-gray-400 font-bold bg-white/10 px-2 py-1 rounded">{evt.level}</span>
+                    </div>
+                    <h3 className="text-xl font-bold mb-3 group-hover:text-[#E10600] transition-colors line-clamp-2">{evt.title}</h3>
+                    <div className="space-y-2 mb-6">
+                      <div className="flex items-center text-sm text-gray-400">
+                        <span className="material-symbols-outlined text-[16px] mr-2">calendar_month</span>
+                        {start} {start !== end && `- ${end}`}
+                      </div>
+                      <div className="flex items-center text-sm text-gray-400">
+                        <span className="material-symbols-outlined text-[16px] mr-2">location_on</span>
+                        {evt.location}
+                      </div>
+                    </div>
+                    {evt.link ? (
+                      <a href={evt.link} target="_blank" rel="noopener noreferrer" className="block w-full py-2 text-center border border-white/20 rounded hover:bg-white hover:text-[#0F172A] font-bold text-sm transition-colors">
+                        Lihat Sumber Berita
+                      </a>
+                    ) : (
+                      <button disabled className="w-full py-2 text-center border border-white/10 text-gray-500 rounded font-bold text-sm">
+                        Proposal Belum Tersedia
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 

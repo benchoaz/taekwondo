@@ -440,3 +440,23 @@ model DailyQuestLog {
   videoUrl    String?      @map("video_url") // For verification
   notes       String?      @db.Text
 }
+
+// ==========================================
+// TOURNAMENT & EVENTS AGGREGATOR
+// ==========================================
+
+model TournamentEvent {
+  id             String   @id @default(uuid())
+  title          String
+  level          String   @default("Provinsi") // "Lokal", "Provinsi", "Nasional", "Internasional"
+  location       String   @default("Belum Ditentukan")
+  startDate      DateTime 
+  endDate        DateTime
+  posterUrl      String?  @map("poster_url")
+  proposalUrl    String?  @map("proposal_url")
+  source         String   @default("AUTOMATIC_RSS") // "AUTOMATIC_RSS", "USER_SUBMITTED"
+  status         String   @default("PUBLISHED") // "PENDING", "PUBLISHED", "REJECTED"
+  link           String?  // Link berita atau link asli acara
+  createdAt      DateTime @default(now())
+}
+

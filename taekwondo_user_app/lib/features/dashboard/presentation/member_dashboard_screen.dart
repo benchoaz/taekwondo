@@ -7,8 +7,8 @@ import '../../spp/presentation/spp_screen.dart';
 import '../../../core/network/dio_client.dart';
 import '../data/member_attendance_service.dart';
 import '../../curriculum/presentation/curriculum_screen.dart';
-import '../data/exercise_service.dart';
-import '../domain/exercise_model.dart';
+import '../data/quest_service.dart';
+import '../domain/quest_model.dart';
 import '../data/badge_service.dart';
 import '../domain/badge_model.dart';
 import '../../schedule/presentation/schedule_screen.dart';
@@ -462,11 +462,10 @@ class MemberDashboardScreen extends ConsumerWidget {
                 ),
               ),
               questsAsync.maybeWhen(
-                data: (questsRes) {
-                  final allExercises = questsRes.programs.expand((p) => p.exercises).toList();
-                  final doneCount = allExercises.where((e) => questsRes.logs.any((l) => l.exerciseId == e.id)).length;
+                data: (logs) {
+                  final doneCount = logs.where((l) => l.completed).length;
                   return Text(
-                    '$doneCount/${allExercises.length} Selesai',
+                    '$doneCount/${logs.length} Selesai',
                     style: GoogleFonts.hankenGrotesk(
                       color: const Color(0xFF0052DC),
                       fontWeight: FontWeight.bold,
@@ -481,9 +480,8 @@ class MemberDashboardScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         questsAsync.when(
-          data: (questsRes) {
-            final allExercises = questsRes.programs.expand((p) => p.exercises).toList();
-            if (allExercises.isEmpty) {
+          data: (logs) {
+            if (logs.isEmpty) {
               return NeoBrutalCard(
                 padding: const EdgeInsets.all(24),
                 child: Center(
@@ -496,14 +494,19 @@ class MemberDashboardScreen extends ConsumerWidget {
             }
 
             return Column(
-              children: allExercises.map((exercise) {
-                final isDone = questsRes.logs.any((l) => l.exerciseId == exercise.id);
-                final subtitle = '${exercise.sets ?? 3} set x ${exercise.reps ?? 10} reps';
+              children: logs.map((log) {
+                final isDone = log.completed;
+                final quest = log.quest!;
+                final iconData = quest.category == 'FITNESS' 
+                    ? Icons.fitness_center 
+                    : quest.category == 'TECHNICAL' 
+                        ? Icons.sports_martial_arts 
+                        : Icons.self_improvement;
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: NeoBrutalButton(
-                    onPressed: isDone ? () {} : () => _showCompleteQuestSheet(context, ref, exercise),
+                    onPressed: isDone ? () {} : () => _showCompleteQuestSheet(context, ref, log),
                     backgroundColor: isDone ? const Color(0xFFF3F4F5) : Colors.white,
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -519,7 +522,7 @@ class MemberDashboardScreen extends ConsumerWidget {
                             ),
                             child: Center(
                               child: Icon(
-                                isDone ? Icons.check_circle : Icons.bolt,
+                                isDone ? Icons.check_circle : iconData,
                                 color: isDone ? Colors.green.shade700 : const Color(0xFF241A00),
                               ),
                             ),
@@ -530,7 +533,7 @@ class MemberDashboardScreen extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  exercise.name,
+                                  quest.title,
                                   style: GoogleFonts.hankenGrotesk(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w500,
@@ -539,10 +542,11 @@ class MemberDashboardScreen extends ConsumerWidget {
                                   ),
                                 ),
                                 Text(
-                                  '$subtitle • +50 XP',
+                                  '+${quest.baseXp} XP',
                                   style: GoogleFonts.hankenGrotesk(
                                     fontSize: 14,
                                     color: const Color(0xFF424655),
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ],
@@ -782,8 +786,9 @@ class MemberDashboardScreen extends ConsumerWidget {
     }
   }
 
-  void _showCompleteQuestSheet(BuildContext context, WidgetRef ref, Exercise exercise) {
+  void _showCompleteQuestSheet(BuildContext context, WidgetRef ref, DailyQuestLog log) {
     final notesController = TextEditingController();
+    final quest = log.quest!;
 
     showModalBottomSheet(
       context: context,
@@ -816,11 +821,12 @@ class MemberDashboardScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        exercise.name,
+                        quest.title,
                         style: GoogleFonts.hankenGrotesk(fontSize: 16, fontWeight: FontWeight.bold, color: const Color(0xFF191C1D)),
                       ),
+                      const SizedBox(height: 8),
                       Text(
-                        'Target Latihan: ${exercise.sets ?? 3} set x ${exercise.reps ?? 10} reps',
+                        quest.description ?? 'Lakukan latihan sesuai dengan instruksi pelatih.',
                         style: GoogleFonts.hankenGrotesk(fontSize: 14, color: const Color(0xFF424655)),
                       ),
                     ],
@@ -851,16 +857,16 @@ class MemberDashboardScreen extends ConsumerWidget {
                 NeoBrutalButton(
                   onPressed: () async {
                     final note = notesController.text.trim();
-                    final success = await ref.read(exerciseLogServiceProvider).logExercise(
+                    final success = await ref.read(questLogServiceProvider).logQuest(
                           memberId: user.id,
-                          exerciseId: exercise.id,
+                          logId: log.id,
                           notes: note.isNotEmpty ? note : "Selesai dari Dashboard",
                         );
                     if (context.mounted) Navigator.pop(context);
                     if (success && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('+50 XP Ditambahkan!', style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold)),
+                          content: Text('+${quest.baseXp} XP Ditambahkan!', style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold)),
                           backgroundColor: const Color(0xFF0052DC),
                         ),
                       );

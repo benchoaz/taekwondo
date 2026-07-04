@@ -17,6 +17,24 @@ body {
   background-attachment: fixed;
 }
 
+/* Subtle, semi-transparent Taekwondo Fighter background overlay */
+.bg-game-taekwondo-theme {
+  position: relative;
+  overflow-y: auto;
+}
+.bg-game-taekwondo-theme::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url('/claw-strike.png');
+  background-repeat: no-repeat;
+  background-position: center 35%;
+  background-size: contain;
+  opacity: 0.08; /* Tipis, bernuansa cakar harimau game (kids-friendly) */
+}
+
 .glass-card {
   background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(20px);
@@ -30,3 +48,78 @@ body {
   box-shadow: 0 0 20px rgba(225, 6, 0, 0.25);
   border-color: rgba(225, 6, 0, 0.4);
 }
+
+/* --- GAME UI STYLES --- */
+.game-card {
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  border: 3px solid #334155;
+  box-shadow: 0 8px 0 0 #020617, 0 16px 24px rgba(0,0,0,0.4);
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-card-light {
+  background: #FFFFFF;
+  border: 3px solid #E2E8F0;
+  box-shadow: 0 6px 0 0 #CBD5E1;
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-battle {
+  background: linear-gradient(180deg, #FF3B30 0%, #C00500 100%);
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 6px 0 0 #800000, 0 12px 20px rgba(225,6,0,0.3);
+  border-radius: 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #FFFFFF;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  transition: all 0.1s ease;
+  position: relative;
+}
+
+.btn-battle:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 0 #800000, 0 4px 10px rgba(225,6,0,0.3);
+}
+
+.btn-game-yellow {
+  background: linear-gradient(180deg, #FFDF00 0%, #D4AF37 100%);
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 6px 0 0 #996515, 0 12px 20px rgba(212,175,55,0.3);
+  border-radius: 20px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: #1E293B;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.6);
+  transition: all 0.1s ease;
+}
+
+.btn-game-yellow:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 0 #996515, 0 4px 10px rgba(212,175,55,0.3);
+}
+
+.game-border-red {
+  border-color: #EF4444;
+  box-shadow: 0 8px 0 0 #991B1B, 0 16px 24px rgba(239,68,68,0.25);
+}
+
+.game-border-gold {
+  border-color: #FBBF24;
+  box-shadow: 0 8px 0 0 #92400E, 0 16px 24px rgba(251,191,36,0.25);
+}
+
+/* Floating anims */
+@keyframes game-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.animate-game-float {
+  animation: game-float 3s ease-in-out infinite;
+}
+

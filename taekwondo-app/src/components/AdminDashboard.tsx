@@ -213,6 +213,10 @@ export default function AdminDashboard({
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserRole, setNewUserRole] = useState("MEMBER");
+  const [newUserBirthDate, setNewUserBirthDate] = useState("");
+  const [newUserWeight, setNewUserWeight] = useState("");
+  const [newUserHeight, setNewUserHeight] = useState("");
+  const [newUserWaistCircum, setNewUserWaistCircum] = useState("");
 
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
@@ -621,6 +625,10 @@ export default function AdminDashboard({
           name: newUserName,
           email: newUserEmail,
           role: newUserRole,
+          birthDate: newUserBirthDate,
+          weight: newUserWeight ? parseFloat(newUserWeight) : null,
+          height: newUserHeight ? parseFloat(newUserHeight) : null,
+          waistCircum: newUserWaistCircum ? parseFloat(newUserWaistCircum) : null,
         }),
       });
       const data = await res.json();
@@ -628,6 +636,10 @@ export default function AdminDashboard({
         setUsers([data, ...users]);
         setNewUserName("");
         setNewUserEmail("");
+        setNewUserBirthDate("");
+        setNewUserWeight("");
+        setNewUserHeight("");
+        setNewUserWaistCircum("");
         setShowAddModal(false);
         fetchCoaches(); // Refresh coach list
       } else {
@@ -3087,6 +3099,51 @@ export default function AdminDashboard({
                   className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
                 />
               </div>
+
+              {newUserRole === "MEMBER" && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Tanggal Lahir <span className="text-[#E10600]">*</span></label>
+                    <input 
+                      type="date" 
+                      required
+                      value={newUserBirthDate}
+                      onChange={(e) => setNewUserBirthDate(e.target.value)}
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Berat Badan (kg)</label>
+                    <input 
+                      type="number" step="0.1"
+                      value={newUserWeight}
+                      onChange={(e) => setNewUserWeight(e.target.value)}
+                      placeholder="Contoh: 45.5"
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Tinggi Badan (cm)</label>
+                    <input 
+                      type="number" step="0.1"
+                      value={newUserHeight}
+                      onChange={(e) => setNewUserHeight(e.target.value)}
+                      placeholder="Contoh: 155"
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Lingkar Perut (cm)</label>
+                    <input 
+                      type="number" step="0.1"
+                      value={newUserWaistCircum}
+                      onChange={(e) => setNewUserWaistCircum(e.target.value)}
+                      placeholder="Lingkar perut untuk ukuran Dobok/Sabuk"
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Peran Sistem (Role)</label>

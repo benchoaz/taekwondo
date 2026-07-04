@@ -31,30 +31,36 @@ export async function GET(request: Request) {
     // 2. See if there are already assignments for today
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(todayStart);
+    todayEnd.setDate(todayEnd.getDate() + 1);
 
     const existingLogs = await prisma.dailyQuestLog.findMany({
       where: {
         memberId: memberId,
         assignedAt: {
           gte: todayStart,
+          lt: todayEnd,
         }
       },
       include: {
         quest: true,
-      }
+      },
+      orderBy: { assignedAt: "asc" }
     });
 
     if (existingLogs.length >= 3) {
       return NextResponse.json({ success: true, data: existingLogs });
     }
 
-    // If not, we generate new quests for today.
-    // Clean up any incomplete quests from today to regenerate
+    // Jika kurang dari 3, hapus HANYA yang belum selesai (jangan hapus yang sudah completed!)
+    // Ini mencegah XP hilang jika quest sudah diselesaikan sebelum regenerasi
     await prisma.dailyQuestLog.deleteMany({
       where: {
         memberId: memberId,
+        completed: false,  // ← FIX: hanya hapus yang belum selesai
         assignedAt: {
           gte: todayStart,
+          lt: todayEnd,
         }
       }
     });

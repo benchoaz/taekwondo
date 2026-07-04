@@ -5,7 +5,7 @@ import nodemailer from "nodemailer";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, phone, birthDate, selfie, kk } = body;
+    const { name, email, phone, birthDate, selfie, kk, weight, height, waistCircum } = body;
 
     if (!name || !email || !phone || !birthDate || !selfie || !kk) {
       return NextResponse.json({ error: "Semua data pendaftaran wajib diisi (termasuk selfie & KK)" }, { status: 400 });
@@ -41,6 +41,10 @@ export async function POST(request: Request) {
         fullName: name,
         memberNumber: `PENDING-${Math.floor(1000 + Math.random() * 9000)}`,
         status: "PENDING_VERIFICATION",
+        dateOfBirth: new Date(birthDate),
+        weight: weight ? parseFloat(weight) : null,
+        height: height ? parseFloat(height) : null,
+        waistCircum: waistCircum ? parseFloat(waistCircum) : null,
         selfieUrl: selfie, // Storing base64 data url directly
         kkUrl: kk, // Storing base64 data url directly
       },

@@ -23,6 +23,7 @@ model User {
   sessions      Session[]
   member        Member?
   coach         Coach?
+  receivedPayments Payment[] @relation("PaymentReceiver")
 }
 
 model Account {
@@ -78,6 +79,9 @@ model Member {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   dateOfBirth    DateTime?     @map("date_of_birth")
+  weight         Float?        @map("weight")             // Berat Badan (kg)
+  height         Float?        @map("height")             // Tinggi Badan (cm)
+  waistCircum    Float?        @map("waist_circum")       // Lingkar Perut (cm)
   beltHistory    BeltHistory[]
   uktEntries     UktParticipant[]
   certificates   Certificate[]
@@ -223,6 +227,8 @@ model Payment {
   paymentProofUrl String?   @map("payment_proof_url")
   externalId      String?   @map("external_id")   // ID unik transaksi Xendit QRIS
   paidAt          DateTime? @map("paid_at")        // Timestamp pembayaran dari webhook Xendit
+  receivedById    String?   @map("received_by_id")
+  receiver        User?     @relation(name: "PaymentReceiver", fields: [receivedById], references: [id])
   createdAt       DateTime  @default(now())
   sppInvoice      SppInvoice?
 }

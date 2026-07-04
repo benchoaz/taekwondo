@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const ext = file.name.split('.').pop()?.toLowerCase();
     
     // Strict extension allowlist
-    const allowedExtensions = ['png', 'jpg', 'jpeg', 'gif', 'pdf'];
+    const allowedExtensions = ['png', 'jpg', 'jpeg', 'gif', 'pdf', 'mp4', 'mov', 'avi', 'mkv', 'webm'];
     if (!ext || !allowedExtensions.includes(ext)) {
       return NextResponse.json({ error: 'Format file tidak diizinkan.' }, { status: 400 });
     }

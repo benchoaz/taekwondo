@@ -55,10 +55,10 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, role } = body;
+    const { name, email, role, birthDate, weight, height, waistCircum } = body;
 
-    if (!email || !role) {
-      return NextResponse.json({ error: "Email and Role are required" }, { status: 400 });
+    if (!email || !role || (role === "MEMBER" && !birthDate)) {
+      return NextResponse.json({ error: "Email, Role, and Birth Date are required for Member" }, { status: 400 });
     }
 
     const newUser = await prisma.user.create({
@@ -84,6 +84,10 @@ export async function POST(request: Request) {
           userId: newUser.id,
           fullName: name || "New Member",
           memberNumber: `TKD-2026-00${Math.floor(10 + Math.random() * 90)}`,
+          dateOfBirth: new Date(birthDate),
+          weight: weight ? parseFloat(weight) : null,
+          height: height ? parseFloat(height) : null,
+          waistCircum: waistCircum ? parseFloat(waistCircum) : null,
         },
       });
     }

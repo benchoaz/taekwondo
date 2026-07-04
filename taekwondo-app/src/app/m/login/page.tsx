@@ -40,26 +40,33 @@ export default function MobileLoginPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-between min-h-screen bg-[#020617] text-white">
+    <div className="flex-1 flex flex-col justify-center min-h-screen bg-[#020617] text-white relative">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 bg-[url('/bg_taekwondo_kick.png')] bg-cover bg-top opacity-30 pointer-events-none" 
+        style={{ mixBlendMode: 'screen' }} 
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/80 to-transparent pointer-events-none" />
+
       {/* Decorative Game Header */}
-      <div className="relative pt-16 pb-12 px-6 flex flex-col items-center overflow-hidden">
+      <div className="relative pt-10 pb-8 px-6 flex flex-col items-center z-10">
         {/* Glow red light */}
-        <div className="absolute top-0 w-72 h-72 bg-[#E10600]/10 rounded-full blur-[80px]" />
+        <div className="absolute top-0 w-72 h-72 bg-[#E10600]/20 rounded-full blur-[80px]" />
         
-        <div className="w-24 h-24 rounded-3xl overflow-hidden bg-white/5 border-2 border-white/20 flex items-center justify-center mb-6 shadow-[0_0_24px_rgba(225,6,0,0.2)] animate-game-float">
-          <Image src="/logo.png" alt="Logo" width={80} height={80} className="object-contain p-2" />
+        <div className="w-24 h-24 rounded-3xl overflow-hidden bg-slate-100 border-2 border-white/20 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(225,6,0,0.4)] animate-game-float relative z-10">
+          <Image src="/logo.png" alt="Logo" width={80} height={80} className="object-contain p-2 drop-shadow-md" />
         </div>
-        <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FFFFFF] via-[#E2E8F0] to-[#E10600] tracking-wider text-center leading-none uppercase">
-          TAEKWONDO<br />
-          <span className="text-[#E10600]">ACADEMY</span>
+        <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FFFFFF] via-[#E2E8F0] to-[#94A3B8] tracking-wider text-center leading-none uppercase relative z-10 drop-shadow-lg">
+          WHITE TIGER<br />
+          <span className="text-[#E10600] drop-shadow-[0_0_8px_rgba(225,6,0,0.8)]">TAEKWONDO CLUB</span>
         </h1>
-        <p className="text-slate-400 text-xs font-bold mt-2 uppercase tracking-widest">
-          — Game Lobby Login —
+        <p className="text-slate-400 text-[10px] font-black mt-3 uppercase tracking-[0.3em] relative z-10">
+          — Portal Member —
         </p>
       </div>
 
       {/* Login Card */}
-      <div className="flex-1 bg-slate-900/60 border-t-4 border-[#E10600] rounded-t-[36px] px-6 pt-10 pb-8 flex flex-col gap-6 shadow-[0_-8px_30px_rgba(0,0,0,0.6)]">
+      <div className="relative z-10 w-full max-w-[90%] mx-auto bg-slate-900/70 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 shadow-[0_16px_40px_rgba(0,0,0,0.5)] mb-10 ring-1 ring-white/10">
         <div>
           <h2 className="text-2xl font-black">MEMULAI PETUALANGAN 🥋</h2>
           <p className="text-xs text-slate-400 mt-1">Masuk dengan email & password terdaftar Anda</p>

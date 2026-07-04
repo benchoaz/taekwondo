@@ -53,8 +53,8 @@ export default function MobileLoginPage() {
         {/* Glow red light */}
         <div className="absolute top-0 w-72 h-72 bg-[#E10600]/20 rounded-full blur-[80px]" />
         
-        <div className="w-24 h-24 rounded-3xl overflow-hidden bg-slate-100 border-2 border-white/20 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(225,6,0,0.4)] animate-game-float relative z-10">
-          <Image src="/logo.png" alt="Logo" width={80} height={80} className="object-contain p-2 drop-shadow-md" />
+        <div className="w-24 h-24 rounded-3xl overflow-hidden bg-transparent border-2 border-white/10 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(225,6,0,0.4)] animate-game-float relative z-10 backdrop-blur-sm">
+          <Image src="/logo.png" alt="Logo" width={80} height={80} className="object-contain p-2 drop-shadow-md filter invert brightness-200" />
         </div>
         <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FFFFFF] via-[#E2E8F0] to-[#94A3B8] tracking-wider text-center leading-none uppercase relative z-10 drop-shadow-lg">
           WHITE TIGER<br />
@@ -135,12 +135,14 @@ export default function MobileLoginPage() {
           </button>
         </form>
 
-        <p className="text-center text-xs text-slate-400 mt-auto">
-          Ingin beralih ke portal utama?{" "}
-          <a href="/" className="text-[#E10600] font-black hover:underline uppercase">
-            Kembali
-          </a>
-        </p>
+        <div className="mt-8 pt-6 border-t border-slate-800/50">
+          <p className="text-center text-xs text-slate-400">
+            Ingin beralih ke portal utama?{" "}
+            <a href="/" className="text-[#E10600] font-black hover:underline uppercase transition-all">
+              Kembali
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -53,8 +53,8 @@ export default function MobileLoginPage() {
         {/* Glow red light */}
         <div className="absolute top-0 w-72 h-72 bg-[#E10600]/20 rounded-full blur-[80px]" />
         
-        <div className="w-24 h-24 rounded-3xl overflow-hidden bg-transparent border-2 border-white/10 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(225,6,0,0.4)] animate-game-float relative z-10 backdrop-blur-sm">
-          <Image src="/logo.png" alt="Logo" width={80} height={80} className="object-contain p-2 drop-shadow-md filter invert brightness-200" />
+        <div className="w-24 h-24 rounded-3xl overflow-hidden bg-transparent border-2 border-white/10 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(255,255,255,0.1)] animate-game-float relative z-10">
+          <Image src="/logo.png" alt="Logo" width={80} height={80} className="object-contain p-1" style={{ filter: 'brightness(0) invert(1) drop-shadow(0 0 4px rgba(255,255,255,0.5))' }} />
         </div>
         <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FFFFFF] via-[#E2E8F0] to-[#94A3B8] tracking-wider text-center leading-none uppercase relative z-10 drop-shadow-lg">
           WHITE TIGER<br />

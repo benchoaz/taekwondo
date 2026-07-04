@@ -165,7 +165,7 @@ export default function MobileDashboard() {
   return (
     <div className="flex-1 flex flex-col pb-28 bg-[#0f172a] text-white overflow-y-auto max-h-screen bg-game-taekwondo-theme">
       {/* Game Lobby Header */}
-      <div className="relative z-40 bg-gradient-to-b from-slate-900 to-slate-950 pt-12 pb-20 px-5 border-b-4 border-[#334155] shadow-[0_4px_20px_rgba(0,0,0,0.5)] shrink-0">
+      <div className="relative bg-gradient-to-b from-slate-900 to-slate-950 pt-12 pb-20 px-5 border-b-4 border-[#334155] shadow-[0_4px_20px_rgba(0,0,0,0.5)] shrink-0">
         <div className="absolute top-0 right-0 w-48 h-48 bg-[#E10600]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
 
         <div className="flex items-center justify-between relative z-50">

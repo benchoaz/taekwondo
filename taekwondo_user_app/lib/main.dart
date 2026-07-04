@@ -9,6 +9,24 @@ import 'core/network/firebase_messaging_service.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Directionality(
+      textDirection: TextDirection.ltr,
+      child: Material(
+        child: Container(
+          color: Colors.red.shade900,
+          padding: const EdgeInsets.all(20),
+          child: SingleChildScrollView(
+            child: Text(
+              'FATAL ERROR:\n${details.exceptionAsString()}\n\nSTACKTRACE:\n${details.stack?.toString()}',
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ),
+        ),
+      ),
+    );
+  };
+
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
 

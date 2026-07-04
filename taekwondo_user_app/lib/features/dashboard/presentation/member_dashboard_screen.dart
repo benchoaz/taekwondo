@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../auth/domain/user_model.dart';
 import '../../spp/presentation/spp_screen.dart';
@@ -10,20 +11,22 @@ import '../data/member_attendance_service.dart';
 import '../../curriculum/presentation/curriculum_screen.dart';
 import '../data/quest_service.dart';
 import '../domain/quest_model.dart';
-import '../../schedule/presentation/schedule_screen.dart';
 import '../data/notification_service.dart';
 import '../../../core/widgets/sporty_icons.dart';
+import '../../schedule/presentation/schedule_screen.dart';
+import '../../profile/data/profile_service.dart';
+import '../data/spp_service.dart';
 
-// M3 Palette Extracted from HTML
-const Color m3Background = Color(0xFFF8F9FA);
-const Color m3Surface = Color(0xFFF8F9FA);
-const Color m3OnSurface = Color(0xFF191C1D);
-const Color m3OnSurfaceVariant = Color(0xFF424655);
-const Color m3Primary = Color(0xFF0052DC);
-const Color m3PrimaryContainer = Color(0xFF2B6BFF);
-const Color m3Secondary = Color(0xFFBC000A);
-const Color m3TertiaryContainer = Color(0xFFD0A600);
-const Color m3OutlineVariant = Color(0xFFC3C6D8);
+// Elegant Modern Palette
+const Color m3Background = Color(0xFFF5F7FA);
+const Color m3Surface = Colors.white;
+const Color m3OnSurface = Color(0xFF1E293B);
+const Color m3OnSurfaceVariant = Color(0xFF64748B);
+const Color m3Primary = Color(0xFF1E52F0); // Deep Royal Blue
+const Color m3PrimaryContainer = Color(0xFF1E52F0); 
+const Color m3Secondary = Color(0xFFDC2626); // Bright Red
+const Color m3TertiaryContainer = Color(0xFFEAB308); // Gold/Mustard
+const Color m3OutlineVariant = Color(0xFFE2E8F0);
 
 class MemberDashboardScreen extends ConsumerStatefulWidget {
   final UserModel user;
@@ -56,8 +59,6 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 _buildEventsSection(),
                 const SizedBox(height: 24),
                 _buildQuickActions(),
-                const SizedBox(height: 24),
-                _buildDailyQuests(),
               ],
             ),
           ),
@@ -87,10 +88,10 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
         child: Container(
-          color: m3Surface.withOpacity(0.8),
           padding: const EdgeInsets.only(left: 20, right: 20, top: 56, bottom: 16),
-          decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: Color(0x4DC3C6D8))),
+          decoration: BoxDecoration(
+            color: m3Surface.withOpacity(0.8),
+            border: const Border(bottom: BorderSide(color: Color(0x4DC3C6D8))),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -105,15 +106,11 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       border: Border.all(color: m3Primary, width: 2),
                     ),
                     padding: const EdgeInsets.all(2),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: DecorationImage(
-                          fit: BoxFit.cover,
-                          image: NetworkImage(
-                            widget.user.photoUrl ?? 'https://ui-avatars.com/api/?name=${widget.user.name}&background=0052dc&color=fff',
-                          ),
-                        ),
+                    child: CircleAvatar(
+                      radius: 24,
+                      backgroundColor: m3Primary,
+                      backgroundImage: NetworkImage(
+                        'https://ui-avatars.com/api/?name=${widget.user.name}&background=0052dc&color=fff',
                       ),
                     ),
                   ),
@@ -122,12 +119,12 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        (widget.user.currentBelt ?? 'Sabuk Merah').toUpperCase(),
+                        '${(widget.user.currentBelt ?? 'Sabuk Merah').toUpperCase()} • LEVEL ${(widget.user.progress ?? 80) ~/ 10}',
                         style: GoogleFonts.spaceGrotesk(
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.5,
-                          color: m3Secondary,
+                          color: m3OnSurfaceVariant,
                         ),
                       ),
                       Text(
@@ -182,138 +179,181 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: m3PrimaryContainer,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2563EB), Color(0xFF1E3A8A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: m3PrimaryContainer.withOpacity(0.3),
-            blurRadius: 40,
-            offset: const Offset(0, 20),
-            spreadRadius: -15,
+            color: const Color(0xFF2563EB).withOpacity(0.3),
+            blurRadius: 30,
+            offset: const Offset(0, 15),
           )
         ],
       ),
-      child: Stack(
-        clipBehavior: Clip.none,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Blurred background glow circles
-          Positioned(
-            right: -60,
-            top: -60,
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                child: Container(color: Colors.transparent),
-              ),
-            ),
-          ),
-          
-          Column(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Text(
+                    'ABSENSI HARI INI',
+                    style: GoogleFonts.hankenGrotesk(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      fontStyle: FontStyle.italic,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
                     children: [
+                      const Icon(Icons.location_on_outlined, color: Colors.white, size: 16),
+                      const SizedBox(width: 4),
                       Text(
-                        'ABSENSI HARI INI',
+                        'Dojo Pusat Jakarta',
                         style: GoogleFonts.hankenGrotesk(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          fontStyle: FontStyle.italic,
-                          letterSpacing: -0.5,
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on, color: Colors.white, size: 16),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Dojo Pusat',
-                            style: GoogleFonts.hankenGrotesk(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      )
                     ],
+                  )
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                ),
+                child: Text(
+                  'LIVE NOW',
+                  style: GoogleFonts.hankenGrotesk(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.0,
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
-                    ),
-                    child: Text(
-                      'READY TO SCAN',
-                      style: GoogleFonts.hankenGrotesk(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
-                      ),
+                ),
+              )
+            ],
+          ),
+          const SizedBox(height: 24),
+          // Button
+          GestureDetector(
+            onTap: () => _handleSelfAttendance(),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              height: 56,
+              decoration: BoxDecoration(
+                color: _isAbsenSuccess ? Colors.green.shade500 : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (_isAbsenLoading)
+                    const SizedBox(
+                      width: 24, height: 24,
+                      child: CircularProgressIndicator(color: m3Primary, strokeWidth: 3),
+                    )
+                  else if (_isAbsenSuccess)
+                    const Icon(Icons.check_circle, color: Colors.white, size: 24)
+                  else
+                    const Icon(Icons.qr_code_scanner, color: m3Primary, size: 24),
+                  
+                  const SizedBox(width: 12),
+                  Text(
+                    _isAbsenLoading ? 'MEMPROSES...' : (_isAbsenSuccess ? 'BERHASIL!' : 'ABSEN SEKARANG'),
+                    style: GoogleFonts.hankenGrotesk(
+                      color: _isAbsenSuccess ? Colors.white : m3Primary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
                   )
                 ],
               ),
-              const SizedBox(height: 24),
-              GestureDetector(
-                onTap: () => _handleSelfAttendance(),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: _isAbsenSuccess ? Colors.green.shade500 : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 25,
-                        offset: const Offset(0, 10),
-                      )
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (_isAbsenLoading)
-                        const SizedBox(
-                          width: 24, height: 24,
-                          child: CircularProgressIndicator(color: m3Primary, strokeWidth: 3),
-                        )
-                      else if (_isAbsenSuccess)
-                        const Icon(Icons.check_circle, color: Colors.white, size: 28)
-                      else
-                        const Icon(Icons.qr_code_scanner, color: m3Primary, size: 28),
-                      
-                      const SizedBox(width: 12),
-                      Text(
-                        _isAbsenLoading ? 'MEMPROSES...' : (_isAbsenSuccess ? 'BERHASIL!' : 'ABSEN SEKARANG'),
-                        style: GoogleFonts.hankenGrotesk(
-                          color: _isAbsenSuccess ? Colors.white : m3Primary,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  SizedBox(
+                    width: 70,
+                    height: 28,
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          left: 0,
+                          child: CircleAvatar(
+                            radius: 14,
+                            backgroundColor: Colors.white,
+                            child: CircleAvatar(
+                              radius: 12,
+                              backgroundColor: const Color(0xFF93C5FD), // Light blue
+                            ),
+                          ),
                         ),
-                      )
-                    ],
+                        Positioned(
+                          left: 20,
+                          child: CircleAvatar(
+                            radius: 14,
+                            backgroundColor: Colors.white,
+                            child: CircleAvatar(
+                              radius: 12,
+                              backgroundColor: const Color(0xFF60A5FA), // Slightly darker blue
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          left: 40,
+                          child: CircleAvatar(
+                            radius: 14,
+                            backgroundColor: Colors.white,
+                            child: CircleAvatar(
+                              radius: 12,
+                              backgroundColor: const Color(0xFF3B82F6), // Darker blue
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '+12 teman hadir',
+                    style: GoogleFonts.hankenGrotesk(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  )
+                ],
               ),
+              Text(
+                'SESI 1 • 16:00',
+                style: GoogleFonts.hankenGrotesk(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              )
             ],
           )
         ],
@@ -322,27 +362,59 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
   }
 
   Widget _buildBentoGrid() {
-    return Row(
+    final profileAsync = ref.watch(profileProvider);
+    final sppAsync = ref.watch(sppProvider);
+    final questsAsync = ref.watch(questProvider);
+    
+    String sppAmount = 'Rp 0';
+    String sppStatus = 'LUNAS';
+    bool isSppUnpaid = false;
+    if (sppAsync.value != null) {
+      final amt = sppAsync.value!.amount.toString();
+      if (sppAsync.value!.amount >= 1000) {
+        sppAmount = 'Rp ${(sppAsync.value!.amount / 1000).toInt()}k';
+      } else {
+        sppAmount = 'Rp ${sppAsync.value!.amount}';
+      }
+      sppStatus = sppAsync.value!.status;
+      isSppUnpaid = sppStatus.toUpperCase() != 'LUNAS';
+    } else {
+      sppAmount = 'Rp 250k';
+      sppStatus = 'UNPAID';
+      isSppUnpaid = true;
+    }
+
+    int progress = widget.user.progress ?? 0;
+    String currentBelt = widget.user.currentBelt ?? 'Sabuk Putih';
+    if (profileAsync.value != null) {
+      progress = profileAsync.value!.progress;
+      currentBelt = profileAsync.value!.currentBelt;
+    }
+
+    int completedQuests = 0;
+    int totalQuests = 0;
+    if (questsAsync.value != null) {
+      totalQuests = questsAsync.value!.length;
+      completedQuests = questsAsync.value!.where((q) => q.completed).length;
+    }
+
+    return Column(
       children: [
-        // SPP Card
-        Expanded(
-          flex: 1,
-          child: GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => SppScreen(user: widget.user))),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        Row(
+          children: [
+            // SPP Card
+            Expanded(
+              child: GestureDetector(
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => SppScreen(user: widget.user))),
                 child: Container(
-                  height: 200,
+                  height: 220,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withOpacity(0.5)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
+                        color: Colors.black.withOpacity(0.04),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       )
@@ -359,37 +431,37 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Container(
-                                width: 40,
-                                height: 40,
+                                width: 36,
+                                height: 36,
                                 decoration: BoxDecoration(
                                   color: Colors.red.shade50,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                                child: const Icon(Icons.payments, color: m3Secondary),
+                                child: const Icon(Icons.account_balance_wallet, color: m3Secondary, size: 18),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: m3Secondary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  'PENDING',
-                                  style: GoogleFonts.hankenGrotesk(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
-                                    color: m3Secondary,
-                                    letterSpacing: 1.0,
+                              if (isSppUnpaid)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: m3Secondary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                ),
-                              )
+                                  child: Text(
+                                    'UNPAID',
+                                    style: GoogleFonts.hankenGrotesk(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: m3Secondary,
+                                    ),
+                                  ),
+                                )
                             ],
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'Iuran SPP',
                             style: GoogleFonts.hankenGrotesk(
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: m3OnSurface,
                               height: 1.1,
@@ -400,7 +472,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                             style: GoogleFonts.hankenGrotesk(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              color: m3OnSurfaceVariant.withOpacity(0.7),
+                              color: m3OnSurfaceVariant,
                             ),
                           ),
                         ],
@@ -409,28 +481,29 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Rp 250.000',
+                            sppAmount,
                             style: GoogleFonts.hankenGrotesk(
-                              fontSize: 20,
+                              fontSize: 22,
                               fontWeight: FontWeight.w900,
                               color: m3Secondary,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
-                              color: m3OnSurface,
+                              color: const Color(0xFF1E293B), // Dark elegant button
                               borderRadius: BorderRadius.circular(12),
                             ),
                             alignment: Alignment.center,
                             child: Text(
-                              'Bayar',
+                              'BAYAR',
                               style: GoogleFonts.hankenGrotesk(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
+                                letterSpacing: 1.0,
                               ),
                             ),
                           )
@@ -441,156 +514,176 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 ),
               ),
             ),
+            const SizedBox(width: 16),
+            // Daily Quests Card
+            Expanded(
+              child: GestureDetector(
+                onTap: () {},
+                child: Container(
+                  height: 220,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: m3Secondary,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [
+                      BoxShadow(
+                        color: m3Secondary.withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      )
+                    ]
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.assignment, color: Colors.white, size: 18),
+                          ),
+                          Text(
+                            'DAILY QUESTS',
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white.withOpacity(0.9),
+                              letterSpacing: 1.0,
+                            ),
+                          )
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$completedQuests/$totalQuests MISI SELESAI',
+                            style: GoogleFonts.hankenGrotesk(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              height: 1.1,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Container(
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            alignment: Alignment.centerLeft,
+                            child: FractionallySizedBox(
+                              widthFactor: totalQuests > 0 ? (completedQuests / totalQuests) : 0,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'DAPATKAN 50 XP HARI INI',
+                            style: GoogleFonts.spaceGrotesk(
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white.withOpacity(0.8),
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // UKT Progress Card (Full width)
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFCA8A04), Color(0xFFA16207)], // Golden gradient
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFCA8A04).withOpacity(0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              )
+            ]
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'UKT PROGRESS',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white.withOpacity(0.9),
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                  Text(
+                    '$progress%',
+                    style: GoogleFonts.hankenGrotesk(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Container(
+                height: 6,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: progress / 100,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '15 Sesi lagi menuju $currentBelt',
+                style: GoogleFonts.hankenGrotesk(
+                  fontSize: 12,
+                  color: Colors.white.withOpacity(0.9),
+                  fontWeight: FontWeight.w500,
+                ),
+              )
+            ],
           ),
         ),
-        const SizedBox(width: 16),
-        // Column right (Rank & Progress)
-        Expanded(
-          flex: 1,
-          child: SizedBox(
-            height: 200,
-            child: Column(
-              children: [
-                // Rank Card
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: m3Secondary,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: m3Secondary.withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        )
-                      ]
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 28,
-                              height: 28,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white.withOpacity(0.3)),
-                              ),
-                              child: const Icon(Icons.military_tech, color: Colors.white, size: 16),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'LEVEL 8',
-                              style: GoogleFonts.spaceGrotesk(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white.withOpacity(0.9),
-                                letterSpacing: 1.5,
-                              ),
-                            )
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'SABUK MERAH',
-                          style: GoogleFonts.hankenGrotesk(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            fontStyle: FontStyle.italic,
-                            color: Colors.white,
-                            height: 1.0,
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Progress Card
-                Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: m3TertiaryContainer,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        )
-                      ]
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'PROGRES UKT',
-                              style: GoogleFonts.spaceGrotesk(
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF4F3D00).withOpacity(0.8),
-                              ),
-                            ),
-                            Text(
-                              '75%',
-                              style: GoogleFonts.hankenGrotesk(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                                color: const Color(0xFF4F3D00),
-                              ),
-                            )
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF4F3D00).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          alignment: Alignment.centerLeft,
-                          child: FractionallySizedBox(
-                            widthFactor: 0.75,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF4F3D00),
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF4F3D00).withOpacity(0.3),
-                                    blurRadius: 8,
-                                  )
-                                ]
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Hampir Siap Ujian!',
-                          style: GoogleFonts.hankenGrotesk(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF4F3D00),
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        )
       ],
     );
   }
@@ -628,7 +721,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 220,
+          height: 280,
           child: ListView(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.none,
@@ -751,13 +844,19 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       children: [
         Expanded(
           child: GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const ScheduleScreen())),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => ScheduleScreen())),
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFEDEEEF),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: m3OutlineVariant.withOpacity(0.3)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  )
+                ]
               ),
               child: Row(
                 children: [
@@ -791,9 +890,15 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFEDEEEF),
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: m3OutlineVariant.withOpacity(0.3)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  )
+                ]
               ),
               child: Row(
                 children: [
@@ -827,7 +932,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
   Widget _buildDailyQuests() {
     return Consumer(
       builder: (context, ref, child) {
-        final questsAsync = ref.watch(dailyQuestsProvider(widget.user.id));
+        final questsAsync = ref.watch(questProvider);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -963,44 +1068,51 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
   }
 
   Widget _buildBottomNavBar() {
-    return ClipRRect(
-      borderRadius: const BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          color: Colors.white.withOpacity(0.8),
-          padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 32),
-          decoration: const BoxDecoration(
-            border: Border(top: BorderSide(color: Color(0x4DC3C6D8))),
+    return Container(
+      padding: const EdgeInsets.only(left: 32, right: 32, top: 16, bottom: 32),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: const BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          )
+        ]
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildNavItem(
+            Icon(Icons.home, color: m3Primary, size: 28), 
+            'Beranda', 
+            true
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(Icons.home, 'Beranda', true),
-              _buildNavItem(Icons.history, 'Riwayat', false),
-              _buildNavItem(Icons.person, 'Profil', false),
-            ],
+          GestureDetector(
+            onTap: () => context.push('/profile'),
+            child: _buildNavItem(
+              Icon(Icons.person_outline, color: m3OnSurfaceVariant.withOpacity(0.6), size: 28), 
+              'Profil', 
+              false
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, bool isActive) {
+  Widget _buildNavItem(Widget iconWidget, String label, bool isActive) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
           decoration: BoxDecoration(
-            color: isActive ? m3Secondary.withOpacity(0.1) : Colors.transparent,
+            color: isActive ? m3Primary.withOpacity(0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Icon(
-            icon,
-            color: isActive ? m3Secondary : m3OnSurfaceVariant.withOpacity(0.6),
-            size: 26,
-          ),
+          child: iconWidget,
         ),
         const SizedBox(height: 4),
         Text(
@@ -1009,7 +1121,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
             fontSize: 10,
             fontWeight: isActive ? FontWeight.w900 : FontWeight.bold,
             letterSpacing: 1.5,
-            color: isActive ? m3Secondary : m3OnSurfaceVariant.withOpacity(0.6),
+            color: isActive ? m3Primary : m3OnSurfaceVariant.withOpacity(0.6),
           ),
         )
       ],
@@ -1050,7 +1162,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     }
   }
 
-  void _showCompleteQuestSheet(BuildContext context, WidgetRef ref, DailyQuestLog log) {
+  void _showCompleteQuestSheet(BuildContext context, WidgetRef ref, dynamic log) {
     // Basic sheet for claiming quests (similar to original but stylized M3)
     showModalBottomSheet(
       context: context,
@@ -1072,7 +1184,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               const SizedBox(height: 16),
               GestureDetector(
                 onTap: () async {
-                  await ref.read(questLogServiceProvider).logQuest(memberId: widget.user.id, logId: log.id, notes: 'Selesai');
+                  // TODO: Implement actual completion logic via QuestService
                   if (c.mounted) Navigator.pop(c);
                 },
                 child: Container(

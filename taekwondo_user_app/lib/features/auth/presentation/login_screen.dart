@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../settings/data/settings_provider.dart';
 import '../data/auth_provider.dart';
-import '../../dashboard/presentation/dashboard_screen.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/network/firebase_messaging_service.dart';
 
@@ -55,9 +55,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         }
       }
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
-      );
+      context.go('/');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

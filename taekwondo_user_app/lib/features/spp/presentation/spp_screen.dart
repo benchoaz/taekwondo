@@ -1,24 +1,24 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../auth/domain/user_model.dart';
-import '../../../core/network/dio_client.dart';
-import '../../../core/constants/api_constants.dart';
 
-// M3 Palette Extracted from HTML
-const Color m3Background = Color(0xFFF8F9FA);
-const Color m3Surface = Color(0xFFF8F9FA);
-const Color m3OnSurface = Color(0xFF191C1D);
-const Color m3OnSurfaceVariant = Color(0xFF424655);
-const Color m3Primary = Color(0xFF0052DC);
-const Color m3PrimaryFixed = Color(0xFFDBE1FF);
-const Color m3PrimaryContainer = Color(0xFF2B6BFF);
-const Color m3Secondary = Color(0xFFBC000A);
-const Color m3TertiaryFixed = Color(0xFFFFE08B);
-const Color m3OnTertiaryFixed = Color(0xFF241A00);
-const Color m3OutlineVariant = Color(0xFFC3C6D8);
+import 'package:go_router/go_router.dart';
+
+import '../../auth/domain/user_model.dart';
+import '../../auth/data/auth_provider.dart';
+
+// Neo-Brutalism Theme Colors
+const Color m3OnPrimaryFixedVariant = Color(0xFF003DAA);
+const Color nbSurface = Color(0xFFF8F9FA);
+const Color nbSurfaceVariant = Color(0xFFE1E3E4);
+const Color nbBlack = Color(0xFF191C1D); // on-surface
+const Color nbOutline = Color(0xFF737687);
+const Color nbPrimary = Color(0xFF0052DC);
+const Color nbSecondary = Color(0xFFBC000A);
+const Color nbTertiaryFixed = Color(0xFFFFE08B);
+const Color nbOnTertiaryFixed = Color(0xFF241A00);
+const Color nbPrimaryFixed = Color(0xFFDBE1FF);
 
 class SppScreen extends ConsumerStatefulWidget {
   final UserModel user;
@@ -29,284 +29,201 @@ class SppScreen extends ConsumerStatefulWidget {
 }
 
 class _SppScreenState extends ConsumerState<SppScreen> {
-  bool _isLoading = true;
-  List<dynamic> _invoices = [];
-  String? _error;
-  int _selectedMethodIndex = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchInvoices();
-  }
-
-  Future<void> _fetchInvoices() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
-
-      final dio = ref.read(dioProvider);
-      final response = await dio.get('/spp', queryParameters: {'userId': widget.user.id});
-
-      if (response.statusCode == 200) {
-        setState(() {
-          _invoices = response.data;
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _error = 'Gagal memuat data SPP';
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _error = 'Terjadi kesalahan koneksi';
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _launchPaymentUrl(String? paymentId) async {
-    if (paymentId == null) return;
-    final uri = Uri.parse('${ApiConstants.baseUrl.replaceAll("/api", "")}/payment/$paymentId');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tidak dapat membuka link pembayaran')));
-      }
-    }
-  }
-
-  String _getMonthName(int month) {
-    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-    return month >= 1 && month <= 12 ? months[month - 1] : '';
-  }
+  int _selectedMethodIndex = 1; // Default GOPAY/OVO
 
   @override
   Widget build(BuildContext context) {
-    final unpaidInvoices = _invoices.where((inv) => inv['status'] != 'PAID').toList();
-    final paidInvoices = _invoices.where((inv) => inv['status'] == 'PAID').toList();
-    final activeInvoice = unpaidInvoices.isNotEmpty ? unpaidInvoices.first : null;
-
     return Scaffold(
-      backgroundColor: m3Background,
+      backgroundColor: nbSurface,
       body: Stack(
         children: [
-          // Background Pattern (dots)
+          // Background Pattern
           Positioned.fill(
-            child: Opacity(
-              opacity: 0.5,
-              child: CustomPaint(painter: GridPatternPainter()),
-            ),
+            child: CustomPaint(painter: DottedBackgroundPainter()),
           ),
           
-          // Main Scrollable Content
-          RefreshIndicator(
-            onRefresh: _fetchInvoices,
-            color: m3Primary,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.only(left: 20, right: 20, top: 112, bottom: 120),
-              child: _isLoading 
-                ? const Center(child: Padding(padding: EdgeInsets.only(top: 100), child: CircularProgressIndicator(color: m3Primary)))
-                : _error != null 
-                  ? _buildErrorState()
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildHeaderSection(),
-                        const SizedBox(height: 24),
-                        if (activeInvoice != null)
-                          _buildCurrentStatusCard(activeInvoice)
-                        else
-                          _buildAllPaidCard(),
-                        
-                        const SizedBox(height: 24),
-                        _buildPaymentMethods(),
-                        
-                        const SizedBox(height: 24),
-                        _buildHistorySection(paidInvoices),
-                        
-                        const SizedBox(height: 24),
-                        _buildInfoTooltip(),
-                      ],
-                    ),
-            ),
+          Column(
+            children: [
+              _buildTopAppBar(),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 24),
+                      _buildNeoBrutalCard(),
+                      const SizedBox(height: 24),
+                      _buildPaymentMethods(),
+                      const SizedBox(height: 24),
+                      _buildHistory(),
+                      const SizedBox(height: 24),
+                      _buildInfoTooltip(),
+                      const SizedBox(height: 100), // padding for bottom nav
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
 
-          // Fixed Top App Bar
+          // Floating Bottom Nav Bar
           Positioned(
-            top: 0, left: 0, right: 0,
-            child: _buildTopAppBar(),
+            bottom: 0, left: 0, right: 0,
+            child: _buildBottomNavBar(),
           ),
-
-          // Back Button override in AppBar
-          Positioned(
-            top: 52, left: 8,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: m3OnSurface),
-              onPressed: () => Navigator.pop(context),
-            ),
-          )
         ],
       ),
     );
   }
 
   Widget _buildTopAppBar() {
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
-        child: Container(
-          color: m3Surface.withOpacity(0.8),
-          padding: const EdgeInsets.only(left: 56, right: 20, top: 56, bottom: 16),
-          decoration: BoxDecoration(
-            border: const Border(bottom: BorderSide(color: Color(0x4DC3C6D8))),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 12, offset: const Offset(0, 4))
-            ]
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12).copyWith(top: 56),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2)),
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 24, offset: const Offset(0, 12)),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40, height: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: m3Primary, width: 2),
-                      image: DecorationImage(
-                        fit: BoxFit.cover,
-                        image: NetworkImage(widget.user.photoUrl ?? 'https://ui-avatars.com/api/?name=${widget.user.name}&background=0052dc&color=fff'),
-                      ),
-                    ),
+              Container(
+                width: 40, height: 40,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: nbPrimary, width: 2),
+                  image: DecorationImage(
+                    fit: BoxFit.cover,
+                    image: NetworkImage('https://ui-avatars.com/api/?name=${widget.user.name}&background=0052dc&color=fff'),
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'MASTER DASHBOARD',
-                    style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: m3Primary),
-                  ),
-                ],
+                ),
               ),
-              const Icon(Icons.notifications_outlined, color: m3Primary),
+              const SizedBox(width: 12),
+              Text(
+                'MASTER DASHBOARD',
+                style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: nbPrimary),
+              ),
             ],
           ),
-        ),
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_outlined, color: nbPrimary),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildHeaderSection() {
+  Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           'Iuran SPP',
-          style: GoogleFonts.hankenGrotesk(fontSize: 24, fontWeight: FontWeight.w900, color: m3OnSurface),
+          style: GoogleFonts.hankenGrotesk(fontSize: 24, fontWeight: FontWeight.w900, color: nbBlack),
         ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: m3TertiaryFixed,
+            color: nbTertiaryFixed,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: m3OnTertiaryFixed, width: 2),
+            border: Border.all(color: nbOnTertiaryFixed, width: 2),
           ),
           child: Text(
-            (widget.user.currentBelt ?? 'SABUK MERAH').toUpperCase(),
-            style: GoogleFonts.spaceGrotesk(fontSize: 10, fontWeight: FontWeight.bold, color: m3OnTertiaryFixed),
+            'LEVEL 12: BLUE BELT',
+            style: GoogleFonts.spaceGrotesk(fontSize: 10, fontWeight: FontWeight.bold, color: nbOnTertiaryFixed),
           ),
-        )
+        ),
       ],
     );
   }
 
-  Widget _buildCurrentStatusCard(dynamic invoice) {
-    final isOverdue = invoice['status'] == 'OVERDUE';
-    final formatter = RegExp(r'\B(?=(\d{3})+(?!\d))');
-    final amountStr = invoice['amount'].toString().replaceAllMapped(formatter, (match) => '.');
-
+  Widget _buildNeoBrutalCard() {
     return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: m3OnSurface, width: 2),
-        boxShadow: [
-          BoxShadow(color: m3Secondary, offset: const Offset(4, 4))
-        ]
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: nbBlack, width: 2),
+        boxShadow: const [BoxShadow(color: nbSecondary, offset: Offset(4, 4))],
       ),
       child: Stack(
         children: [
+          // Banner BELUM BAYAR
           Positioned(
             top: 0, right: 0,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isOverdue ? Colors.orange.shade700 : m3Secondary,
-                border: const Border(left: BorderSide(color: m3OnSurface, width: 2), bottom: BorderSide(color: m3OnSurface, width: 2)),
-                borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(12), topRight: Radius.circular(14)),
+              decoration: const BoxDecoration(
+                color: nbSecondary,
+                borderRadius: BorderRadius.only(topRight: Radius.circular(10), bottomLeft: Radius.circular(10)),
+                border: Border(left: BorderSide(color: nbBlack, width: 2), bottom: BorderSide(color: nbBlack, width: 2)),
               ),
               child: Text(
-                isOverdue ? 'MENUNGGAK' : 'BELUM BAYAR',
-                style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                'BELUM BAYAR',
+                style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.5),
               ),
             ),
           ),
+          
           Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'TAGIHAN ${_getMonthName(invoice['month']).toUpperCase()} ${invoice['year']}',
-                  style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: m3OnSurfaceVariant),
-                ),
+                Text('TAGIHAN NOVEMBER 2023', style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF424655), letterSpacing: 1.5)),
                 const SizedBox(height: 4),
-                Text(
-                  'Rp $amountStr',
-                  style: GoogleFonts.hankenGrotesk(fontSize: 36, fontWeight: FontWeight.w900, color: m3OnSurface, letterSpacing: -1),
-                ),
+                Text('Rp 250.000', style: GoogleFonts.hankenGrotesk(fontSize: 36, fontWeight: FontWeight.w900, color: nbBlack)),
                 const SizedBox(height: 24),
                 Container(
-                  padding: const EdgeInsets.only(top: 16),
-                  decoration: const BoxDecoration(border: Border(top: BorderSide(color: Color(0xFFE1E3E4), width: 2))),
+                  padding: const EdgeInsets.only(top: 16, bottom: 16),
+                  decoration: const BoxDecoration(
+                    border: Border(top: BorderSide(color: nbSurfaceVariant, width: 2)),
+                  ),
                   child: Column(
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Iuran Bulanan (SPP)', style: GoogleFonts.hankenGrotesk(fontSize: 14, color: m3OnSurfaceVariant)),
-                          Text('Rp $amountStr', style: GoogleFonts.hankenGrotesk(fontSize: 16, fontWeight: FontWeight.bold, color: m3OnSurface)),
+                          Text('Iuran Bulanan (SPP)', style: GoogleFonts.hankenGrotesk(fontSize: 14, color: const Color(0xFF424655))),
+                          Text('Rp 200.000', style: GoogleFonts.hankenGrotesk(fontSize: 20, fontWeight: FontWeight.bold, color: nbBlack)),
                         ],
                       ),
-                      // Hardcoded additional fee mapping based on HTML reference
                       const SizedBox(height: 12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Biaya Perlengkapan', style: GoogleFonts.hankenGrotesk(fontSize: 14, color: m3OnSurfaceVariant)),
-                          Text('Rp 0', style: GoogleFonts.hankenGrotesk(fontSize: 16, fontWeight: FontWeight.bold, color: m3OnSurface)),
+                          Text('Biaya Perlengkapan', style: GoogleFonts.hankenGrotesk(fontSize: 14, color: const Color(0xFF424655))),
+                          Text('Rp 50.000', style: GoogleFonts.hankenGrotesk(fontSize: 20, fontWeight: FontWeight.bold, color: nbBlack)),
                         ],
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
                 GestureDetector(
-                  onTap: () => _launchPaymentUrl(invoice['paymentId']),
+                  onTap: () async {
+                    // Navigate to midtrans/xendit logic
+                    final url = Uri.parse('https://app.sandbox.midtrans.com/snap/v2/vtweb/mock');
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url);
+                    }
+                  },
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
-                      color: m3Primary,
+                      color: nbPrimary,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: m3OnSurface, width: 2),
-                      boxShadow: const [BoxShadow(color: m3Primary, offset: Offset(4, 4))]
+                      border: Border.all(color: nbBlack, width: 2),
+                      boxShadow: const [BoxShadow(color: nbPrimary, offset: Offset(4, 4))], // neo-brutal-shadow-blue
                     ),
                     alignment: Alignment.center,
                     child: Row(
@@ -314,39 +231,15 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                       children: [
                         const Icon(Icons.payments, color: Colors.white),
                         const SizedBox(width: 12),
-                        Text('BAYAR SEKARANG', style: GoogleFonts.spaceGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text('BAYAR SEKARANG', style: GoogleFonts.spaceGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.5)),
                       ],
                     ),
                   ),
-                )
+                ),
               ],
             ),
-          )
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildAllPaidCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: m3OnSurface, width: 2),
-        boxShadow: [
-          BoxShadow(color: Colors.green.shade600, offset: const Offset(4, 4))
-        ]
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Center(
-        child: Column(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green.shade600, size: 64),
-            const SizedBox(height: 16),
-            Text('Semua Lunas!', style: GoogleFonts.hankenGrotesk(fontSize: 24, fontWeight: FontWeight.w900, color: m3OnSurface)),
-            Text('Tidak ada tagihan bulan ini.', style: GoogleFonts.hankenGrotesk(fontSize: 14, color: m3OnSurfaceVariant)),
-          ],
-        ),
       ),
     );
   }
@@ -357,116 +250,118 @@ class _SppScreenState extends ConsumerState<SppScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4),
-          child: Text('METODE PEMBAYARAN', style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: m3OnSurfaceVariant)),
+          child: Text('METODE PEMBAYARAN', style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF424655), letterSpacing: 1.5)),
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            _buildMethodItem(0, Icons.account_balance, 'TRANSFER BANK'),
-            const SizedBox(width: 12),
-            _buildMethodItem(1, Icons.account_balance_wallet, 'E-WALLET'),
-            const SizedBox(width: 12),
-            _buildMethodItem(2, Icons.qr_code_2, 'QRIS PAY'),
-          ],
-        )
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              _buildMethodCard(0, 'TRANSFER BANK', Icons.account_balance),
+              const SizedBox(width: 12),
+              _buildMethodCard(1, 'GOPAY / OVO', Icons.account_balance_wallet),
+              const SizedBox(width: 12),
+              _buildMethodCard(2, 'QRIS PAY', Icons.qr_code_2),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildMethodItem(int index, IconData icon, String label) {
+  Widget _buildMethodCard(int index, String title, IconData icon) {
     final isSelected = _selectedMethodIndex == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedMethodIndex = index),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: isSelected ? m3PrimaryFixed : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: isSelected ? m3Primary : m3OnSurface, width: 2),
-          ),
-          child: Column(
-            children: [
-              Icon(icon, color: isSelected ? m3Primary : m3OnSurfaceVariant, size: 32),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.spaceGrotesk(fontSize: 10, fontWeight: FontWeight.bold, color: isSelected ? m3Primary : m3OnSurface),
-              )
-            ],
-          ),
+    return GestureDetector(
+      onTap: () => setState(() => _selectedMethodIndex = index),
+      child: Container(
+        width: 120,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? nbPrimaryFixed : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isSelected ? nbPrimary : nbBlack, width: 2),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 32, color: isSelected ? nbPrimary : nbBlack.withOpacity(0.6)),
+            const SizedBox(height: 8),
+            Text(title, style: GoogleFonts.spaceGrotesk(fontSize: 10, fontWeight: FontWeight.bold, color: nbBlack)),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildHistorySection(List<dynamic> paidInvoices) {
+  Widget _buildHistory() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 4),
-              child: Text('RIWAYAT PEMBAYARAN', style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: m3OnSurfaceVariant)),
-            ),
-            Text('LIHAT SEMUA', style: GoogleFonts.spaceGrotesk(fontSize: 10, fontWeight: FontWeight.bold, color: m3Primary)),
+            Text('RIWAYAT PEMBAYARAN', style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: const Color(0xFF424655), letterSpacing: 1.5)),
+            Text('LIHAT SEMUA', style: GoogleFonts.spaceGrotesk(fontSize: 10, fontWeight: FontWeight.bold, color: nbPrimary, letterSpacing: 1.5)),
           ],
         ),
         const SizedBox(height: 12),
-        if (paidInvoices.isEmpty)
-          Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('Belum ada riwayat.', style: GoogleFonts.hankenGrotesk(color: m3OnSurfaceVariant))))
-        else
-          Column(
-            children: paidInvoices.map((inv) {
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: m3OnSurface, width: 2),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 48, height: 48,
-                          decoration: BoxDecoration(color: m3PrimaryFixed, borderRadius: BorderRadius.circular(8), border: Border.all(color: m3OnSurface, width: 2)),
-                          child: const Icon(Icons.calendar_today, color: m3Primary),
-                        ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('${_getMonthName(inv['month'])} ${inv['year']}', style: GoogleFonts.hankenGrotesk(fontSize: 16, fontWeight: FontWeight.bold, color: m3OnSurface)),
-                            Text('Lunas', style: GoogleFonts.hankenGrotesk(fontSize: 14, color: m3OnSurfaceVariant)),
-                          ],
-                        )
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: Colors.green.shade100, border: Border.all(color: Colors.green.shade300), borderRadius: BorderRadius.circular(4)),
-                          child: Text('PAID', style: GoogleFonts.spaceGrotesk(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green.shade700)),
-                        ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.download, color: m3OnSurfaceVariant),
-                      ],
-                    )
-                  ],
-                ),
-              );
-            }).toList(),
-          )
+        _buildHistoryItem('Oktober 2023', '05 Okt 2023'),
+        const SizedBox(height: 8),
+        _buildHistoryItem('September 2023', '02 Sep 2023'),
+        const SizedBox(height: 8),
+        _buildHistoryItem('Agustus 2023', '07 Agu 2023'),
       ],
+    );
+  }
+
+  Widget _buildHistoryItem(String month, String date) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: nbBlack, width: 2),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 48, height: 48,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF003DAA),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: nbBlack, width: 2),
+                ),
+                child: const Icon(Icons.calendar_today, color: nbPrimary),
+              ),
+              const SizedBox(height: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(month, style: GoogleFonts.hankenGrotesk(fontSize: 20, fontWeight: FontWeight.bold, color: nbBlack)),
+                  Text('Lunas • $date', style: GoogleFonts.hankenGrotesk(fontSize: 14, color: const Color(0xFF424655))),
+                ],
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade100,
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.green.shade300),
+                ),
+                child: Text('PAID', style: GoogleFonts.spaceGrotesk(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.green.shade700)),
+              ),
+              const SizedBox(width: 12),
+              const Icon(Icons.download, color: Color(0xFF424655)),
+            ],
+          )
+        ],
+      ),
     );
   }
 
@@ -474,57 +369,97 @@ class _SppScreenState extends ConsumerState<SppScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: m3PrimaryFixed.withOpacity(0.5),
+        color: const Color(0xFFB4C5FF).withOpacity(0.2), // primary-fixed-dim/20
+        border: Border.all(color: const Color(0xFF2B6BFF), width: 2), // primary-container
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: m3PrimaryContainer, width: 2),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info, color: m3Primary),
-          const SizedBox(width: 12),
+          const Icon(Icons.info, color: nbPrimary),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(
               'Pembayaran dilakukan paling lambat tanggal 10 setiap bulannya untuk menghindari denda administrasi.',
-              style: GoogleFonts.hankenGrotesk(fontSize: 14, color: const Color(0xFF003DAA)),
+              style: GoogleFonts.hankenGrotesk(fontSize: 14, color: m3OnPrimaryFixedVariant),
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildErrorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 100),
-        child: Column(
-          children: [
-            Icon(Icons.error_outline, color: Colors.red.shade300, size: 48),
-            const SizedBox(height: 16),
-            Text(_error!, style: GoogleFonts.hankenGrotesk(color: m3OnSurfaceVariant)),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: _fetchInvoices, child: const Text('Coba Lagi'))
-          ],
-        ),
+  Widget _buildBottomNavBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.8),
+        border: const Border(top: BorderSide(color: Colors.white30)),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12, offset: const Offset(0, -4))],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          GestureDetector(
+            onTap: () => context.go('/'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.home_outlined, color: nbSecondary),
+                Text('Home', style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: nbSecondary)),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () => context.go('/quest'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset('assets/images/daily_quest.png', width: 20, height: 20, color: nbOutline, errorBuilder: (_,__,___) => const Icon(Icons.stars, color: nbOutline, size: 20)),
+                      const SizedBox(width: 4),
+                      Text('Daily Quest', style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: nbOutline)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.person_outline, color: nbSecondary),
+              Text('Profile', style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: nbSecondary)),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
-// Background Dots Painter
-class GridPatternPainter extends CustomPainter {
+class DottedBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFE1E3E4)
-      ..strokeWidth = 1.0;
-    for (double i = 0; i < size.width; i += 20) {
-      for (double j = 0; j < size.height; j += 20) {
-        canvas.drawCircle(Offset(i, j), 1.5, paint);
+    final paint = Paint()..color = const Color(0xFFE1E3E4); // nbSurfaceVariant
+    const double spacing = 20.0;
+    const double radius = 1.0;
+
+    for (double y = 0; y < size.height; y += spacing) {
+      for (double x = 0; x < size.width; x += spacing) {
+        canvas.drawCircle(Offset(x, y), radius, paint);
       }
     }
   }
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

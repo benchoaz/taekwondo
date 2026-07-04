@@ -8,6 +8,7 @@ import {
   Newspaper, MapPin, Map, Flame
 } from "lucide-react";
 import BottomNav from "../_components/BottomNav";
+import NotificationBell from "../_components/NotificationBell";
 
 interface UserProfile {
   name: string; email: string; memberNumber: string;
@@ -48,19 +49,16 @@ function getBeltColor(belt: string) {
 export default function MobileDashboard() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [userId, setUserId] = useState<string>("");
   const [spp, setSpp] = useState<SppInvoice | null>(null);
   const [quests, setQuests] = useState<QuestLog[]>([]);
   const [articles, setArticles] = useState<Article[]>([]);
   const [events, setEvents] = useState<TournamentEvent[]>([]);
-  const [notifCount, setNotifCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const fetchDashboard = useCallback(async () => {
     try {
-      const [profileRes, notifRes] = await Promise.all([
-        fetch("/api/profile"),
-        fetch("/api/notifications?userId=me"),
-      ]);
+      const profileRes = await fetch("/api/profile");
       if (profileRes.status === 401 || profileRes.status === 403) {
         router.replace("/m/login");
         return;
@@ -69,6 +67,9 @@ export default function MobileDashboard() {
       if (!profileData.success) { router.replace("/m/login"); return; }
       const p = profileData.data;
       setProfile(p);
+      setUserId(p.id || "");
+      // Persist for notification bell
+      try { localStorage.setItem("user", JSON.stringify({ id: p.id })); } catch {}
 
       const [sppRes, questsRes, articlesRes, eventsRes] = await Promise.all([
         fetch("/api/spp"),
@@ -89,9 +90,6 @@ export default function MobileDashboard() {
 
       const evData = await eventsRes.json();
       if (evData.success && Array.isArray(evData.data)) setEvents(evData.data.slice(0, 5));
-
-      const notifData = await notifRes.json().catch(() => ({}));
-      if (notifData.success) setNotifCount(notifData.data?.length || 0);
     } catch {
       router.replace("/m/login");
     } finally {
@@ -190,14 +188,7 @@ export default function MobileDashboard() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Link href="/m/notifications" className="relative w-10 h-10 bg-slate-800/80 border-2 border-slate-700 rounded-xl flex items-center justify-center hover:bg-slate-700 transition-colors">
-              <Bell className="w-5 h-5 text-slate-300" />
-              {notifCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#E10600] border-2 border-slate-900 rounded-full text-[9px] font-black text-white flex items-center justify-center">
-                  {notifCount}
-                </span>
-              )}
-            </Link>
+            <NotificationBell userId={userId} />
             <button onClick={handleLogout} className="w-10 h-10 bg-slate-800/80 border-2 border-slate-700 rounded-xl flex items-center justify-center hover:bg-red-950 transition-colors">
               <LogOut className="w-4 h-4 text-red-400" />
             </button>

@@ -28,6 +28,8 @@ import {
   X,
   UserCheck,
   Award,
+  Megaphone,
+  Bell,
   User
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -35,6 +37,7 @@ import SppManagement from "./SppManagement";
 import CurriculumBuilder from "./CurriculumBuilder";
 import ExerciseBuilder from "./ExerciseBuilder";
 import BeltRequirementBuilder from "./BeltRequirementBuilder";
+import AnnouncementPanel from "./AnnouncementPanel";
 
 interface SettingData {
   logoUrl: string | null;
@@ -1365,6 +1368,7 @@ export default function AdminDashboard({
                 { id: "events", label: "Agenda Kegiatan (Event)", icon: <FileText className="w-4 h-4" /> },
                 { id: "coaches", label: "Manajemen Pelatih", icon: <Shield className="w-4 h-4" /> },
                 { id: "achievements", label: "Prestasi Member", icon: <Award className="w-4 h-4" /> },
+                { id: "announcements", label: "📢 Pengumuman", icon: <Megaphone className="w-4 h-4" /> },
                 { id: "hero_slides", label: "Slider Hero (Juara)", icon: <Sparkles className="w-4 h-4" /> }
               ].map((tab) => (
                 <button
@@ -3897,6 +3901,11 @@ export default function AdminDashboard({
             </form>
           </div>
         </div>
+      )}
+
+      {/* ── TAB: PENGUMUMAN (ANNOUNCEMENT BROADCAST) ── */}
+      {activeTab === "announcements" && (
+        <AnnouncementPanel />
       )}
 
       {/* ── TAB: SLIDER HERO ── */}

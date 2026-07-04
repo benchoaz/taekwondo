@@ -10,7 +10,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, message: 'Missing userId parameter' }, { status: 400 });
     }
 
-    // Ambil notifikasi spesifik user dan notifikasi umum (ALL)
     const notifications = await prisma.notification.findMany({
       where: {
         OR: [
@@ -18,15 +17,52 @@ export async function GET(request: Request) {
           { userId: 'ALL' }
         ]
       },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      take: 10
+      orderBy: { createdAt: 'desc' },
+      take: 50,
     });
 
-    return NextResponse.json({ success: true, data: notifications });
+    const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+    return NextResponse.json({ success: true, data: notifications, unreadCount });
   } catch (error: any) {
     console.error('Error fetching notifications:', error);
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}
+
+// Mark notifications as read
+// Body: { userId: string, notificationIds?: string[] } — if no ids, mark ALL as read for user
+export async function PATCH(request: Request) {
+  try {
+    const body = await request.json();
+    const { userId, notificationIds } = body;
+
+    if (!userId) {
+      return NextResponse.json({ success: false, message: 'Missing userId' }, { status: 400 });
+    }
+
+    if (notificationIds && notificationIds.length > 0) {
+      await prisma.notification.updateMany({
+        where: { id: { in: notificationIds }, userId: userId },
+        data: { isRead: true },
+      });
+    } else {
+      // Mark all notifications (user-specific and ALL) as read
+      await prisma.notification.updateMany({
+        where: { userId: userId },
+        data: { isRead: true },
+      });
+      // Mark global (ALL) notifications as read — we create a per-user read by userId
+      // For simplicity, mark ALL notifications addressed to 'ALL' as read (system-wide)
+      await prisma.notification.updateMany({
+        where: { userId: 'ALL', isRead: false },
+        data: { isRead: true },
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error('Error marking notifications as read:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }

@@ -23,7 +23,15 @@ export async function GET(req: NextRequest) {
       where: filter,
       include: {
         member: true,
-        payment: true
+        payment: {
+          include: {
+            receiver: {
+              select: {
+                name: true
+              }
+            }
+          }
+        }
       },
       orderBy: [
         { year: 'desc' },

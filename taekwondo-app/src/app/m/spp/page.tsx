@@ -19,6 +19,9 @@ interface SppInvoice {
     paidAt?: string;
     receivedById?: string;
     externalId?: string;
+    receiver?: {
+      name: string;
+    } | null;
   } | null;
 }
 
@@ -210,8 +213,16 @@ export default function SppPage() {
                       </div>
                       <div className="flex justify-between">
                         <span className="font-bold text-slate-500 uppercase tracking-wide">Status Validasi</span>
-                        <span className="font-bold text-emerald-400 uppercase flex items-center gap-1">
-                          <UserCheck className="w-3.5 h-3.5" /> Terverifikasi Pelatih
+                        <span className="font-bold text-emerald-400 uppercase flex items-center gap-1 text-right">
+                          <UserCheck className="w-3.5 h-3.5 shrink-0" /> 
+                          <span>
+                            {activeInvoice.payment.receiver?.name 
+                              ? `Divalidasi: Coach ${activeInvoice.payment.receiver.name}` 
+                              : activeInvoice.payment.paymentMethod === "QRIS_ONLINE" 
+                                ? "Terverifikasi Otomatis (QRIS)" 
+                                : "Terverifikasi Pelatih"
+                            }
+                          </span>
                         </span>
                       </div>
                       {activeInvoice.payment.externalId && (

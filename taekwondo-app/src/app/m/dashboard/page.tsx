@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import BottomNav from "../_components/BottomNav";
 import NotificationBell from "../_components/NotificationBell";
+import { getLevelInfo } from "@/lib/level";
 
 interface UserProfile {
   name: string; email: string; memberNumber: string;
@@ -195,19 +196,35 @@ export default function MobileDashboard() {
           </div>
         </div>
 
-        {/* Level & XP Progress */}
-        <div className="mt-5 bg-slate-950/80 border-2 border-slate-800 rounded-2xl p-3 shadow-inner">
-          <div className="flex justify-between items-center text-[10px] font-bold mb-1.5 text-slate-400">
-            <span className="flex items-center gap-1"><Award className="w-3.5 h-3.5 text-[#FFD700]" /> Sabuk {profile?.currentBelt}</span>
-            <span className="text-white font-black">{profile?.progress ?? 0} / 100 XP</span>
-          </div>
-          <div className="w-full bg-slate-900 rounded-full h-3 border border-slate-800 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-[#E10600] to-[#FFD700] shadow-[0_0_8px_rgba(255,215,0,0.5)] transition-all duration-500"
-              style={{ width: `${Math.min(profile?.progress ?? 0, 100)}%` }}
-            />
-          </div>
-        </div>
+        {/* Level & XP Progress (Gamified) */}
+        {profile && (() => {
+          const levelInfo = getLevelInfo(profile.progress);
+          return (
+            <div className="mt-5 bg-gradient-to-br from-slate-950 to-slate-900 border-2 border-slate-800 rounded-2xl p-4 shadow-xl">
+              <div className="flex justify-between items-center mb-2.5">
+                <div className="flex items-center gap-2">
+                  <div className="bg-[#FFD700] text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-[0_0_12px_rgba(255,215,0,0.4)]">
+                    <Award className="w-3.5 h-3.5" />
+                    <span>LV.{levelInfo.level}</span>
+                  </div>
+                  <div>
+                    <h4 className="text-[10px] font-black text-[#FFD700] tracking-widest uppercase">{levelInfo.title}</h4>
+                    <p className="text-[9px] text-slate-400 font-bold">Sabuk {profile.currentBelt}</p>
+                  </div>
+                </div>
+                <span className="text-white text-xs font-black bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700">
+                  {levelInfo.currentXp} / {levelInfo.nextLevelXp} XP
+                </span>
+              </div>
+              <div className="w-full bg-slate-950 rounded-full h-3 border border-slate-800 overflow-hidden p-0.5">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-[#E10600] to-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.5)] transition-all duration-500"
+                  style={{ width: `${levelInfo.percentage}%` }}
+                />
+              </div>
+            </div>
+          );
+        })()}
 
         {/* --- SELF CHECK-IN BUTTON --- */}
         <div className="mt-4 relative z-10">

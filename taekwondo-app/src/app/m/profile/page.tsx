@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, User, Mail, Hash, Scale, Ruler, Trophy, Star, LogOut, Loader2, Sparkles } from "lucide-react";
 import BottomNav from "../_components/BottomNav";
+import { getLevelInfo } from "@/lib/level";
 
 interface Profile {
   name: string; email: string; memberNumber: string;
@@ -69,11 +70,49 @@ export default function ProfilePage() {
               <span className="text-slate-300 text-xs font-semibold">Sabuk {profile?.currentBelt}</span>
             </div>
             <span className="text-slate-500 text-[10px] font-bold">#{profile?.memberNumber}</span>
+             {profile && (() => {
+               const levelInfo = getLevelInfo(profile.progress);
+               return (
+                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                   <span className="bg-[#FFD700] text-slate-950 font-black text-[9px] px-2 py-0.5 rounded shadow-[0_0_8px_rgba(255,215,0,0.3)]">
+                     LV.{levelInfo.level}
+                   </span>
+                   <span className="bg-slate-800 text-slate-300 font-extrabold text-[9px] px-2 py-0.5 rounded border border-slate-700 uppercase tracking-wider">
+                     {levelInfo.title}
+                   </span>
+                 </div>
+               );
+             })()}
           </div>
         </div>
       </div>
 
       <div className="px-4 py-4 flex flex-col gap-4">
+        {/* Progress & Leveling Card */}
+        {profile && (() => {
+          const levelInfo = getLevelInfo(profile.progress);
+          return (
+            <div className="game-card p-4 border-slate-800">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Progress Game & Leveling</p>
+              <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-black text-slate-300">Level {levelInfo.level}</span>
+                  <span className="text-[10px] font-black text-[#FFD700]">{levelInfo.currentXp} / {levelInfo.nextLevelXp} XP</span>
+                </div>
+                <div className="w-full bg-slate-950 rounded-full h-2.5 border border-slate-800 overflow-hidden p-0.5">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#E10600] to-[#FFD700]"
+                    style={{ width: `${levelInfo.percentage}%` }}
+                  />
+                </div>
+                <p className="text-[9px] text-slate-500 font-bold mt-2 text-center uppercase tracking-wide">
+                  Butuh {levelInfo.nextLevelXp - levelInfo.currentXp} XP lagi untuk naik level berikutnya!
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Info Card (Status Panel) */}
         <div className="game-card p-4 border-slate-800">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Spesifikasi Fisik & Identitas</p>

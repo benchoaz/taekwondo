@@ -7,7 +7,7 @@ import BottomNav from "../_components/BottomNav";
 interface QuestLog {
   id: string; completed: boolean; completedAt?: string;
   quest: { 
-    title: string; description: string; baseXp: number; category: string; 
+    id: string; title: string; description: string; baseXp: number; category: string; 
     requireVideo?: boolean; videoUrl?: string | null;
     readingContent?: string | null; quizQuestions?: any;
   };

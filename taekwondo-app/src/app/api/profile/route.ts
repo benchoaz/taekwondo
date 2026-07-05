@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
     }
 
     const profileData = {
-      name: user.name,
+      name: user.member.fullName || user.name,
       email: user.email,
       memberNumber: user.member.memberNumber,
       currentBelt: user.member.currentBelt,

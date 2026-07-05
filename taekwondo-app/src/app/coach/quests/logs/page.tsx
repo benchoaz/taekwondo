@@ -21,8 +21,9 @@ interface QuestLog {
   member: {
     memberNumber: string;
     currentBelt: string;
+    fullName: string;
     user: {
-      name: string;
+      name: string | null;
       email: string;
     };
   };
@@ -139,7 +140,7 @@ export default function CoachQuestLogs() {
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <span className="text-[10px] font-black uppercase bg-slate-100 text-slate-600 border border-slate-200/50 px-2 py-0.5 rounded-md flex items-center gap-1">
-                      <User className="w-3 h-3" /> {log.member.user.name}
+                      <User className="w-3 h-3" /> {log.member.fullName || log.member.user.name || "Nama Tidak Diketahui"}
                     </span>
                     <span className="text-[10px] font-bold text-slate-500">
                       ({log.member.currentBelt})

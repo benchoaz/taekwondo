@@ -21,7 +21,6 @@ const typeConfig: Record<string, { icon: any; color: string; bg: string; label: 
   QUEST:        { icon: Sword,      color: "#10B981", bg: "rgba(16,185,129,0.15)", label: "Daily Quest",  emoji: "⚔️" },
 };
 
-const FILTER_TABS = ["SEMUA", "EVENT", "SPP", "UKT", "ANNOUNCEMENT", "QUEST"];
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -38,7 +37,7 @@ export default function NotificationsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [activeFilter, setActiveFilter] = useState("SEMUA");
+
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -91,9 +90,7 @@ export default function NotificationsPage() {
     if (notif.link) router.push(notif.link);
   };
 
-  const filtered = activeFilter === "SEMUA"
-    ? notifications
-    : notifications.filter((n) => n.type === activeFilter);
+
 
   return (
     <div className="min-h-screen bg-[#060D1A] pb-32">
@@ -120,27 +117,6 @@ export default function NotificationsPage() {
           )}
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          {FILTER_TABS.map((tab) => {
-            const cfg = typeConfig[tab];
-            const isActive = activeFilter === tab;
-            return (
-              <button
-                key={tab}
-                onClick={() => setActiveFilter(tab)}
-                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  isActive
-                    ? "bg-[#E10600] text-white shadow-[0_2px_8px_rgba(225,6,0,0.4)]"
-                    : "bg-[#1E293B] text-slate-400 hover:text-white"
-                }`}
-                style={isActive && cfg ? { background: cfg.color } : {}}
-              >
-                {cfg ? cfg.emoji : "🔔"} {cfg ? cfg.label : "Semua"}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* Content */}
@@ -149,7 +125,7 @@ export default function NotificationsPage() {
           Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="h-20 rounded-2xl bg-[#1E293B] animate-pulse" />
           ))
-        ) : filtered.length === 0 ? (
+        ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
             <div className="w-16 h-16 rounded-2xl bg-[#1E293B] flex items-center justify-center">
               <Bell className="w-8 h-8 text-slate-600" />
@@ -157,7 +133,7 @@ export default function NotificationsPage() {
             <p className="text-slate-500 text-sm">Tidak ada notifikasi</p>
           </div>
         ) : (
-          filtered.map((notif) => {
+          notifications.map((notif) => {
             const cfg = typeConfig[notif.type] || typeConfig.ANNOUNCEMENT;
             const Icon = cfg.icon;
             return (

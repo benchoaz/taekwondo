@@ -11,6 +11,10 @@ interface Profile {
   weight?: number; height?: number;
   achievements: { id: string; title: string; eventName: string; rank: string; date: string }[];
 }
+interface ShopActive {
+  frameId?: string; titleId?: string; themeId?: string; emblemId?: string;
+  items?: any[];
+}
 
 const BELT_COLORS: Record<string, string> = {
   putih: "#e2e8f0", kuning: "#FFD700", hijau: "#22c55e",
@@ -27,6 +31,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [shopActive, setShopActive] = useState<ShopActive>({});
 
   useEffect(() => {
     fetch("/api/profile")
@@ -34,6 +39,20 @@ export default function ProfilePage() {
       .then(data => { if (data.success) setProfile(data.data); })
       .catch(() => {})
       .finally(() => setLoading(false));
+    // Fetch active shop items
+    fetch("/api/shop")
+      .then(r => r.json())
+      .then(json => {
+        if (json.success) {
+          setShopActive({
+            frameId: json.active?.frameId,
+            titleId: json.active?.titleId,
+            emblemId: json.active?.emblemId,
+            themeId: json.active?.themeId,
+            items: json.items,
+          });
+        }
+      }).catch(() => {});
   }, [router]);
 
   const handleLogout = () => {
@@ -58,13 +77,34 @@ export default function ProfilePage() {
           <ArrowLeft className="w-4 h-4" /> Kembali
         </button>
         <div className="flex items-center gap-4 relative z-10">
-          {/* Hexagonal-like Frame for Avatar */}
-          <div className="w-16 h-16 rounded-2xl bg-slate-800 border-2 border-white/20 flex items-center justify-center shadow-xl shrink-0" style={{ boxShadow: `0 0 16px ${beltColor}40` }}>
-            <User className="w-8 h-8 text-white drop-shadow" />
-          </div>
+          {/* Avatar with active frame */}
+          {(() => {
+            const frame = shopActive.items?.find(i => i.id === shopActive.frameId);
+            const frameCss = frame?.cssValue || null;
+            return (
+              <div
+                className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center shadow-xl shrink-0"
+                style={{
+                  border: frameCss || `2px solid rgba(255,255,255,0.2)`,
+                  boxShadow: frameCss?.includes('glow') ? undefined : `0 0 16px ${beltColor}40`,
+                }}
+              >
+                <User className="w-8 h-8 text-white drop-shadow" />
+              </div>
+            );
+          })()}
           <div>
             <span className="text-[9px] font-black text-[#FFD700] uppercase tracking-wider flex items-center gap-1"><Sparkles className="w-3 h-3" /> STATS ATLET</span>
             <h1 className="font-black text-lg leading-tight">{profile?.name}</h1>
+            {/* Active Title from shop */}
+            {shopActive.titleId && shopActive.items && (() => {
+              const title = shopActive.items.find(i => i.id === shopActive.titleId);
+              return title ? (
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ color: title.cssValue || '#FFD700', backgroundColor: (title.cssValue || '#FFD700') + '22' }}>
+                  {title.name}
+                </span>
+              ) : null;
+            })()}
             <div className="flex items-center gap-1.5 mt-1.5">
               <div className="w-2.5 h-2.5 rounded-full border border-slate-900 shadow" style={{ backgroundColor: beltColor }} />
               <span className="text-slate-300 text-xs font-semibold">Sabuk {profile?.currentBelt}</span>

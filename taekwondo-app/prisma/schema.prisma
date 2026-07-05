@@ -82,6 +82,13 @@ model Member {
   weight         Float?        @map("weight")             // Berat Badan (kg)
   height         Float?        @map("height")             // Tinggi Badan (cm)
   waistCircum    Float?        @map("waist_circum")       // Lingkar Perut (cm)
+  // Gamification Shop
+  dojangCoins    Int           @default(0) @map("dojang_coins")
+  activeFrameId  String?       @map("active_frame_id")
+  activeTitleId  String?       @map("active_title_id")
+  activeThemeId  String?       @map("active_theme_id")
+  activeEmblemId String?       @map("active_emblem_id")
+
   beltHistory    BeltHistory[]
   uktEntries     UktParticipant[]
   certificates   Certificate[]
@@ -93,6 +100,8 @@ model Member {
   badges         MemberBadge[]
   dailyQuestLogs DailyQuestLog[]
   xpLogs         XpLog[]
+  shopPurchases  ShopPurchase[]
+  coinLogs       DojangCoinLog[]
 }
 
 model Coach {
@@ -506,3 +515,64 @@ model XpLog {
   createdAt   DateTime @default(now())
 }
 
+
+// ==========================================
+// GAMIFICATION SHOP
+// ==========================================
+
+enum ShopItemType {
+  PROFILE_FRAME
+  TITLE
+  THEME
+  EMBLEM
+}
+
+enum ShopItemRarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+}
+
+model ShopItem {
+  id          String          @id @default(uuid())
+  name        String
+  description String?         @db.Text
+  type        ShopItemType
+  rarity      ShopItemRarity  @default(COMMON)
+  price       Int
+  imageUrl    String?         @map("image_url")
+  previewUrl  String?         @map("preview_url")
+  cssValue    String?         @map("css_value")   // CSS gradient/color string for frames/themes
+  isActive    Boolean         @default(true) @map("is_active")
+  isLimited   Boolean         @default(false) @map("is_limited")
+  expiresAt   DateTime?       @map("expires_at")
+  sortOrder   Int             @default(0) @map("sort_order")
+  createdAt   DateTime        @default(now())
+
+  purchases   ShopPurchase[]
+}
+
+model ShopPurchase {
+  id          String      @id @default(uuid())
+  memberId    String      @map("member_id")
+  member      Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  itemId      String      @map("item_id")
+  item        ShopItem    @relation(fields: [itemId], references: [id])
+  pricePaid   Int         @map("price_paid")
+  purchasedAt DateTime    @default(now()) @map("purchased_at")
+  isEquipped  Boolean     @default(false) @map("is_equipped")
+
+  @@unique([memberId, itemId])
+}
+
+model DojangCoinLog {
+  id          String    @id @default(uuid())
+  memberId    String    @map("member_id")
+  member      Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  amount      Int
+  source      String    // "DAILY_QUEST", "LEVEL_UP", "STREAK", "ATTENDANCE", "TOURNAMENT", "PURCHASE", "MANUAL"
+  referenceId String?   @map("reference_id")
+  description String?
+  createdAt   DateTime  @default(now())
+}

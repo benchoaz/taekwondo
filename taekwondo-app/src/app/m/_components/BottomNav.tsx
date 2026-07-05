@@ -2,11 +2,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { Home, Calendar, Target, CreditCard, User } from "lucide-react";
+import { Home, ShoppingBag, Target, CreditCard, User } from "lucide-react";
 
 const navItems = [
   { href: "/m/dashboard", icon: Home, label: "LOBBY" },
-  { href: "/m/schedule", icon: Calendar, label: "AGENDA" },
+  { href: "/m/shop", icon: ShoppingBag, label: "TOKO" },
   { href: "/m/quests", label: "MISI" },
   { href: "/m/spp", icon: CreditCard, label: "SPP" },
   { href: "/m/profile", icon: User, label: "ATLET" },

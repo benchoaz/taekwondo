@@ -72,17 +72,37 @@ export async function POST(request: Request) {
       });
       return NextResponse.json({ success: true, message: "Absensi diperbarui", data: updated });
     } else {
-      // Create new attendance
-      const newAttendance = await prisma.attendance.create({
-        data: {
-          memberId: targetMemberId,
-          date: today,
-          present: true,
-          latitude,
-          longitude
-        }
-      });
-      return NextResponse.json({ success: true, message: "Absensi berhasil dicatat", data: newAttendance }, { status: 201 });
+      // Create new attendance + award +10 Dojang Coins
+      const ATTENDANCE_COINS = 10;
+      const [newAttendance] = await prisma.$transaction([
+        prisma.attendance.create({
+          data: {
+            memberId: targetMemberId,
+            date: today,
+            present: true,
+            latitude,
+            longitude
+          }
+        }),
+        prisma.member.update({
+          where: { id: targetMemberId },
+          data: { dojangCoins: { increment: ATTENDANCE_COINS } }
+        }),
+        prisma.dojangCoinLog.create({
+          data: {
+            memberId: targetMemberId,
+            amount: ATTENDANCE_COINS,
+            source: "ATTENDANCE",
+            description: `Reward hadir latihan (+${ATTENDANCE_COINS} DC)`
+          }
+        }),
+      ]);
+      return NextResponse.json({
+        success: true,
+        message: "Absensi berhasil dicatat",
+        data: newAttendance,
+        coinsGained: ATTENDANCE_COINS
+      }, { status: 201 });
     }
   } catch (error) {
     console.error("Error creating check-in:", error);

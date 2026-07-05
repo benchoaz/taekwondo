@@ -180,8 +180,9 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Tandai selesai, tambah XP, dan catat ke XpLog dalam satu transaksi
-    const [updatedLog, updatedMember, newXpLog] = await prisma.$transaction([
+    // Tandai selesai, tambah XP, +5 DC, dan catat ke log dalam satu transaksi
+    const DAILY_QUEST_COINS = 5;
+    const [updatedLog, updatedMember] = await prisma.$transaction([
       prisma.dailyQuestLog.update({
         where: { id: logId },
         data: {
@@ -194,7 +195,10 @@ export async function POST(req: NextRequest) {
       }),
       prisma.member.update({
         where: { id: member.id },
-        data: { progress: { increment: existingLog.quest.baseXp } }
+        data: {
+          progress: { increment: existingLog.quest.baseXp },
+          dojangCoins: { increment: DAILY_QUEST_COINS },
+        }
       }),
       prisma.xpLog.create({
         data: {
@@ -204,14 +208,24 @@ export async function POST(req: NextRequest) {
           referenceId: existingLog.id,
           description: `Menyelesaikan Misi: ${existingLog.quest.title}`
         }
-      })
+      }),
+      prisma.dojangCoinLog.create({
+        data: {
+          memberId: member.id,
+          amount: DAILY_QUEST_COINS,
+          source: "DAILY_QUEST",
+          referenceId: existingLog.id,
+          description: `Reward Misi Harian: ${existingLog.quest.title}`
+        }
+      }),
     ]);
 
     return NextResponse.json({
       success: true,
       data: updatedLog,
       newProgress: updatedMember.progress,
-      xpGained: updatedLog.quest.baseXp
+      xpGained: updatedLog.quest.baseXp,
+      coinsGained: DAILY_QUEST_COINS,
     });
 
   } catch (error: any) {

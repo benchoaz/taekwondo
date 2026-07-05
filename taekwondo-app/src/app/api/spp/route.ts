@@ -3,15 +3,20 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const memberId = searchParams.get("memberId");
-    const userId = searchParams.get("userId");
+    const userHeaderId = req.headers.get("x-user-id");
+    const userRole = req.headers.get("x-user-role");
 
     let filter: any = {};
-    if (memberId) {
-      filter = { memberId };
-    } else if (userId) {
-      filter = { member: { userId } };
+    if (userRole === "MEMBER" && userHeaderId) {
+      filter = { member: { userId: userHeaderId } };
+    } else {
+      const memberId = searchParams.get("memberId");
+      const userId = searchParams.get("userId");
+      if (memberId) {
+        filter = { memberId };
+      } else if (userId) {
+        filter = { member: { userId } };
+      }
     }
 
     const invoices = await prisma.sppInvoice.findMany({

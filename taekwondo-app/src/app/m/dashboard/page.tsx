@@ -56,6 +56,7 @@ export default function MobileDashboard() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [events, setEvents] = useState<TournamentEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dojangCoins, setDojangCoins] = useState(0);
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -91,6 +92,11 @@ export default function MobileDashboard() {
 
       const evData = await eventsRes.json();
       if (evData.success && Array.isArray(evData.data)) setEvents(evData.data.slice(0, 5));
+
+      // Fetch Dojang Coin balance
+      fetch("/api/shop/wallet").then(r => r.json()).then(w => {
+        if (w.success) setDojangCoins(w.balance ?? 0);
+      }).catch(() => {});
     } catch {
       router.replace("/m/login");
     } finally {
@@ -189,6 +195,11 @@ export default function MobileDashboard() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Dojang Coin quick balance */}
+            <Link href="/m/shop" className="flex items-center gap-1.5 bg-yellow-400/10 border border-yellow-500/30 rounded-xl px-2.5 py-1.5 hover:bg-yellow-400/20 transition">
+              <span className="text-sm">🪙</span>
+              <span className="text-yellow-300 font-black text-xs">{dojangCoins.toLocaleString()}</span>
+            </Link>
             <NotificationBell userId={userId} />
             <button onClick={handleLogout} className="w-10 h-10 bg-slate-800/80 border-2 border-slate-700 rounded-xl flex items-center justify-center hover:bg-red-950 transition-colors">
               <LogOut className="w-4 h-4 text-red-400" />

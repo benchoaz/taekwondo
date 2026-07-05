@@ -6,17 +6,27 @@ export async function GET(req: NextRequest) {
     const userId = req.headers.get("x-user-id");
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    // Get member — if not found, still show shop items (guest preview)
     const member = await prisma.member.findFirst({
       where: { userId },
       select: { id: true, dojangCoins: true, activeFrameId: true, activeTitleId: true, activeThemeId: true, activeEmblemId: true },
     });
-    if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
 
-    // Get all active shop items
+    // Get all active shop items — always return even if member not yet set up
     const items = await prisma.shopItem.findMany({
       where: { isActive: true },
-      orderBy: [{ sortOrder: "asc" }, { rarity: "asc" }],
+      orderBy: [{ sortOrder: "asc" }],
     });
+
+    if (!member) {
+      // Return items without ownership data
+      return NextResponse.json({
+        success: true,
+        wallet: 0,
+        active: { frameId: null, titleId: null, themeId: null, emblemId: null },
+        items: items.map(item => ({ ...item, owned: false, equipped: false })),
+      });
+    }
 
     // Get items this member already owns
     const purchases = await prisma.shopPurchase.findMany({

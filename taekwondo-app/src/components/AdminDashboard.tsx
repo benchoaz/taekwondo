@@ -2489,14 +2489,12 @@ export default function AdminDashboard({
           )}
 
           {activeTab === "exercises" && (
-            <div className="flex flex-col gap-6 animate-fade-in pb-12">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-2xl font-black text-[#0F172A] font-display">Daily Quests Builder</h1>
-                  <p className="text-sm text-gray-500 mt-1">Buat program latihan, tentukan repetisi, dan kirimkan ke siswa sebagai Daily Quests.</p>
-                </div>
-              </div>
-              <ExerciseBuilder />
+            <div className="flex flex-col gap-6 animate-fade-in pb-12 h-[80vh]">
+              <iframe 
+                src="/coach/quests" 
+                className="w-full h-full border border-slate-200 rounded-2xl shadow-sm bg-white"
+                title="Daily Quests Builder"
+              />
             </div>
           )}
 

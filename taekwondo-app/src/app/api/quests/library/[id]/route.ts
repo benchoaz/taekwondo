@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     const userId = req.headers.get("x-user-id");
     const userRole = req.headers.get("x-user-role");
 
@@ -12,8 +14,6 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         { status: 403 }
       );
     }
-
-    const { id } = params;
 
     // Menghapus dependencies di requirements (karena cascade mungkin belum diset)
     await prisma.questRequirement.deleteMany({
@@ -39,8 +39,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     const userId = req.headers.get("x-user-id");
     const userRole = req.headers.get("x-user-role");
 
@@ -51,7 +53,6 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       );
     }
 
-    const { id } = params;
     const body = await req.json();
     const { title, description, category, baseXp, minAge, maxAge, allowedBeltIds, requireVideo, videoUrl, readingContent } = body;
 
@@ -98,9 +99,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     const quest = await prisma.questLibrary.findUnique({
       where: { id: id },
       include: { requirements: true }

@@ -8,7 +8,7 @@ const navItems = [
   { href: "/m/dashboard", icon: Home, label: "LOBBY" },
   { href: "/m/schedule", icon: Calendar, label: "AGENDA" },
   { href: "/m/quests", label: "MISI" },
-  { href: "/m/spp", icon: CreditCard, label: "TOKO SPP" },
+  { href: "/m/spp", icon: CreditCard, label: "SPP" },
   { href: "/m/profile", icon: User, label: "ATLET" },
 ];
 

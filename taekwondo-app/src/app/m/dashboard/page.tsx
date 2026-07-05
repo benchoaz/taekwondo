@@ -311,7 +311,7 @@ export default function MobileDashboard() {
                   <CreditCard className="w-6 h-6" />
                 </div>
                 <div>
-                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">TOKO SPP</span>
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">SPP</span>
                   <p className="text-sm font-black text-white">
                     {spp ? `Bulan ${MONTH_NAMES[spp.month - 1]} ${spp.year}` : "Pembayaran Aman"}
                   </p>

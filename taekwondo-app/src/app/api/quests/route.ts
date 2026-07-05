@@ -54,6 +54,13 @@ export async function GET(req: NextRequest) {
 
     const memberBelt = member.currentBelt.toUpperCase();
 
+    // Ambil daftar sabuk untuk mencari UUID yang cocok dengan nama sabuk member
+    const dbBelts = await prisma.beltRank.findMany();
+    const memberBeltRecord = dbBelts.find(b => 
+      b.name.toUpperCase().includes(memberBelt) || memberBelt.includes(b.name.toUpperCase())
+    );
+    const memberBeltId = memberBeltRecord ? memberBeltRecord.id : null;
+
     const allQuests = await prisma.questLibrary.findMany({ include: { requirements: true } });
 
     // Filter quest yang cocok untuk member
@@ -62,9 +69,8 @@ export async function GET(req: NextRequest) {
       return q.requirements.some(req => {
         if (age < req.minAge || age > req.maxAge) return false;
         if (req.allowedBeltIds && req.allowedBeltIds.length > 0) {
-          const beltMatch = req.allowedBeltIds.some(b =>
-            memberBelt.includes(b.toUpperCase()) || b.toUpperCase().includes(memberBelt)
-          );
+          if (!memberBeltId) return false;
+          const beltMatch = req.allowedBeltIds.includes(memberBeltId);
           if (!beltMatch) return false;
         }
         return true;
@@ -76,7 +82,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Acak dan ambil 3 quest (1 per kategori jika memungkinkan)
-    const categories = ["FITNESS", "TECHNICAL", "DISCIPLINE"];
+    const categories = ["FITNESS", "TECHNICAL", "DISCIPLINE", "THEORY"];
     const selectedQuests: typeof eligibleQuests = [];
 
     for (const cat of categories) {

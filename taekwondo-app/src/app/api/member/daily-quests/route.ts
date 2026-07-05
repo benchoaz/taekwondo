@@ -65,8 +65,15 @@ export async function GET(request: Request) {
       }
     });
 
-    // 3. Fetch all possible quests that match the member's age
-    const matchingQuests = await prisma.questLibrary.findMany({
+    // 3. Fetch all possible quests that match the member's age and belt
+    const memberBelt = member.currentBelt.toUpperCase();
+    const dbBelts = await prisma.beltRank.findMany();
+    const memberBeltRecord = dbBelts.find(b => 
+      b.name.toUpperCase().includes(memberBelt) || memberBelt.includes(b.name.toUpperCase())
+    );
+    const memberBeltId = memberBeltRecord ? memberBeltRecord.id : null;
+
+    const allQuests = await prisma.questLibrary.findMany({
       where: {
         requirements: {
           some: {
@@ -74,13 +81,26 @@ export async function GET(request: Request) {
             maxAge: { gte: age },
           }
         }
-      }
+      },
+      include: { requirements: true }
+    });
+
+    const eligibleQuests = allQuests.filter(q => {
+      if (!q.requirements || q.requirements.length === 0) return true;
+      return q.requirements.some(req => {
+        if (req.allowedBeltIds && req.allowedBeltIds.length > 0) {
+          if (!memberBeltId) return false;
+          return req.allowedBeltIds.includes(memberBeltId);
+        }
+        return true;
+      });
     });
 
     // Separate by category
-    const fitnessQuests = matchingQuests.filter(q => q.category === QuestCategory.FITNESS);
-    const technicalQuests = matchingQuests.filter(q => q.category === QuestCategory.TECHNICAL);
-    const disciplineQuests = matchingQuests.filter(q => q.category === QuestCategory.DISCIPLINE);
+    const fitnessQuests = eligibleQuests.filter(q => q.category === QuestCategory.FITNESS);
+    const technicalQuests = eligibleQuests.filter(q => q.category === QuestCategory.TECHNICAL);
+    const disciplineQuests = eligibleQuests.filter(q => q.category === QuestCategory.DISCIPLINE);
+    const theoryQuests = eligibleQuests.filter(q => q.category === QuestCategory.THEORY);
 
     // Pick 1 random from each (or fallback if empty)
     const selectedQuests = [];
@@ -90,8 +110,9 @@ export async function GET(request: Request) {
     if (technicalQuests.length > 0) {
       selectedQuests.push(technicalQuests[Math.floor(Math.random() * technicalQuests.length)]);
     }
-    if (disciplineQuests.length > 0) {
-      selectedQuests.push(disciplineQuests[Math.floor(Math.random() * disciplineQuests.length)]);
+    if (disciplineQuests.length > 0 || theoryQuests.length > 0) {
+      const disciplinePool = [...disciplineQuests, ...theoryQuests];
+      selectedQuests.push(disciplinePool[Math.floor(Math.random() * disciplinePool.length)]);
     }
 
     // Assign them

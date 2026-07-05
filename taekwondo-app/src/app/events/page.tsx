@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import EventCard from "@/components/events/EventCard";
 import Link from 'next/link';
 
-export const revalidate = 3600; // Cache halaman selama 1 jam
+export const dynamic = 'force-dynamic'; // Prevent database connections at build time
 
 export default async function EventsPage() {
   const events = await prisma.tournamentEvent.findMany({

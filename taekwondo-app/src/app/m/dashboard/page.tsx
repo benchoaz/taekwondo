@@ -199,29 +199,35 @@ export default function MobileDashboard() {
         {/* Level & XP Progress (Gamified) */}
         {profile && (() => {
           const levelInfo = getLevelInfo(profile.progress);
+          const hasXp = profile.progress > 0;
           return (
             <div className="mt-5 bg-gradient-to-br from-slate-950 to-slate-900 border-2 border-slate-800 rounded-2xl p-4 shadow-xl">
               <div className="flex justify-between items-center mb-2.5">
                 <div className="flex items-center gap-2">
-                  <div className="bg-[#FFD700] text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-[0_0_12px_rgba(255,215,0,0.4)]">
+                  <div className={`text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-[0_0_12px_rgba(255,215,0,0.4)] ${hasXp ? 'bg-[#FFD700]' : 'bg-slate-700'}`}>
                     <Award className="w-3.5 h-3.5" />
                     <span>LV.{levelInfo.level}</span>
                   </div>
                   <div>
-                    <h4 className="text-[10px] font-black text-[#FFD700] tracking-widest uppercase">{levelInfo.title}</h4>
+                    <h4 className={`text-[10px] font-black tracking-widest uppercase ${hasXp ? 'text-[#FFD700]' : 'text-slate-500'}`}>{levelInfo.title}</h4>
                     <p className="text-[9px] text-slate-400 font-bold">Sabuk {profile.currentBelt}</p>
                   </div>
                 </div>
-                <span className="text-white text-xs font-black bg-slate-800/80 px-2.5 py-1 rounded-md border border-slate-700">
-                  {levelInfo.currentXp} / {levelInfo.nextLevelXp} XP
+                <span className={`text-xs font-black px-2.5 py-1 rounded-md border ${hasXp ? 'text-white bg-slate-800/80 border-slate-700' : 'text-slate-500 bg-slate-900 border-slate-800'}`}>
+                  {hasXp ? `${levelInfo.currentXp} / ${levelInfo.nextLevelXp} XP` : '0 XP'}
                 </span>
               </div>
               <div className="w-full bg-slate-950 rounded-full h-3 border border-slate-800 overflow-hidden p-0.5">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-[#E10600] to-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.5)] transition-all duration-500"
-                  style={{ width: `${levelInfo.percentage}%` }}
+                  className={`h-full rounded-full transition-all duration-500 ${hasXp ? 'bg-gradient-to-r from-[#E10600] to-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.5)]' : 'bg-slate-800'}`}
+                  style={{ width: hasXp ? `${levelInfo.percentage}%` : '0%' }}
                 />
               </div>
+              {!hasXp && (
+                <p className="text-[9px] text-slate-500 text-center mt-2 font-semibold">
+                  🏆 Selesaikan misi harian untuk mulai naik level!
+                </p>
+              )}
             </div>
           );
         })()}

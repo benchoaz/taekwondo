@@ -94,6 +94,7 @@ export default function QuestsPage() {
 
   const completed = quests.filter(q => q.completed).length;
   const totalXp = quests.filter(q => q.completed).reduce((sum, q) => sum + q.quest.baseXp, 0);
+  const maxXp = quests.reduce((sum, q) => sum + q.quest.baseXp, 0);
 
   return (
     <div className="flex-1 flex flex-col pb-28 bg-[#020617] text-white min-h-screen">
@@ -117,8 +118,18 @@ export default function QuestsPage() {
             </div>
           </div>
           <div className="text-right">
-            <p className="text-[#FFD700] font-black text-2xl drop-shadow-[0_0_8px_rgba(255,215,0,0.4)]">+{totalXp} XP</p>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">HADIAH HARI INI</p>
+            {maxXp > 0 ? (
+              <>
+                <p className={`font-black text-2xl drop-shadow-[0_0_8px_rgba(255,215,0,0.4)] ${
+                  totalXp > 0 ? 'text-[#FFD700]' : 'text-slate-500'
+                }`}>
+                  {totalXp > 0 ? `+${totalXp}` : '0'} / {maxXp} XP
+                </p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">HADIAH HARI INI</p>
+              </>
+            ) : (
+              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">BELUM ADA MISI</p>
+            )}
           </div>
         </div>
       </div>

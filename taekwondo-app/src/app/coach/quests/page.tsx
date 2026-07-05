@@ -31,6 +31,34 @@ export default function CoachQuestForm() {
         }
       })
       .catch(() => {});
+
+    // Jika mode edit
+    const urlParams = new URLSearchParams(window.location.search);
+    const editId = urlParams.get("editId");
+    if (editId) {
+      fetch(`/api/quests/library/${editId}`)
+        .then(res => res.json())
+        .then(json => {
+          if (json.success && json.data) {
+            const q = json.data;
+            setTitle(q.title);
+            setDescription(q.description || "");
+            setCategory(q.category);
+            setBaseXp(q.baseXp.toString());
+            setRequireVideo(q.requireVideo);
+            setVideoUrl(q.videoUrl || "");
+            setReadingContent(q.readingContent || "");
+            if (q.requirements && q.requirements.length > 0) {
+              const req = q.requirements[0];
+              setMinAge(req.minAge.toString());
+              setMaxAge(req.maxAge.toString());
+              if (req.allowedBeltIds) {
+                setSelectedBeltIds(req.allowedBeltIds);
+              }
+            }
+          }
+        });
+    }
   }, []);
 
   const handleToggleBelt = (id: string) => {
@@ -49,42 +77,53 @@ export default function CoachQuestForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatus("Menyimpan misi ke database...");
+    setStatus("Menyimpan misi...");
     setIsSuccess(false);
 
     try {
-      const res = await fetch("/api/quests/library", {
-        method: "POST",
+      const urlParams = new URLSearchParams(window.location.search);
+      const editId = urlParams.get("editId");
+      
+      const method = editId ? "PUT" : "POST";
+      const endpoint = editId ? `/api/quests/library/${editId}` : "/api/quests/library";
+
+      const res = await fetch(endpoint, {
+        method: method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          title, 
-          description, 
-          category, 
-          baseXp, 
-          minAge, 
+        body: JSON.stringify({
+          title,
+          description,
+          category,
+          baseXp,
+          minAge,
           maxAge,
-          allowedBeltIds: selectedBeltIds,
           requireVideo,
-          videoUrl: videoUrl || null,
-          readingContent: category === "THEORY" ? (readingContent || null) : null
-        }),
+          videoUrl,
+          readingContent,
+          allowedBeltIds: selectedBeltIds
+        })
       });
 
-      if (res.ok) {
-        setStatus("✅ Misi berhasil disimpan dan siap disebarkan ke murid!");
+      const json = await res.json();
+      if (json.success) {
+        setStatus(editId ? "Misi berhasil diperbarui!" : "Misi berhasil disebarkan!");
         setIsSuccess(true);
-        setTitle("");
-        setDescription("");
-        setVideoUrl("");
-        setReadingContent("");
-        setSelectedBeltIds([]);
-        setRequireVideo(false);
+        if (!editId) {
+          // Reset form if creating new
+          setTitle("");
+          setDescription("");
+          setReadingContent("");
+        }
+        
+        setTimeout(() => {
+          setStatus("");
+          setIsSuccess(false);
+        }, 3000);
       } else {
-        const err = await res.json();
-        setStatus("❌ Gagal menyimpan: " + (err.error || "Unknown error"));
+        setStatus("Gagal: " + (json.error || "Terjadi kesalahan"));
       }
     } catch (err) {
-      setStatus("❌ Terjadi kesalahan jaringan. Cek koneksi Anda.");
+      setStatus("Gagal menyambung ke server");
     }
   };
 

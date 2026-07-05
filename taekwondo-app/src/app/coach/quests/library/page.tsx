@@ -109,13 +109,22 @@ export default function QuestLibraryPage() {
                     </div>
                   </div>
                   
-                  <button 
-                    onClick={() => handleDelete(q.id, q.title)}
-                    className="p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all shrink-0"
-                    title="Hapus Misi"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                  <div className="flex flex-col gap-2 shrink-0">
+                    <Link 
+                      href={`/coach/quests?editId=${q.id}`}
+                      className="p-2 text-gray-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all"
+                      title="Edit Misi"
+                    >
+                      <Edit className="w-5 h-5" />
+                    </Link>
+                    <button 
+                      onClick={() => handleDelete(q.id, q.title)}
+                      className="p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
+                      title="Hapus Misi"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

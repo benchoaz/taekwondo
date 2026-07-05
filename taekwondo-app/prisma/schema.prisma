@@ -421,6 +421,7 @@ enum QuestCategory {
   FITNESS
   TECHNICAL
   DISCIPLINE
+  THEORY
 }
 
 model QuestLibrary {

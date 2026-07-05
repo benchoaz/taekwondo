@@ -10,9 +10,10 @@ interface QuestLog {
 }
 
 const CATEGORY_MAP: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
-  FITNESS:    { label: "Fisik",     icon: Dumbbell,  color: "text-blue-400",   bg: "bg-blue-950/50" },
-  TECHNICAL:  { label: "Teknik",    icon: Shield,    color: "text-purple-400", bg: "bg-purple-950/50" },
-  DISCIPLINE: { label: "Disiplin",  icon: BookOpen,  color: "text-amber-400",  bg: "bg-amber-950/50" },
+  FITNESS:    { label: "Fisik",    icon: Dumbbell, color: "text-blue-400", bg: "bg-blue-500/10" },
+  TECHNICAL:  { label: "Teknik",   icon: Shield,   color: "text-red-400",  bg: "bg-red-500/10" },
+  DISCIPLINE: { label: "Disiplin", icon: BookOpen, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+  THEORY:     { label: "Teori & Membaca", icon: BookOpen, color: "text-amber-400", bg: "bg-amber-500/10" },
 };
 
 export default function QuestsPage() {

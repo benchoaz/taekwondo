@@ -188,7 +188,7 @@ async function main() {
   await createQuest({
     title: 'Kuis Istilah Pukulan & Tangkisan',
     description: 'Apa bahasa Korea untuk "Pukulan Tengah" dan "Tangkisan Bawah"? Tuliskan jawabannya di kolom catatan pengerjaan.',
-    category: QuestCategory.DISCIPLINE,
+    category: QuestCategory.THEORY,
     baseXp: 40,
     minAge: 7,
     maxAge: 18,
@@ -200,7 +200,7 @@ async function main() {
   await createQuest({
     title: 'Analisis Poomsae Taegeuk 1 Jang',
     description: 'Tonton video Poomsae Taegeuk 1 Jang. Perhatikan dan jelaskan arah pandangan mata saat melakukan putaran balik pertama.',
-    category: QuestCategory.DISCIPLINE,
+    category: QuestCategory.THEORY,
     baseXp: 50,
     videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
     minAge: 12,
@@ -225,7 +225,7 @@ async function main() {
   await createQuest({
     title: 'Membaca Janji Taekwondo Indonesia',
     description: 'Bacalah dan pahami 5 butir Janji Taekwondo Indonesia. Tuliskan butir ke-2 ("Menghormati orang tua, pelatih, senior, dan sesama taekwondoin") pada kolom catatan pengerjaan sebagai bukti Anda telah membaca dan memahaminya.',
-    category: QuestCategory.DISCIPLINE,
+    category: QuestCategory.THEORY,
     baseXp: 45,
     minAge: 6,
     maxAge: 18,

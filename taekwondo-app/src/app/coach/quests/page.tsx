@@ -12,6 +12,7 @@ export default function CoachQuestForm() {
   const [minAge, setMinAge] = useState("7");
   const [maxAge, setMaxAge] = useState("99");
   const [requireVideo, setRequireVideo] = useState(false);
+  const [videoUrl, setVideoUrl] = useState("");
   
   const [belts, setBelts] = useState<{ id: string; name: string }[]>([]);
   const [selectedBeltIds, setSelectedBeltIds] = useState<string[]>([]);
@@ -62,7 +63,8 @@ export default function CoachQuestForm() {
           minAge, 
           maxAge,
           allowedBeltIds: selectedBeltIds,
-          requireVideo
+          requireVideo,
+          videoUrl: videoUrl || null
         }),
       });
 
@@ -71,6 +73,7 @@ export default function CoachQuestForm() {
         setIsSuccess(true);
         setTitle("");
         setDescription("");
+        setVideoUrl("");
         setSelectedBeltIds([]);
         setRequireVideo(false);
       } else {
@@ -145,6 +148,7 @@ export default function CoachQuestForm() {
                 <option value="FITNESS">💪 Fisik (Kardio & Kekuatan)</option>
                 <option value="TECHNICAL">🥋 Teknik (Tendangan & Pukulan)</option>
                 <option value="DISCIPLINE">🧘 Disiplin (Poomsae & Etika)</option>
+                <option value="THEORY">📖 Teori & Membaca (Pengetahuan)</option>
               </select>
             </div>
             <div>
@@ -162,6 +166,19 @@ export default function CoachQuestForm() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Link Video Panduan */}
+          <div>
+            <label className="block text-sm font-bold text-gray-800 mb-1">Link Video Panduan (YouTube/Lainnya) (Opsional)</label>
+            <input 
+              type="url" 
+              value={videoUrl} 
+              onChange={e => setVideoUrl(e.target.value)} 
+              className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all font-medium text-gray-800" 
+              placeholder="Contoh: https://www.youtube.com/watch?v=..." 
+            />
+            <p className="text-[10px] text-gray-500 mt-1">Sediakan tautan video peragaan gerakan agar murid bisa mencontoh sebelum berlatih.</p>
           </div>
 
           {/* Pengaturan Tambahan: Wajib Video */}

@@ -12,47 +12,110 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  try {
-    // Membaca feed dari Google News untuk kata kunci Kejuaraan Taekwondo Indonesia
-    const feed = await parser.parseURL('https://news.google.com/rss/search?q=Kejuaraan+Taekwondo+Indonesia&hl=id&gl=ID&ceid=ID:id');
-    
-    let addedCount = 0;
+  let googleNewsAdded = 0;
+  let simpbtiAdded = 0;
 
-    for (const item of feed.items) {
-      // Cek apakah kejuaraan ini sudah ada di database berdasarkan judulnya
-      const exists = await prisma.tournamentEvent.findFirst({
-        where: { title: item.title }
+  try {
+    // =====================================================================
+    // 1. SCRAPE DARI OFFICIAL API SIM PBTI (https://simpbti.id/championships)
+    // =====================================================================
+    try {
+      const pbtiRes = await fetch("https://api.simpbti.id/api/kejuaraan", {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
+        next: { revalidate: 0 } // Bypass Next.js fetch cache
       });
 
-      if (!exists) {
-        // Asumsi: Karena berita tidak memiliki struktur tanggal acara yang spesifik, 
-        // kita menggunakan tanggal berita dipublikasikan sebagai patokan awal 
-        // (Admin bisa mengedit tanggalnya nanti di Dashboard).
-        const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
-        
-        await prisma.tournamentEvent.create({
-          data: {
-            title: item.title,
-            level: "Provinsi", // Asumsi default
-            location: "Jawa Timur", // Lokasi general
-            startDate: pubDate,
-            endDate: new Date(pubDate.getTime() + (2 * 24 * 60 * 60 * 1000)), // Estimasi acara 2 hari
-            source: "AUTOMATIC_RSS",
-            status: "PUBLISHED",
-            link: item.link
+      if (pbtiRes.ok) {
+        const pbtiData = await pbtiRes.json();
+        const eventsList = pbtiData?.kejuaraansWithAttachments || [];
+
+        for (const ev of eventsList) {
+          if (!ev.kejuaraanTitle) continue;
+
+          // Cek apakah kejuaraan ini sudah terdaftar
+          const exists = await prisma.tournamentEvent.findFirst({
+            where: {
+              OR: [
+                { title: ev.kejuaraanTitle },
+                { title: ev.kejuaraanTitle.toUpperCase() }
+              ]
+            }
+          });
+
+          if (!exists) {
+            // Tentukan level dari gradeKejuaraan
+            let level = "Nasional";
+            const grade = (ev.gradeKejuaraan || "").toUpperCase();
+            if (grade.includes("GRADE C") || grade.includes("PROVINSI") || grade.includes("WILAYAH")) {
+              level = "Provinsi";
+            } else if (grade.includes("GRADE B") || grade.includes("GRADE A") || grade.includes("NASIONAL") || grade.includes("INTERNATIONAL")) {
+              level = "Nasional";
+            }
+
+            const location = ev.tempatKejuaraan && ev.kotaKejuaraan
+              ? `${ev.tempatKejuaraan}, ${ev.kotaKejuaraan}`
+              : ev.kotaKejuaraan || ev.tempatKejuaraan || "Indonesia";
+
+            await prisma.tournamentEvent.create({
+              data: {
+                title: ev.kejuaraanTitle.toUpperCase(),
+                level: level,
+                location: location,
+                startDate: ev.tanggalKejuaraan ? new Date(ev.tanggalKejuaraan) : new Date(),
+                endDate: ev.tanggalBerakhirKejuaraan ? new Date(ev.tanggalBerakhirKejuaraan) : new Date(),
+                source: "SIMPBTI",
+                status: "PUBLISHED",
+                link: "https://simpbti.id/championships"
+              }
+            });
+            simpbtiAdded++;
           }
-        });
-        addedCount++;
+        }
       }
+    } catch (err) {
+      console.error("Error scraping SIMPBTI API:", err);
+    }
+
+    // =====================================================================
+    // 2. SCRAPE DARI GOOGLE NEWS RSS (Sebagai Backup)
+    // =====================================================================
+    try {
+      const feed = await parser.parseURL('https://news.google.com/rss/search?q=Kejuaraan+Taekwondo+Indonesia&hl=id&gl=ID&ceid=ID:id');
+      
+      for (const item of feed.items) {
+        const exists = await prisma.tournamentEvent.findFirst({
+          where: { title: item.title }
+        });
+
+        if (!exists) {
+          const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
+          
+          await prisma.tournamentEvent.create({
+            data: {
+              title: item.title,
+              level: "Provinsi",
+              location: "Jawa Timur", // Lokasi general default
+              startDate: pubDate,
+              endDate: new Date(pubDate.getTime() + (2 * 24 * 60 * 60 * 1000)), // Estimasi 2 hari
+              source: "AUTOMATIC_RSS",
+              status: "PUBLISHED",
+              link: item.link
+            }
+          });
+          googleNewsAdded++;
+        }
+      }
+    } catch (err) {
+      console.error("Error parsing Google News RSS:", err);
     }
 
     return NextResponse.json({
       success: true,
-      message: `Berhasil menangkap dan menyimpan ${addedCount} kejuaraan baru dari Google News.`
+      message: `Berhasil memindai kejuaraan. Ditambahkan: ${simpbtiAdded} dari SIM PBTI, ${googleNewsAdded} dari Google News.`
     });
 
-  } catch (error) {
-    console.error("Cron Fetch Events Error:", error);
-    return NextResponse.json({ error: "Terjadi kesalahan saat memindai berita kejuaraan" }, { status: 500 });
+  } catch (error: any) {
+    console.error("Cron Fetch Events General Error:", error);
+    return NextResponse.json({ error: "Terjadi kesalahan sistem saat memindai kejuaraan" }, { status: 500 });
   }
 }

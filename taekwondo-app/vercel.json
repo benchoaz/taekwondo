@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/fetch-events",
-      "schedule": "0 6 * * *"
+      "schedule": "0 6 * * 1,4"
     },
     {
       "path": "/api/cron/notify-spp",

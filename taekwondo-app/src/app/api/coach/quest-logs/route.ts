@@ -15,12 +15,25 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const completed = searchParams.get("completed");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
 
     let whereClause: any = {};
+    
     if (completed === "true") {
       whereClause.completed = true;
     } else if (completed === "false") {
       whereClause.completed = false;
+    }
+
+    if (startDate || endDate) {
+      whereClause.assignedAt = {};
+      if (startDate) {
+        whereClause.assignedAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        whereClause.assignedAt.lte = new Date(endDate);
+      }
     }
 
     const logs = await prisma.dailyQuestLog.findMany({

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Clock, CheckCircle2, AlertCircle, Video, User, FileText, Loader2, Calendar } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, CheckCircle2, AlertCircle, Video, User, FileText, Loader2, Calendar } from "lucide-react";
 
 interface QuestLog {
   id: string;
@@ -74,9 +74,14 @@ export default function CoachQuestLogs() {
         {/* Navigation & Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <Link href="/coach/quests" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-600 font-bold transition-colors mb-2">
-              <ArrowLeft className="w-4 h-4" /> Kembali ke Builder
-            </Link>
+            <div className="flex gap-4 mb-2">
+              <Link href="/coach/quests" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-600 font-bold transition-colors">
+                <ArrowLeft className="w-4 h-4" /> Kembali ke Builder
+              </Link>
+              <Link href="/coach/quests/library" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-600 font-bold transition-colors">
+                Library Misi <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
               Aktivitas Misi Harian Murid
             </h1>

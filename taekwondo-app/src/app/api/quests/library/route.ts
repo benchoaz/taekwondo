@@ -62,3 +62,27 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function GET(req: NextRequest) {
+  try {
+    const quests = await prisma.questLibrary.findMany({
+      include: {
+        requirements: true,
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: quests
+    });
+  } catch (error: any) {
+    console.error("[GET_QUESTS_ERROR]", error);
+    return NextResponse.json(
+      { error: "Terjadi kesalahan sistem saat mengambil daftar misi." },
+      { status: 500 }
+    );
+  }
+}

@@ -101,6 +101,9 @@ export default function CoachQuestForm() {
             <span className="bg-white/20 text-white text-xs font-black px-3.5 py-1 rounded-full border border-white/30 uppercase tracking-widest">
               Quest Builder
             </span>
+            <Link href="/coach/quests/library" className="bg-red-950/40 text-red-100 hover:text-white text-xs font-black px-3.5 py-1 rounded-full border border-red-700/30 uppercase tracking-widest transition-colors flex items-center gap-1.5">
+              <CheckSquare className="w-3.5 h-3.5" /> Library Misi
+            </Link>
             <Link href="/coach/quests/logs" className="bg-red-950/40 text-red-100 hover:text-white text-xs font-black px-3.5 py-1 rounded-full border border-red-700/30 uppercase tracking-widest transition-colors flex items-center gap-1.5">
               <ListFilter className="w-3.5 h-3.5" /> Pantau Latihan Murid
             </Link>

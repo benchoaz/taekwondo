@@ -13,6 +13,7 @@ export default function CoachQuestForm() {
   const [maxAge, setMaxAge] = useState("99");
   const [requireVideo, setRequireVideo] = useState(false);
   const [videoUrl, setVideoUrl] = useState("");
+  const [readingContent, setReadingContent] = useState("");
   
   const [belts, setBelts] = useState<{ id: string; name: string }[]>([]);
   const [selectedBeltIds, setSelectedBeltIds] = useState<string[]>([]);
@@ -64,7 +65,8 @@ export default function CoachQuestForm() {
           maxAge,
           allowedBeltIds: selectedBeltIds,
           requireVideo,
-          videoUrl: videoUrl || null
+          videoUrl: videoUrl || null,
+          readingContent: category === "THEORY" ? (readingContent || null) : null
         }),
       });
 
@@ -74,6 +76,7 @@ export default function CoachQuestForm() {
         setTitle("");
         setDescription("");
         setVideoUrl("");
+        setReadingContent("");
         setSelectedBeltIds([]);
         setRequireVideo(false);
       } else {
@@ -136,6 +139,19 @@ export default function CoachQuestForm() {
               placeholder="Jelaskan detail cara melakukan latihan agar murid tidak cedera..." 
             />
           </div>
+
+          {category === "THEORY" && (
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-1">Materi Bacaan (Opsional)</label>
+              <textarea 
+                value={readingContent} 
+                onChange={e => setReadingContent(e.target.value)} 
+                className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all font-medium text-gray-800 resize-none" 
+                rows={6} 
+                placeholder="Masukkan teks bahan bacaan, sejarah, atau teori Taekwondo di sini agar murid bisa membacanya..." 
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>

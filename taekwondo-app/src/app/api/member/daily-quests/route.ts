@@ -65,12 +65,16 @@ export async function GET(request: Request) {
       }
     });
 
+    // Normalize string: hapus semua karakter selain huruf dan angka untuk pencocokan akurat
+    const normalizeBelt = (str: string) => str.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const normMemberBelt = normalizeBelt(member.currentBelt);
+
     // 3. Fetch all possible quests that match the member's age and belt
-    const memberBelt = member.currentBelt.toUpperCase();
     const dbBelts = await prisma.beltRank.findMany();
-    const memberBeltRecord = dbBelts.find(b => 
-      b.name.toUpperCase().includes(memberBelt) || memberBelt.includes(b.name.toUpperCase())
-    );
+    const memberBeltRecord = dbBelts.find(b => {
+      const normDbBelt = normalizeBelt(b.name);
+      return normDbBelt.includes(normMemberBelt) || normMemberBelt.includes(normDbBelt);
+    });
     const memberBeltId = memberBeltRecord ? memberBeltRecord.id : null;
 
     const allQuests = await prisma.questLibrary.findMany({

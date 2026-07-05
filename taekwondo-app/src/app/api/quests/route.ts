@@ -52,13 +52,16 @@ export async function GET(req: NextRequest) {
       if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
     }
 
-    const memberBelt = member.currentBelt.toUpperCase();
+    // Normalize string: hapus semua karakter selain huruf dan angka untuk pencocokan akurat
+    const normalizeBelt = (str: string) => str.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const normMemberBelt = normalizeBelt(member.currentBelt);
 
     // Ambil daftar sabuk untuk mencari UUID yang cocok dengan nama sabuk member
     const dbBelts = await prisma.beltRank.findMany();
-    const memberBeltRecord = dbBelts.find(b => 
-      b.name.toUpperCase().includes(memberBelt) || memberBelt.includes(b.name.toUpperCase())
-    );
+    const memberBeltRecord = dbBelts.find(b => {
+      const normDbBelt = normalizeBelt(b.name);
+      return normDbBelt.includes(normMemberBelt) || normMemberBelt.includes(normDbBelt);
+    });
     const memberBeltId = memberBeltRecord ? memberBeltRecord.id : null;
 
     const allQuests = await prisma.questLibrary.findMany({ include: { requirements: true } });

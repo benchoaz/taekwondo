@@ -6,7 +6,7 @@ import BottomNav from "../_components/BottomNav";
 
 interface QuestLog {
   id: string; completed: boolean; completedAt?: string;
-  quest: { title: string; description: string; baseXp: number; category: string; requireVideo?: boolean };
+  quest: { title: string; description: string; baseXp: number; category: string; requireVideo?: boolean; videoUrl?: string | null };
 }
 
 const CATEGORY_MAP: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
@@ -158,6 +158,16 @@ export default function QuestsPage() {
                       {q.quest.title}
                     </p>
                     <p className="text-[11px] text-slate-400 mt-1 leading-snug">{q.quest.description}</p>
+                    {q.quest.videoUrl && !q.completed && (
+                       <a
+                         href={q.quest.videoUrl}
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="inline-flex items-center gap-1.5 mt-2.5 text-[9px] font-black text-red-400 hover:text-red-300 uppercase bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-lg transition-all"
+                       >
+                         <Video className="w-3.5 h-3.5" /> Lihat Video Contoh
+                       </a>
+                     )}
                   </div>
                   <div className="shrink-0 pt-1">
                     {q.completed ? (
@@ -183,7 +193,9 @@ export default function QuestsPage() {
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-slate-900 border-2 border-slate-700 rounded-3xl w-full max-w-sm overflow-hidden shadow-[0_0_24px_rgba(0,0,0,0.8)]">
             <div className="p-4 border-b-2 border-slate-800 flex justify-between items-center bg-slate-950">
-              <span className="font-black text-xs text-red-400 uppercase tracking-widest">Kirim Bukti Latihan</span>
+              <span className="font-black text-xs text-red-400 uppercase tracking-widest">
+                {activeQuest.quest.requireVideo ? "Kirim Bukti Latihan" : "Lembar Jawaban Misi"}
+              </span>
               <button onClick={() => { setActiveQuest(null); setVideoFile(null); setNotes(""); }} className="text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
@@ -192,73 +204,94 @@ export default function QuestsPage() {
             <div className="p-5 flex flex-col gap-4">
               <div>
                 <h3 className="font-black text-sm uppercase text-white">{activeQuest.quest.title}</h3>
-                <p className="text-xs text-slate-400 mt-1 leading-relaxed">{activeQuest.quest.description}</p>
+                
+                {/* Custom Styled Box for Reading Material if no video required */}
+                {!activeQuest.quest.requireVideo ? (
+                  <div className="mt-3 p-3.5 bg-gradient-to-b from-amber-950/20 to-slate-950/50 border border-amber-900/30 rounded-2xl">
+                    <span className="text-[8px] font-black text-[#FFD700] uppercase tracking-wider block mb-1">📖 MATERI BACAAN / PERTANYAAN:</span>
+                    <p className="text-xs text-slate-300 leading-relaxed font-medium whitespace-pre-wrap">{activeQuest.quest.description}</p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">{activeQuest.quest.description}</p>
+                )}
               </div>
 
-              {/* Video upload input */}
+              {/* Video upload input - ONLY shown if video is required/optional (requireVideo is true) */}
+              {activeQuest.quest.requireVideo && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                    <span>Video Bukti Latihan</span>
+                    <span className="text-red-500 font-extrabold text-[9px] bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded-full">WAJIB</span>
+                  </label>
+                  <div className={`relative border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center bg-slate-950 cursor-pointer transition-colors ${
+                    !videoFile ? 'border-red-500/40 hover:border-red-500' : 'border-slate-700 hover:border-[#E10600]'
+                  }`}>
+                    <input
+                      type="file"
+                      accept="video/*"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setVideoFile(e.target.files[0]);
+                        }
+                      }}
+                    />
+                    {videoFile ? (
+                      <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                        <Video className="w-5 h-5" />
+                        <span className="truncate max-w-[180px]">{videoFile.name}</span>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="w-6 h-6 text-slate-500 mb-1" />
+                        <span className="text-[11px] text-slate-400 font-semibold">Pilih atau Rekam Video</span>
+                        <span className="text-[9px] text-slate-500 mt-0.5">Format: MP4, MOV, WebM</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Notes input / Lembar Jawaban */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                  <span>Video Bukti Latihan</span>
-                  {activeQuest.quest.requireVideo ? (
-                    <span className="text-red-500 font-extrabold text-[9px] bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded-full">WAJIB</span>
-                  ) : (
-                    <span className="text-slate-500 text-[9px] bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded-full">Opsional</span>
+                  <span>{activeQuest.quest.requireVideo ? "Catatan Tambahan (Opsional)" : "Lembar Jawaban Anda"}</span>
+                  {!activeQuest.quest.requireVideo && (
+                    <span className="text-[#FFD700] font-extrabold text-[8px] bg-amber-500/15 border border-amber-500/25 px-1.5 py-0.5 rounded-full">WAJIB DIISI</span>
                   )}
                 </label>
-                <div className={`relative border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center bg-slate-950 cursor-pointer transition-colors ${
-                  activeQuest.quest.requireVideo && !videoFile ? 'border-red-500/40 hover:border-red-500' : 'border-slate-700 hover:border-[#E10600]'
-                }`}>
-                  <input
-                    type="file"
-                    accept="video/*"
-                    className="absolute inset-0 opacity-0 cursor-pointer"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setVideoFile(e.target.files[0]);
-                      }
-                    }}
-                  />
-                  {videoFile ? (
-                    <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
-                      <Video className="w-5 h-5" />
-                      <span className="truncate max-w-[180px]">{videoFile.name}</span>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="w-6 h-6 text-slate-500 mb-1" />
-                      <span className="text-[11px] text-slate-400 font-semibold">Pilih atau Rekam Video</span>
-                      <span className="text-[9px] text-slate-500 mt-0.5">Format: MP4, MOV, WebM</span>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Notes input */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Catatan Tambahan (Latihan di rumah)</label>
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Ceritakan secara singkat latihan mandiri Anda hari ini..."
-                  className="bg-slate-950 border-2 border-slate-800 rounded-xl p-3 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#E10600] resize-none h-20"
+                  placeholder={activeQuest.quest.requireVideo ? "Ceritakan secara singkat latihan mandiri Anda..." : "Tuliskan jawaban Anda di sini..."}
+                  className="bg-slate-950 border-2 border-slate-800 rounded-xl p-3 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-[#E10600] resize-none h-24"
                 />
               </div>
 
               {/* Submit button */}
-              <button
-                onClick={handleSubmitQuest}
-                disabled={uploading}
-                className="w-full btn-battle py-3 mt-1 flex items-center justify-center gap-2"
-              >
-                {uploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 text-white animate-spin" />
-                    <span>Memproses Pengiriman...</span>
-                  </>
-                ) : (
-                  <span>KIRIM SEKARANG (+{activeQuest.quest.baseXp} XP)</span>
-                )}
-              </button>
+              {(() => {
+                const canSubmit = activeQuest.quest.requireVideo ? !!videoFile : !!notes.trim();
+                return (
+                  <button
+                    onClick={handleSubmitQuest}
+                    disabled={uploading || !canSubmit}
+                    className={`w-full py-3 mt-1 flex items-center justify-center gap-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                      canSubmit && !uploading
+                        ? "bg-[#E10600] text-white hover:bg-[#C00500] cursor-pointer shadow-[0_2px_12px_rgba(225,6,0,0.3)] active:scale-95"
+                        : "bg-slate-800 text-slate-500 cursor-not-allowed"
+                    }`}
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 text-white animate-spin" />
+                        <span>Memproses Pengiriman...</span>
+                      </>
+                    ) : (
+                      <span>{canSubmit ? `KIRIM JAWABAN (+${activeQuest.quest.baseXp} XP)` : "Lengkapi Jawaban Dulu"}</span>
+                    )}
+                  </button>
+                );
+              })()}
             </div>
           </div>
         </div>

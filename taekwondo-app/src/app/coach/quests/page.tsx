@@ -18,6 +18,8 @@ export default function CoachQuestForm() {
   const [requireVideo, setRequireVideo] = useState(false);
   const [videoUrl, setVideoUrl] = useState("");
   const [readingContent, setReadingContent] = useState("");
+  const [frequency, setFrequency] = useState("ONE_TIME");
+  const [isActive, setIsActive] = useState(true);
   
   const [belts, setBelts] = useState<{ id: string; name: string }[]>([]);
   const [selectedBeltIds, setSelectedBeltIds] = useState<string[]>([]);
@@ -52,6 +54,8 @@ export default function CoachQuestForm() {
             setRequireVideo(q.requireVideo);
             setVideoUrl(q.videoUrl || "");
             setReadingContent(q.readingContent || "");
+            setFrequency(q.frequency || "ONE_TIME");
+            setIsActive(q.isActive !== undefined ? q.isActive : true);
             if (q.requirements && q.requirements.length > 0) {
               const req = q.requirements[0];
               setMinAge(req.minAge.toString());
@@ -71,6 +75,8 @@ export default function CoachQuestForm() {
       setRequireVideo(false);
       setVideoUrl("");
       setReadingContent("");
+      setFrequency("ONE_TIME");
+      setIsActive(true);
       setSelectedBeltIds([]);
     }
   }, [editId]);
@@ -114,6 +120,8 @@ export default function CoachQuestForm() {
           requireVideo,
           videoUrl,
           readingContent,
+          frequency,
+          isActive,
           allowedBeltIds: selectedBeltIds
         })
       });
@@ -208,6 +216,36 @@ export default function CoachQuestForm() {
               />
             </div>
           )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-1">Frekuensi Misi (Sistem Auto-Pilot)</label>
+              <select 
+                value={frequency} 
+                onChange={e => setFrequency(e.target.value)} 
+                className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all font-bold text-gray-800 cursor-pointer"
+              >
+                <option value="ONE_TIME">🎯 Misi Khusus (Sekali Jalan)</option>
+                <option value="DAILY">🔄 Rutinitas Harian (Reset tiap jam 00:00)</option>
+                <option value="WEEKLY">🗓️ Tantangan Mingguan (Batas waktu 7 hari)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-800 mb-1">Status Auto-Pilot</label>
+              <div className="flex items-center gap-3 h-[50px]">
+                <button
+                  type="button"
+                  onClick={() => setIsActive(!isActive)}
+                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${isActive ? 'bg-green-500' : 'bg-gray-300'}`}
+                >
+                  <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${isActive ? 'translate-x-7' : 'translate-x-1'}`} />
+                </button>
+                <span className={`font-bold ${isActive ? 'text-green-600' : 'text-gray-400'}`}>
+                  {isActive ? 'Aktif (Akan didistribusikan)' : 'Mati (Disembunyikan)'}
+                </span>
+              </div>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>

@@ -2,9 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Award, CheckSquare, Square, Video, ShieldAlert, ListFilter } from "lucide-react";
 
 export default function CoachQuestForm() {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("editId");
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("FITNESS");
@@ -31,10 +35,10 @@ export default function CoachQuestForm() {
         }
       })
       .catch(() => {});
+  }, []);
 
+  useEffect(() => {
     // Jika mode edit
-    const urlParams = new URLSearchParams(window.location.search);
-    const editId = urlParams.get("editId");
     if (editId) {
       fetch(`/api/quests/library/${editId}`)
         .then(res => res.json())
@@ -58,8 +62,18 @@ export default function CoachQuestForm() {
             }
           }
         });
+    } else {
+      // Jika bukan mode edit (tambah baru), reset form
+      setTitle("");
+      setDescription("");
+      setCategory("FITNESS");
+      setBaseXp("50");
+      setRequireVideo(false);
+      setVideoUrl("");
+      setReadingContent("");
+      setSelectedBeltIds([]);
     }
-  }, []);
+  }, [editId]);
 
   const handleToggleBelt = (id: string) => {
     setSelectedBeltIds(prev => 

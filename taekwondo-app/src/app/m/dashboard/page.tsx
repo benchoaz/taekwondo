@@ -210,7 +210,7 @@ export default function MobileDashboard() {
                   </div>
                   <div>
                     <h4 className={`text-[10px] font-black tracking-widest uppercase ${hasXp ? 'text-[#FFD700]' : 'text-slate-500'}`}>{levelInfo.title}</h4>
-                    <p className="text-[9px] text-slate-400 font-bold">Sabuk {profile.currentBelt}</p>
+                    <p className="text-[9px] text-slate-400 font-bold">{profile.currentBelt}</p>
                   </div>
                 </div>
                 <span className={`text-xs font-black px-2.5 py-1 rounded-md border ${hasXp ? 'text-white bg-slate-800/80 border-slate-700' : 'text-slate-500 bg-slate-900 border-slate-800'}`}>

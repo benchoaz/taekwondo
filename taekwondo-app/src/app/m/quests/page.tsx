@@ -6,7 +6,11 @@ import BottomNav from "../_components/BottomNav";
 
 interface QuestLog {
   id: string; completed: boolean; completedAt?: string;
-  quest: { title: string; description: string; baseXp: number; category: string; requireVideo?: boolean; videoUrl?: string | null };
+  quest: { 
+    title: string; description: string; baseXp: number; category: string; 
+    requireVideo?: boolean; videoUrl?: string | null;
+    readingContent?: string | null; quizQuestions?: any;
+  };
 }
 
 const CATEGORY_MAP: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
@@ -26,6 +30,7 @@ export default function QuestsPage() {
   const [activeQuest, setActiveQuest] = useState<QuestLog | null>(null);
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [notes, setNotes] = useState("");
+  const [quizAnswers, setQuizAnswers] = useState<number[]>([]);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -39,14 +44,43 @@ export default function QuestsPage() {
   const handleSubmitQuest = async () => {
     if (!activeQuest || completing) return;
     
-    // Validasi video wajib
-    if (activeQuest.quest.requireVideo && !videoFile) {
-      alert("❌ Anda wajib menyertakan bukti rekaman video untuk menyelesaikan misi ini.");
-      return;
-    }
-
     setCompleting(activeQuest.id);
     setUploading(true);
+
+    if (activeQuest.quest.category === "THEORY") {
+      try {
+        const res = await fetch("/api/quests/submit-quiz", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            questId: activeQuest.quest.id,
+            answers: quizAnswers
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setQuests(prev => prev.map(q => q.id === activeQuest.id ? { ...q, completed: true } : q));
+          setActiveQuest(null);
+          setQuizAnswers([]);
+        } else {
+          alert(data.error || "Jawaban salah.");
+        }
+      } catch {
+        alert("Terjadi kesalahan server.");
+      } finally {
+        setCompleting(null);
+        setUploading(false);
+      }
+      return;
+    }
+    
+    // Validasi video wajib untuk selain THEORY
+    if (activeQuest.quest.requireVideo && !videoFile) {
+      alert("❌ Anda wajib menyertakan bukti rekaman video untuk menyelesaikan misi ini.");
+      setCompleting(null);
+      setUploading(false);
+      return;
+    }
 
     try {
       let uploadedUrl = "";
@@ -206,7 +240,9 @@ export default function QuestsPage() {
           <div className="bg-slate-900 border-2 border-slate-700 rounded-3xl w-full max-w-sm overflow-hidden shadow-[0_0_24px_rgba(0,0,0,0.8)]">
             <div className="p-4 border-b-2 border-slate-800 flex justify-between items-center bg-slate-950">
               <span className="font-black text-xs text-red-400 uppercase tracking-widest">
-                {activeQuest.quest.requireVideo ? "Kirim Bukti Latihan" : "Lembar Jawaban Misi"}
+                {activeQuest.quest.category === "THEORY" 
+                  ? "Quest Membaca & Kuis" 
+                  : activeQuest.quest.requireVideo ? "Kirim Bukti Latihan" : "Lembar Jawaban Misi"}
               </span>
               <button onClick={() => { setActiveQuest(null); setVideoFile(null); setNotes(""); }} className="text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
@@ -217,8 +253,14 @@ export default function QuestsPage() {
               <div>
                 <h3 className="font-black text-sm uppercase text-white">{activeQuest.quest.title}</h3>
                 
-                {/* Custom Styled Box for Reading Material if no video required */}
-                {!activeQuest.quest.requireVideo ? (
+                {activeQuest.quest.category === "THEORY" ? (
+                  <div className="mt-3 p-3.5 bg-gradient-to-b from-amber-950/20 to-slate-950/50 border border-amber-900/30 rounded-2xl max-h-48 overflow-y-auto">
+                    <span className="text-[8px] font-black text-[#FFD700] uppercase tracking-wider block mb-2">📖 MATERI BACAAN:</span>
+                    <div className="text-xs text-slate-300 leading-relaxed font-medium whitespace-pre-wrap">
+                      {activeQuest.quest.readingContent || activeQuest.quest.description}
+                    </div>
+                  </div>
+                ) : !activeQuest.quest.requireVideo ? (
                   <div className="mt-3 p-3.5 bg-gradient-to-b from-amber-950/20 to-slate-950/50 border border-amber-900/30 rounded-2xl">
                     <span className="text-[8px] font-black text-[#FFD700] uppercase tracking-wider block mb-1">📖 MATERI BACAAN / PERTANYAAN:</span>
                     <p className="text-xs text-slate-300 leading-relaxed font-medium whitespace-pre-wrap">{activeQuest.quest.description}</p>
@@ -228,8 +270,46 @@ export default function QuestsPage() {
                 )}
               </div>
 
+              {/* Quiz Questions Section for THEORY category */}
+              {activeQuest.quest.category === "THEORY" && Array.isArray(activeQuest.quest.quizQuestions) && (
+                <div className="flex flex-col gap-4 mt-2 max-h-60 overflow-y-auto pr-1">
+                  {activeQuest.quest.quizQuestions.map((q: any, i: number) => (
+                    <div key={i} className="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                      <p className="text-xs font-bold text-white mb-2">{i + 1}. {q.question}</p>
+                      <div className="flex flex-col gap-1.5">
+                        {q.options.map((opt: string, optIdx: number) => (
+                          <label key={optIdx} className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-colors ${
+                            quizAnswers[i] === optIdx 
+                              ? "bg-amber-500/20 border-amber-500/50 text-amber-200" 
+                              : "bg-slate-900 border-slate-700 text-slate-300 hover:border-slate-500"
+                          }`}>
+                            <input 
+                              type="radio" 
+                              name={`quiz-${i}`} 
+                              checked={quizAnswers[i] === optIdx}
+                              onChange={() => {
+                                const newAnswers = [...quizAnswers];
+                                newAnswers[i] = optIdx;
+                                setQuizAnswers(newAnswers);
+                              }}
+                              className="hidden"
+                            />
+                            <div className={`w-3 h-3 rounded-full border flex items-center justify-center ${
+                              quizAnswers[i] === optIdx ? "border-amber-400" : "border-slate-600"
+                            }`}>
+                              {quizAnswers[i] === optIdx && <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />}
+                            </div>
+                            <span className="text-[10px] font-medium leading-snug">{opt}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Video upload input - ONLY shown if video is required/optional (requireVideo is true) */}
-              {activeQuest.quest.requireVideo && (
+              {activeQuest.quest.requireVideo && activeQuest.quest.category !== "THEORY" && (
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
                     <span>Video Bukti Latihan</span>

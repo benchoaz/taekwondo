@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, category, baseXp, minAge, maxAge, allowedBeltIds, requireVideo, videoUrl } = body;
+    const { title, description, category, baseXp, minAge, maxAge, allowedBeltIds, requireVideo, videoUrl, readingContent, quizQuestions } = body;
 
     // Validasi data kosong
     if (!title || !category || !baseXp) {
@@ -36,6 +36,8 @@ export async function POST(req: NextRequest) {
         baseXp: parseInt(baseXp),
         requireVideo: requireVideo ?? false,
         videoUrl: videoUrl || null,
+        readingContent: readingContent || null,
+        quizQuestions: quizQuestions || null,
         requirements: {
           create: {
             minAge: minAge ? parseInt(minAge) : 0,

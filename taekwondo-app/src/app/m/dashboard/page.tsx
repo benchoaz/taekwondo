@@ -217,11 +217,24 @@ export default function MobileDashboard() {
                   {hasXp ? `${levelInfo.currentXp} / ${levelInfo.nextLevelXp} XP` : '0 XP'}
                 </span>
               </div>
-              <div className="w-full bg-slate-950 rounded-full h-3 border border-slate-800 overflow-hidden p-0.5">
+              <div className="relative w-full bg-slate-950 rounded-full h-4 border border-slate-800 overflow-hidden p-0.5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]">
+                {/* 3D EXP Bar Fill */}
                 <div
-                  className={`h-full rounded-full transition-all duration-500 ${hasXp ? 'bg-gradient-to-r from-[#E10600] to-[#FFD700] shadow-[0_0_10px_rgba(255,215,0,0.5)]' : 'bg-slate-800'}`}
+                  className={`relative h-full rounded-full transition-all duration-700 ease-out flex items-center justify-end pr-1 ${
+                    hasXp 
+                      ? 'bg-gradient-to-r from-[#8a0400] via-[#E10600] to-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.6)]' 
+                      : 'bg-slate-800'
+                  }`}
                   style={{ width: hasXp ? `${levelInfo.percentage}%` : '0%' }}
-                />
+                >
+                  {/* Glossy top reflection for 3D effect */}
+                  {hasXp && (
+                    <>
+                      <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent rounded-t-full" />
+                      <div className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_5px_rgba(255,255,255,0.8)] animate-pulse" />
+                    </>
+                  )}
+                </div>
               </div>
               {!hasXp && (
                 <p className="text-[9px] text-slate-500 text-center mt-2 font-semibold">

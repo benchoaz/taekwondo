@@ -177,23 +177,32 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Tandai selesai
-    const updatedLog = await prisma.dailyQuestLog.update({
-      where: { id: logId },
-      data: {
-        completed: true,
-        completedAt: new Date(),
-        videoUrl: body.videoUrl || null,
-        notes: body.notes || null,
-      },
-      include: { quest: true }
-    });
-
-    // Tambah XP ke progress member
-    const updatedMember = await prisma.member.update({
-      where: { id: member.id },
-      data: { progress: { increment: updatedLog.quest.baseXp } }
-    });
+    // Tandai selesai, tambah XP, dan catat ke XpLog dalam satu transaksi
+    const [updatedLog, updatedMember, newXpLog] = await prisma.$transaction([
+      prisma.dailyQuestLog.update({
+        where: { id: logId },
+        data: {
+          completed: true,
+          completedAt: new Date(),
+          videoUrl: body.videoUrl || null,
+          notes: body.notes || null,
+        },
+        include: { quest: true }
+      }),
+      prisma.member.update({
+        where: { id: member.id },
+        data: { progress: { increment: existingLog.quest.baseXp } }
+      }),
+      prisma.xpLog.create({
+        data: {
+          memberId: member.id,
+          amount: existingLog.quest.baseXp,
+          source: "DAILY_QUEST",
+          referenceId: existingLog.id,
+          description: `Menyelesaikan Misi: ${existingLog.quest.title}`
+        }
+      })
+    ]);
 
     return NextResponse.json({
       success: true,

@@ -146,28 +146,41 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'logId is required' }, { status: 400 });
     }
 
-    const updatedLog = await prisma.dailyQuestLog.update({
+    // Securely update with transaction and log XP
+    const existingLog = await prisma.dailyQuestLog.findUnique({
       where: { id: logId },
-      data: {
-        completed: true,
-        completedAt: new Date(),
-        notes: notes || null,
-        videoUrl: videoUrl || null,
-      },
-      include: {
-        quest: true,
-      }
+      include: { quest: true }
     });
 
-    // Here we can also add XP to the user's progress
-    const member = await prisma.member.update({
-      where: { id: updatedLog.memberId },
-      data: {
-        progress: {
-          increment: updatedLog.quest.baseXp,
+    if (!existingLog) {
+      return NextResponse.json({ success: false, error: 'Log not found' }, { status: 404 });
+    }
+
+    const [updatedLog, member, xpLog] = await prisma.$transaction([
+      prisma.dailyQuestLog.update({
+        where: { id: logId },
+        data: {
+          completed: true,
+          completedAt: new Date(),
+          notes: notes || null,
+          videoUrl: videoUrl || null,
+        },
+        include: { quest: true }
+      }),
+      prisma.member.update({
+        where: { id: existingLog.memberId },
+        data: { progress: { increment: existingLog.quest.baseXp } }
+      }),
+      prisma.xpLog.create({
+        data: {
+          memberId: existingLog.memberId,
+          amount: existingLog.quest.baseXp,
+          source: "DAILY_QUEST",
+          referenceId: existingLog.id,
+          description: `Menyelesaikan Misi: ${existingLog.quest.title}`
         }
-      }
-    });
+      })
+    ]);
 
     return NextResponse.json({ success: true, data: updatedLog, newProgress: member.progress });
   } catch (error: any) {

@@ -92,6 +92,7 @@ model Member {
   exerciseLogs   MemberExerciseLog[]
   badges         MemberBadge[]
   dailyQuestLogs DailyQuestLog[]
+  xpLogs         XpLog[]
 }
 
 model Coach {
@@ -465,6 +466,7 @@ model DailyQuestLog {
 // TOURNAMENT & EVENTS AGGREGATOR
 // ==========================================
 
+
 model TournamentEvent {
   id             String   @id @default(uuid())
   title          String
@@ -478,5 +480,20 @@ model TournamentEvent {
   status         String   @default("PUBLISHED") // "PENDING", "PUBLISHED", "REJECTED"
   link           String?  // Link berita atau link asli acara
   createdAt      DateTime @default(now())
+}
+
+// ==========================================
+// EXPERIENCE POINTS (XP) LEDGER
+// ==========================================
+
+model XpLog {
+  id          String   @id @default(uuid())
+  memberId    String   @map("member_id")
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  amount      Int      
+  source      String   // "DAILY_QUEST", "ATTENDANCE", "MANUAL", dll
+  referenceId String?  @map("reference_id") 
+  description String?  
+  createdAt   DateTime @default(now())
 }
 

@@ -85,6 +85,15 @@ export async function POST(req: Request) {
       prisma.member.update({
         where: { id: member.id },
         data: { progress: member.progress + quest.baseXp }
+      }),
+      prisma.xpLog.create({
+        data: {
+          memberId: member.id,
+          amount: quest.baseXp,
+          source: "DAILY_QUEST",
+          referenceId: questLog.id,
+          description: `Menyelesaikan Kuis: ${quest.title}`
+        }
       })
     ]);
 

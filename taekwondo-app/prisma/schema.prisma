@@ -430,6 +430,7 @@ model QuestLibrary {
   category    QuestCategory
   baseXp      Int           @default(50) @map("base_xp")
   videoUrl    String?       @map("video_url")
+  requireVideo Boolean       @default(false) @map("require_video")
   requirements QuestRequirement[]
   logs         DailyQuestLog[]
   createdAt   DateTime      @default(now())

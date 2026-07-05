@@ -6,7 +6,7 @@ import BottomNav from "../_components/BottomNav";
 
 interface QuestLog {
   id: string; completed: boolean; completedAt?: string;
-  quest: { title: string; description: string; baseXp: number; category: string };
+  quest: { title: string; description: string; baseXp: number; category: string; requireVideo?: boolean };
 }
 
 const CATEGORY_MAP: Record<string, { label: string; icon: React.ElementType; color: string; bg: string }> = {
@@ -37,6 +37,13 @@ export default function QuestsPage() {
 
   const handleSubmitQuest = async () => {
     if (!activeQuest || completing) return;
+    
+    // Validasi video wajib
+    if (activeQuest.quest.requireVideo && !videoFile) {
+      alert("❌ Anda wajib menyertakan bukti rekaman video untuk menyelesaikan misi ini.");
+      return;
+    }
+
     setCompleting(activeQuest.id);
     setUploading(true);
 
@@ -190,8 +197,17 @@ export default function QuestsPage() {
 
               {/* Video upload input */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Video Bukti Latihan (Opsional)</label>
-                <div className="relative border-2 border-dashed border-slate-700 hover:border-[#E10600] rounded-2xl p-4 flex flex-col items-center justify-center bg-slate-950 cursor-pointer transition-colors">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                  <span>Video Bukti Latihan</span>
+                  {activeQuest.quest.requireVideo ? (
+                    <span className="text-red-500 font-extrabold text-[9px] bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded-full">WAJIB</span>
+                  ) : (
+                    <span className="text-slate-500 text-[9px] bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded-full">Opsional</span>
+                  )}
+                </label>
+                <div className={`relative border-2 border-dashed rounded-2xl p-4 flex flex-col items-center justify-center bg-slate-950 cursor-pointer transition-colors ${
+                  activeQuest.quest.requireVideo && !videoFile ? 'border-red-500/40 hover:border-red-500' : 'border-slate-700 hover:border-[#E10600]'
+                }`}>
                   <input
                     type="file"
                     accept="video/*"

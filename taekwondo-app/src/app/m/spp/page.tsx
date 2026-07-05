@@ -189,21 +189,21 @@ export default function SppPage() {
                             <span className="font-black text-white uppercase">{inv.payment?.paymentMethod || "MANUAL"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="font-bold text-slate-500 uppercase tracking-wide">Tanggal Verifikasi</span>
+                            <span className="font-bold text-slate-500 uppercase tracking-wide">Tanggal Bayar</span>
                             <span className="font-bold text-white">
-                              {inv.payment?.paidAt ? new Date(inv.payment.paidAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "-"}
+                              {inv.payment?.paidAt ? new Date(inv.payment.paidAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }) : "-"}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="font-bold text-slate-500 uppercase tracking-wide">Status Validasi</span>
+                            <span className="font-bold text-slate-500 uppercase tracking-wide">Divalidasi Oleh</span>
                             <span className="font-bold text-emerald-400 uppercase flex items-center gap-1">
                               <UserCheck className="w-3.5 h-3.5 shrink-0" />
                               <span>
                                 {inv.payment?.receiver?.name 
-                                  ? `Coach ${inv.payment.receiver.name}` 
+                                  ? `Sabeum ${inv.payment.receiver.name}` 
                                   : inv.payment?.paymentMethod === "QRIS_ONLINE" 
-                                    ? "Terverifikasi Otomatis" 
-                                    : "Terverifikasi Pelatih"
+                                    ? "Sistem Otomatis (QRIS)" 
+                                    : "Sabeum Dojang"
                                 }
                               </span>
                             </span>

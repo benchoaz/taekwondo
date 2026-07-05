@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
     const userHeaderId = req.headers.get("x-user-id");
     const userRole = req.headers.get("x-user-role");
 

@@ -34,7 +34,7 @@ async function main() {
       ]
     },
     {
-      beltName: 'Sabuk Kuning (9 Geup)',
+      beltName: 'Sabuk Kuning (Geup 9)',
       categories: [
         {
           name: 'Poomsae (Jurus)',

@@ -52,15 +52,15 @@ export async function GET(req: NextRequest) {
       if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
     }
 
-    // Normalize string: hapus semua karakter selain huruf dan angka untuk pencocokan akurat
-    const normalizeBelt = (str: string) => str.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    // Normalize string: hapus karakter non-alfanumerik serta kata SABUK, GEUP, DAN untuk pencocokan akurat
+    const normalizeBelt = (str: string) => str.toUpperCase().replace(/SABUK|GEUP|DAN|[^A-Z0-9]/g, '');
     const normMemberBelt = normalizeBelt(member.currentBelt);
 
     // Ambil daftar sabuk untuk mencari UUID yang cocok dengan nama sabuk member
     const dbBelts = await prisma.beltRank.findMany();
     const memberBeltRecord = dbBelts.find(b => {
       const normDbBelt = normalizeBelt(b.name);
-      return normDbBelt.includes(normMemberBelt) || normMemberBelt.includes(normDbBelt);
+      return normDbBelt === normMemberBelt || normDbBelt.includes(normMemberBelt) || normMemberBelt.includes(normDbBelt);
     });
     const memberBeltId = memberBeltRecord ? memberBeltRecord.id : null;
 

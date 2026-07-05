@@ -227,6 +227,7 @@ export default function AdminDashboard({
   const [editUserEmail, setEditUserEmail] = useState("");
   const [editUserRole, setEditUserRole] = useState("");
   const [editUserBelt, setEditUserBelt] = useState("");
+  const [editUserPassword, setEditUserPassword] = useState("");
 
   // Events / News State
   const [articles, setArticles] = useState<ArticleData[]>([]);
@@ -659,6 +660,7 @@ export default function AdminDashboard({
     setEditUserEmail(user.email);
     setEditUserRole(user.role);
     setEditUserBelt(user.currentBelt || "Sabuk Putih (10 Geup)");
+    setEditUserPassword("");
     setShowEditUserModal(true);
   };
 
@@ -675,6 +677,7 @@ export default function AdminDashboard({
           email: editUserEmail,
           role: editUserRole,
           currentBelt: editUserRole === "MEMBER" ? editUserBelt : undefined,
+          password: editUserPassword || undefined,
         }),
       });
       const data = await res.json();
@@ -3208,6 +3211,17 @@ export default function AdminDashboard({
                   value={editUserEmail}
                   onChange={(e) => setEditUserEmail(e.target.value)}
                   placeholder="Email" 
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Password Baru (Opsional)</label>
+                <input 
+                  type="password" 
+                  value={editUserPassword}
+                  onChange={(e) => setEditUserPassword(e.target.value)}
+                  placeholder="Kosongkan jika tidak ingin diubah" 
                   className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
                 />
               </div>

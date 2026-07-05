@@ -8,7 +8,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, email, role, currentBelt, selfieUrl, certDocUrl } = body;
+    const { name, email, role, currentBelt, selfieUrl, certDocUrl, password } = body;
 
     // Fetch user details first to see if role changed
     const existingUser = await prisma.user.findUnique({
@@ -26,6 +26,7 @@ export async function PUT(
       data: {
         email: email !== undefined ? email : existingUser.email,
         role: role !== undefined ? role : existingUser.role,
+        ...(password && { password }), // Update password if provided
       },
     });
 

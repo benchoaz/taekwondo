@@ -175,7 +175,7 @@ class _CoachAttendanceScreenState extends ConsumerState<CoachAttendanceScreen> {
                             ),
                             trailing: Switch(
                               value: isPresent,
-                              activeColor: Colors.green,
+                              activeThumbColor: Colors.green,
                               inactiveTrackColor: Colors.red.withValues(alpha: 0.5),
                               onChanged: (val) {
                                 setState(() {

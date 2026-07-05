@@ -217,9 +217,9 @@ class _UktScreenState extends ConsumerState<UktScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: bannerColor.withOpacity(0.1),
+        color: bannerColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: bannerColor.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: bannerColor.withValues(alpha: 0.3), width: 1.5),
       ),
       child: Row(
         children: [
@@ -251,7 +251,7 @@ class _UktScreenState extends ConsumerState<UktScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withOpacity(0.04),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
             blurRadius: 15,
             offset: const Offset(0, 6),
           )
@@ -276,7 +276,7 @@ class _UktScreenState extends ConsumerState<UktScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.redAccent.withOpacity(0.1),
+                  color: Colors.redAccent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -426,7 +426,7 @@ class _UktScreenState extends ConsumerState<UktScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withOpacity(0.04),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
             blurRadius: 15,
             offset: const Offset(0, 6),
           )

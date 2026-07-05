@@ -83,7 +83,7 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildLevelBar(profile!),
+                      _buildLevelBar(profile),
                       const SizedBox(height: 32),
 
                       // Section: Biometrics
@@ -100,13 +100,13 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                           ),
                           GestureDetector(
-                            onTap: () => _showEditBiometricsModal(context, ref, profile!),
+                            onTap: () => _showEditBiometricsModal(context, ref, profile),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE10600).withOpacity(0.1),
+                                color: const Color(0xFFE10600).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: const Color(0xFFE10600).withOpacity(0.3)),
+                                border: Border.all(color: const Color(0xFFE10600).withValues(alpha: 0.3)),
                               ),
                               child: Row(
                                 children: [
@@ -127,7 +127,7 @@ class ProfileScreen extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _buildBiometricsPanel(profile!),
+                      _buildBiometricsPanel(profile),
                       const SizedBox(height: 32),
 
                       // Section: Hall of Fame (Medals)
@@ -147,15 +147,15 @@ class ProfileScreen extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 16),
-                      ...profile!.achievements.map((ach) => _buildAchievementCard(ach)).toList(),
-                      if (profile!.achievements.isEmpty)
+                      ...profile.achievements.map((ach) => _buildAchievementCard(ach)),
+                      if (profile.achievements.isEmpty)
                         Center(
                           child: Padding(
                             padding: const EdgeInsets.all(20),
                             child: Text(
                               "Belum ada medali.\\nBerlatihlah lebih keras!",
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
                             ),
                           ),
                         ),
@@ -180,12 +180,12 @@ class ProfileScreen extends ConsumerWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 30,
             offset: const Offset(0, 15),
           )
@@ -205,7 +205,7 @@ class ProfileScreen extends ConsumerWidget {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFE2241F).withOpacity(0.5),
+                  color: const Color(0xFFE2241F).withValues(alpha: 0.5),
                   blurRadius: 20,
                   spreadRadius: 2,
                 )
@@ -232,9 +232,9 @@ class ProfileScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFFE2241F).withOpacity(0.2),
+              color: const Color(0xFFE2241F).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFE2241F).withOpacity(0.5)),
+              border: Border.all(color: const Color(0xFFE2241F).withValues(alpha: 0.5)),
             ),
             child: Text(
               profile.memberNumber,
@@ -250,7 +250,7 @@ class ProfileScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildStatColumn('UMUR', '${profile.age} THN'),
-              Container(width: 1, height: 40, color: Colors.white.withOpacity(0.1)),
+              Container(width: 1, height: 40, color: Colors.white.withValues(alpha: 0.1)),
               _buildStatColumn('SABUK', profile.currentBelt.split(' ').first),
             ],
           )
@@ -290,7 +290,7 @@ class ProfileScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF1E222D),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,7 +323,7 @@ class ProfileScreen extends ConsumerWidget {
               Container(
                 height: 12,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
@@ -337,7 +337,7 @@ class ProfileScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFE2241F).withOpacity(0.6),
+                      color: const Color(0xFFE2241F).withValues(alpha: 0.6),
                       blurRadius: 10,
                       spreadRadius: 1,
                     )
@@ -390,7 +390,7 @@ class ProfileScreen extends ConsumerWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF1E222D),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -407,9 +407,9 @@ class ProfileScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: bmiColor.withOpacity(0.1),
+              color: bmiColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: bmiColor.withOpacity(0.3)),
+              border: Border.all(color: bmiColor.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -478,9 +478,9 @@ class ProfileScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Row(
         children: [
@@ -488,11 +488,11 @@ class ProfileScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: medalColor.withOpacity(0.1),
+              color: medalColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: medalColor.withOpacity(0.2),
+                  color: medalColor.withValues(alpha: 0.2),
                   blurRadius: 15,
                 )
               ],
@@ -529,7 +529,7 @@ class ProfileScreen extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: medalColor.withOpacity(0.15),
+                  color: medalColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -549,7 +549,7 @@ class ProfileScreen extends ConsumerWidget {
                   fontWeight: FontWeight.w900,
                   color: medalColor,
                   shadows: [
-                    Shadow(color: medalColor.withOpacity(0.5), blurRadius: 10),
+                    Shadow(color: medalColor.withValues(alpha: 0.5), blurRadius: 10),
                   ]
                 ),
               ),
@@ -570,7 +570,7 @@ class ProfileScreen extends ConsumerWidget {
         },
         style: TextButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          backgroundColor: Colors.white.withOpacity(0.05),
+          backgroundColor: Colors.white.withValues(alpha: 0.05),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
         icon: const Icon(Icons.logout, color: Color(0xFFE2241F)),
@@ -713,7 +713,7 @@ class ProfileScreen extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1E222D),
-        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
+        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
       ),
       child: BottomNavigationBar(
         backgroundColor: Colors.transparent,

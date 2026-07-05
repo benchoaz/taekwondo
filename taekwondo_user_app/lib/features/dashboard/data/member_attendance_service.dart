@@ -1,5 +1,4 @@
 import 'package:geolocator/geolocator.dart';
-import '../../../core/network/dio_client.dart';
 import '../../auth/domain/user_model.dart';
 
 import 'package:dio/dio.dart';

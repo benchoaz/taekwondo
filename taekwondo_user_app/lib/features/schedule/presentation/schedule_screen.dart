@@ -98,13 +98,13 @@ class ScheduleScreen extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF0F172A).withOpacity(0.02),
+                              color: const Color(0xFF0F172A).withValues(alpha: 0.02),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             )
                           ],
                           border: Border.all(
-                            color: const Color(0xFF0F172A).withOpacity(0.04),
+                            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
                             width: 1.5,
                           ),
                         ),
@@ -194,7 +194,7 @@ class ScheduleScreen extends ConsumerWidget {
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.redAccent.withOpacity(0.1),
+                                                  color: Colors.redAccent.withValues(alpha: 0.1),
                                                   borderRadius: BorderRadius.circular(6),
                                                 ),
                                                 child: Text(

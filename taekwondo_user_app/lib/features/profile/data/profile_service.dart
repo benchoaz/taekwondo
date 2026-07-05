@@ -98,7 +98,7 @@ class ProfileService {
 
 // Provider untuk data Profile
 final profileProvider = FutureProvider.autoDispose<ProfileData?>((ref) async {
-  final storage = const FlutterSecureStorage();
+  const storage = FlutterSecureStorage();
   final token = await storage.read(key: 'auth_token');
   
   final dio = Dio(BaseOptions(

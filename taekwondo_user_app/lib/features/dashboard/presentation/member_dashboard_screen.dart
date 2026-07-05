@@ -90,7 +90,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         child: Container(
           padding: const EdgeInsets.only(left: 20, right: 20, top: 56, bottom: 16),
           decoration: BoxDecoration(
-            color: m3Surface.withOpacity(0.8),
+            color: m3Surface.withValues(alpha: 0.8),
             border: const Border(bottom: BorderSide(color: Color(0x4DC3C6D8))),
           ),
           child: Row(
@@ -146,7 +146,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 decoration: BoxDecoration(
                   color: const Color(0xFFE7E8E9),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: m3OutlineVariant.withOpacity(0.3)),
+                  border: Border.all(color: m3OutlineVariant.withValues(alpha: 0.3)),
                 ),
                 child: Stack(
                   alignment: Alignment.center,
@@ -187,7 +187,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF2563EB).withOpacity(0.3),
+            color: const Color(0xFF2563EB).withValues(alpha: 0.3),
             blurRadius: 30,
             offset: const Offset(0, 15),
           )
@@ -206,7 +206,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   Text(
                     'ABSENSI HARI INI',
                     style: GoogleFonts.hankenGrotesk(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       fontStyle: FontStyle.italic,
@@ -233,9 +233,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                 ),
                 child: Text(
                   'LIVE NOW',
@@ -293,7 +293,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
             children: [
               Row(
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     width: 70,
                     height: 28,
                     child: Stack(
@@ -305,7 +305,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                             backgroundColor: Colors.white,
                             child: CircleAvatar(
                               radius: 12,
-                              backgroundColor: const Color(0xFF93C5FD), // Light blue
+                              backgroundColor: Color(0xFF93C5FD), // Light blue
                             ),
                           ),
                         ),
@@ -316,7 +316,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                             backgroundColor: Colors.white,
                             child: CircleAvatar(
                               radius: 12,
-                              backgroundColor: const Color(0xFF60A5FA), // Slightly darker blue
+                              backgroundColor: Color(0xFF60A5FA), // Slightly darker blue
                             ),
                           ),
                         ),
@@ -327,7 +327,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                             backgroundColor: Colors.white,
                             child: CircleAvatar(
                               radius: 12,
-                              backgroundColor: const Color(0xFF3B82F6), // Darker blue
+                              backgroundColor: Color(0xFF3B82F6), // Darker blue
                             ),
                           ),
                         ),
@@ -414,7 +414,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       )
@@ -443,7 +443,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: m3Secondary.withOpacity(0.1),
+                                    color: m3Secondary.withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
@@ -527,7 +527,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: m3Secondary.withOpacity(0.3),
+                        color: m3Secondary.withValues(alpha: 0.3),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       )
@@ -545,7 +545,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(Icons.assignment, color: Colors.white, size: 18),
@@ -555,7 +555,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                             style: GoogleFonts.spaceGrotesk(
                               fontSize: 8,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                               letterSpacing: 1.0,
                             ),
                           )
@@ -577,7 +577,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                           Container(
                             height: 4,
                             decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             alignment: Alignment.centerLeft,
@@ -597,7 +597,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                             style: GoogleFonts.spaceGrotesk(
                               fontSize: 8,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white.withOpacity(0.8),
+                              color: Colors.white.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -623,7 +623,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFFCA8A04).withOpacity(0.3),
+                color: const Color(0xFFCA8A04).withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               )
@@ -640,7 +640,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       letterSpacing: 1.0,
                     ),
                   ),
@@ -658,7 +658,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               Container(
                 height: 6,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 alignment: Alignment.centerLeft,
@@ -677,7 +677,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 '15 Sesi lagi menuju $currentBelt',
                 style: GoogleFonts.hankenGrotesk(
                   fontSize: 12,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                   fontWeight: FontWeight.w500,
                 ),
               )
@@ -753,12 +753,12 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     return Container(
       width: 280,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7),
+        color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: Colors.white.withOpacity(0.5)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           )
@@ -787,8 +787,8 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                             decoration: BoxDecoration(
-                              color: tagColor.withOpacity(0.9),
-                              border: Border.all(color: Colors.white.withOpacity(0.2)),
+                              color: tagColor.withValues(alpha: 0.9),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                             ),
                             child: Text(
                               tag.toUpperCase(),
@@ -826,7 +826,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.hankenGrotesk(
                         fontSize: 12,
-                        color: m3OnSurfaceVariant.withOpacity(0.7),
+                        color: m3OnSurfaceVariant.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -844,7 +844,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       children: [
         Expanded(
           child: GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => ScheduleScreen())),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const ScheduleScreen())),
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -852,7 +852,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withValues(alpha: 0.03),
                     blurRadius: 15,
                     offset: const Offset(0, 5),
                   )
@@ -864,7 +864,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: m3Primary.withOpacity(0.1),
+                      color: m3Primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(Icons.calendar_month, color: m3Primary),
@@ -894,7 +894,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withValues(alpha: 0.03),
                     blurRadius: 15,
                     offset: const Offset(0, 5),
                   )
@@ -906,7 +906,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: m3Secondary.withOpacity(0.1),
+                      color: m3Secondary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(Icons.card_membership, color: m3Secondary),
@@ -972,7 +972,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 return Column(
                   children: logs.map((log) {
                     final isDone = log.completed;
-                    final quest = log.quest!;
+                    final quest = log.quest;
                     final iconData = quest.category == 'FITNESS' 
                         ? Icons.fitness_center 
                         : quest.category == 'TECHNICAL' 
@@ -985,10 +985,10 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       decoration: BoxDecoration(
                         color: isDone ? const Color(0xFFEDEEEF) : Colors.white,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: m3OutlineVariant.withOpacity(isDone ? 0.2 : 0.4)),
+                        border: Border.all(color: m3OutlineVariant.withValues(alpha: isDone ? 0.2 : 0.4)),
                         boxShadow: isDone ? [] : [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.02),
+                            color: Colors.black.withValues(alpha: 0.02),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           )
@@ -1000,7 +1000,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                             width: 48,
                             height: 48,
                             decoration: BoxDecoration(
-                              color: isDone ? Colors.green.shade100 : m3TertiaryContainer.withOpacity(0.2),
+                              color: isDone ? Colors.green.shade100 : m3TertiaryContainer.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Icon(
@@ -1071,11 +1071,11 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     return Container(
       padding: const EdgeInsets.only(left: 32, right: 32, top: 16, bottom: 32),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: const BorderRadius.only(topLeft: Radius.circular(40), topRight: Radius.circular(40)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, -5),
           )
@@ -1085,14 +1085,14 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildNavItem(
-            Icon(Icons.home, color: m3Primary, size: 28), 
+            const Icon(Icons.home, color: m3Primary, size: 28), 
             'Beranda', 
             true
           ),
           GestureDetector(
             onTap: () => context.push('/profile'),
             child: _buildNavItem(
-              Icon(Icons.person_outline, color: m3OnSurfaceVariant.withOpacity(0.6), size: 28), 
+              Icon(Icons.person_outline, color: m3OnSurfaceVariant.withValues(alpha: 0.6), size: 28), 
               'Profil', 
               false
             ),
@@ -1109,7 +1109,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
           decoration: BoxDecoration(
-            color: isActive ? m3Primary.withOpacity(0.1) : Colors.transparent,
+            color: isActive ? m3Primary.withValues(alpha: 0.1) : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
           child: iconWidget,
@@ -1121,7 +1121,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
             fontSize: 10,
             fontWeight: isActive ? FontWeight.w900 : FontWeight.bold,
             letterSpacing: 1.5,
-            color: isActive ? m3Primary : m3OnSurfaceVariant.withOpacity(0.6),
+            color: isActive ? m3Primary : m3OnSurfaceVariant.withValues(alpha: 0.6),
           ),
         )
       ],

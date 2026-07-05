@@ -106,7 +106,7 @@ class BeltTexturePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black.withOpacity(0.05)
+      ..color = Colors.black.withValues(alpha: 0.05)
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
       

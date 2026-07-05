@@ -38,7 +38,7 @@ class QuestLibrary {
 }
 
 final questProvider = FutureProvider.autoDispose<List<QuestLog>>((ref) async {
-  final storage = const FlutterSecureStorage();
+  const storage = FlutterSecureStorage();
   final token = await storage.read(key: 'auth_token');
   
   final dio = Dio(BaseOptions(

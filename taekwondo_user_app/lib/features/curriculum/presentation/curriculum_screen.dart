@@ -253,7 +253,7 @@ class _CurriculumScreenState extends ConsumerState<CurriculumScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
+        color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -277,7 +277,7 @@ class _CurriculumScreenState extends ConsumerState<CurriculumScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withOpacity(0.03),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -296,7 +296,7 @@ class _CurriculumScreenState extends ConsumerState<CurriculumScreen> {
                 topRight: Radius.circular(20),
               ),
               border: Border(
-                bottom: BorderSide(color: const Color(0xFF0F172A).withOpacity(0.05)),
+                bottom: BorderSide(color: const Color(0xFF0F172A).withValues(alpha: 0.05)),
               ),
             ),
             child: Row(

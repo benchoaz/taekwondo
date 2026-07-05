@@ -93,7 +93,7 @@ class CoachScheduleScreen extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            Icon(Icons.calendar_today, color: Colors.blue, size: 20),
+                            const Icon(Icons.calendar_today, color: Colors.blue, size: 20),
                           ],
                         ),
                       ),

@@ -114,9 +114,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.55),
-                    Colors.black.withOpacity(0.35),
-                    Colors.black.withOpacity(0.85),
+                    Colors.black.withValues(alpha: 0.55),
+                    Colors.black.withValues(alpha: 0.35),
+                    Colors.black.withValues(alpha: 0.85),
                   ],
                 ),
               ),
@@ -197,7 +197,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 fontSize: 10,
                                 letterSpacing: 3,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withValues(alpha: 0.7),
                                 shadows: const [Shadow(color: Colors.black54, offset: Offset(0, 1), blurRadius: 2)],
                               ),
                             ),
@@ -221,10 +221,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.08),
+                              color: Colors.white.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(28),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.15),
+                                color: Colors.white.withValues(alpha: 0.15),
                                 width: 1.5,
                               ),
                             ),
@@ -251,7 +251,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.white.withOpacity(0.7),
+                                      color: Colors.white.withValues(alpha: 0.7),
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
@@ -263,18 +263,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     style: const TextStyle(color: Colors.white),
                                     decoration: InputDecoration(
                                       hintText: 'Masukkan Username',
-                                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 14),
-                                      prefixIcon: Icon(Icons.person, color: Colors.white.withOpacity(0.7)),
+                                      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 14),
+                                      prefixIcon: Icon(Icons.person, color: Colors.white.withValues(alpha: 0.7)),
                                       filled: true,
-                                      fillColor: Colors.white.withOpacity(0.05),
+                                      fillColor: Colors.white.withValues(alpha: 0.05),
                                       contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
                                       ),
                                       enabledBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(16),
@@ -305,12 +305,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     style: const TextStyle(color: Colors.white),
                                     decoration: InputDecoration(
                                       hintText: 'Masukkan Password',
-                                      hintStyle: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 14),
-                                      prefixIcon: Icon(Icons.lock, color: Colors.white.withOpacity(0.7)),
+                                      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 14),
+                                      prefixIcon: Icon(Icons.lock, color: Colors.white.withValues(alpha: 0.7)),
                                       suffixIcon: IconButton(
                                         icon: Icon(
                                           _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                                          color: Colors.white.withOpacity(0.7),
+                                          color: Colors.white.withValues(alpha: 0.7),
                                         ),
                                         onPressed: () {
                                           setState(() {
@@ -319,15 +319,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         },
                                       ),
                                       filled: true,
-                                      fillColor: Colors.white.withOpacity(0.05),
+                                      fillColor: Colors.white.withValues(alpha: 0.05),
                                       contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
                                       ),
                                       enabledBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+                                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(16),
@@ -361,7 +361,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         );
                                       },
                                       style: TextButton.styleFrom(
-                                        foregroundColor: Colors.white.withOpacity(0.8),
+                                        foregroundColor: Colors.white.withValues(alpha: 0.8),
                                         padding: EdgeInsets.zero,
                                         minimumSize: const Size(0, 0),
                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -383,7 +383,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       foregroundColor: Colors.white,
                                       padding: const EdgeInsets.symmetric(vertical: 16),
                                       elevation: 8,
-                                      shadowColor: const Color(0xFFE10600).withOpacity(0.4),
+                                      shadowColor: const Color(0xFFE10600).withValues(alpha: 0.4),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(16),
                                       ),
@@ -417,7 +417,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           Text(
                             'Belum menjadi anggota White Tiger Club?',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
+                              color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
                             ),
@@ -433,13 +433,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.app_registration, color: Colors.white, size: 20),
-                                const SizedBox(width: 12),
-                                const Text(
+                                Icon(Icons.app_registration, color: Colors.white, size: 20),
+                                SizedBox(width: 12),
+                                Text(
                                   'Daftar Online',
                                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1),
                                 ),

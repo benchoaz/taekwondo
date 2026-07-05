@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
 import '../../../core/network/dio_client.dart';
 import '../../auth/data/auth_provider.dart';
 import '../domain/notification_model.dart';

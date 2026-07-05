@@ -86,8 +86,8 @@ class _SppScreenState extends ConsumerState<SppScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2)),
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 24, offset: const Offset(0, 12)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 24, offset: const Offset(0, 12)),
         ],
       ),
       child: Row(
@@ -284,7 +284,7 @@ class _SppScreenState extends ConsumerState<SppScreen> {
         ),
         child: Column(
           children: [
-            Icon(icon, size: 32, color: isSelected ? nbPrimary : nbBlack.withOpacity(0.6)),
+            Icon(icon, size: 32, color: isSelected ? nbPrimary : nbBlack.withValues(alpha: 0.6)),
             const SizedBox(height: 8),
             Text(title, style: GoogleFonts.spaceGrotesk(fontSize: 10, fontWeight: FontWeight.bold, color: nbBlack)),
           ],
@@ -369,7 +369,7 @@ class _SppScreenState extends ConsumerState<SppScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFB4C5FF).withOpacity(0.2), // primary-fixed-dim/20
+        color: const Color(0xFFB4C5FF).withValues(alpha: 0.2), // primary-fixed-dim/20
         border: Border.all(color: const Color(0xFF2B6BFF), width: 2), // primary-container
         borderRadius: BorderRadius.circular(12),
       ),
@@ -393,9 +393,9 @@ class _SppScreenState extends ConsumerState<SppScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         border: const Border(top: BorderSide(color: Colors.white30)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 12, offset: const Offset(0, -4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 12, offset: const Offset(0, -4))],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,

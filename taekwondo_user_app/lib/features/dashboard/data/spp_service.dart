@@ -28,7 +28,7 @@ final sppProvider = FutureProvider.autoDispose<SppInvoice?>((ref) async {
   if (user == null) return null;
 
   final dio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
-  final storage = const FlutterSecureStorage();
+  const storage = FlutterSecureStorage();
   final token = await storage.read(key: 'auth_token');
 
   if (token != null) {

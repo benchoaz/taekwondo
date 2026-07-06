@@ -5,11 +5,8 @@ export async function GET(req: Request) {
   try {
     // Basic Security: Vercel CRON passes a bearer token
     const authHeader = req.headers.get("authorization");
-    if (
-      process.env.CRON_SECRET &&
-      authHeader !== `Bearer ${process.env.CRON_SECRET}` &&
-      process.env.NODE_ENV === "production"
-    ) {
+    const cronSecret = process.env.CRON_SECRET;
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -42,7 +39,7 @@ export async function GET(req: Request) {
       where: { status: "ACTIVE" },
       select: {
         id: true,
-        currentBeltId: true,
+        currentBelt: true,
       },
     });
 
@@ -73,7 +70,7 @@ export async function GET(req: Request) {
         if (
           allowedBelts === null ||
           allowedBelts.length === 0 ||
-          (member.currentBeltId && allowedBelts.includes(member.currentBeltId))
+          (member.currentBelt && allowedBelts.includes(member.currentBelt))
         ) {
           logsToInsert.push({
             memberId: member.id,

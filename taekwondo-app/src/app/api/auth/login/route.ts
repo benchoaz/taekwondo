@@ -8,22 +8,30 @@ export async function POST(request: Request) {
     const { email, password } = body;
 
     if (!email || !password) {
-      return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
+      return NextResponse.json({ error: "Email/ID and password are required" }, { status: 400 });
     }
 
-    const formattedEmail = email.trim().toLowerCase();
+    const formattedInput = email.trim().toLowerCase();
+    const isEmail = formattedInput.includes("@");
 
-    // In a real app, query database with credentials
-    const user = await prisma.user.findUnique({
-      where: { email: formattedEmail },
-      include: {
-        member: true,
-        coach: true
-      }
-    });
+    // Query database with email OR memberNumber
+    let user;
+    if (isEmail) {
+      user = await prisma.user.findUnique({
+        where: { email: formattedInput },
+        include: { member: true, coach: true }
+      });
+    } else {
+      // Find by Member Number (case insensitive)
+      const member = await prisma.member.findUnique({
+        where: { memberNumber: email.trim().toUpperCase() },
+        include: { user: { include: { member: true, coach: true } } }
+      });
+      user = member?.user;
+    }
 
     if (!user) {
-      return NextResponse.json({ error: "Email atau kata sandi yang Anda masukkan salah." }, { status: 401 });
+      return NextResponse.json({ error: "Email/ID atau kata sandi yang Anda masukkan salah." }, { status: 401 });
     }
 
     const bcrypt = require("bcryptjs");

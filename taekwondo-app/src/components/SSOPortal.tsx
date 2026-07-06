@@ -128,13 +128,13 @@ export default function SSOPortal({
           {/* Form */}
           <form onSubmit={handleSecureLogin} className="w-full flex flex-col gap-4 mt-6">
             <div>
-              <label className="block text-xs font-bold text-[#0F172A] mb-1.5">Email Address</label>
+              <label className="block text-xs font-bold text-[#0F172A] mb-1.5">Email atau ID Anggota</label>
               <div className="relative">
                 <input 
-                  type="email" 
+                  type="text" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@tkdacademy.com" 
+                  placeholder="nama@email.com atau TKD-2026-0012" 
                   required
                   className="w-full bg-white border border-[#0F172A]/10 rounded-xl pl-10 pr-4 py-3 text-xs text-[#0F172A] font-medium outline-none focus:ring-2 focus:ring-[#E10600] focus:border-transparent transition-all"
                 />

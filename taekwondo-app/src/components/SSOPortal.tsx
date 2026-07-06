@@ -148,7 +148,14 @@ export default function SSOPortal({
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label className="block text-xs font-bold text-[#0F172A]">Password</label>
-                <a href="#" className="text-[10px] font-bold text-[#E10600] hover:underline">Forgot Password?</a>
+                <a 
+                  href={settings.phone ? `https://wa.me/${settings.phone.replace(/\D/g, "").replace(/^0/, "62")}?text=Halo%20Admin,%20saya%20lupa%20password%20akun%20Taekwondo%20saya.%20Mohon%20bantuannya%20untuk%20mereset.` : "#"}
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="text-[10px] font-bold text-[#E10600] hover:underline"
+                >
+                  Forgot Password?
+                </a>
               </div>
               <div className="relative">
                 <input 

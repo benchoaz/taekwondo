@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Award, CheckSquare, Square, Video, ShieldAlert, ListFilter } from "lucide-react";
 
-export default function CoachQuestForm() {
+import { Suspense } from "react";
+
+function CoachQuestFormContent() {
   const searchParams = useSearchParams();
   const editId = searchParams.get("editId");
 
@@ -392,8 +394,20 @@ export default function CoachQuestForm() {
               {status}
             </div>
           )}
-        </form>
+         </form>
       </div>
     </div>
+  );
+}
+
+export default function CoachQuestForm() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#f3f4f5] flex items-center justify-center font-sans text-gray-500 font-medium">
+        Memuat kreator misi...
+      </div>
+    }>
+      <CoachQuestFormContent />
+    </Suspense>
   );
 }

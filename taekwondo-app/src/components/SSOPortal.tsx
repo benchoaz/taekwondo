@@ -24,6 +24,7 @@ export default function SSOPortal({
     heroBgUrl: string | null;
     dojangName: string;
     motto: string;
+    phone?: string;
   }>({
     logoUrl: "/logo.png",
     heroBgUrl: "/hero-fighters.png",
@@ -40,7 +41,8 @@ export default function SSOPortal({
             logoUrl: data.logoUrl || null,
             heroBgUrl: data.heroBgUrl || "/hero-fighters.png",
             dojangName: data.dojangName || "WHITE TIGER TAEKWONDO",
-            motto: data.motto || "Management Ecosystem"
+            motto: data.motto || "Management Ecosystem",
+            phone: data.phone || ""
           });
         }
       })

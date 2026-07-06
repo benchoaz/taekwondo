@@ -94,41 +94,43 @@ export default function ExerciseBuilder() {
       {programs.map((prog) => (
         <div key={prog.id} className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm">
           <div 
-            className="p-6 flex items-center justify-between cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors"
+            className="p-4 md:p-6 flex items-start sm:items-center justify-between cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors gap-3"
             onClick={() => setExpandedProgram(expandedProgram === prog.id ? null : prog.id)}
           >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckSquare className="w-5 h-5 text-green-600" />
+            <div className="flex items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0 mt-1 sm:mt-0">
+                <CheckSquare className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
               </div>
-              <div>
-                <div className="flex items-center gap-3">
-                  <h3 className="font-bold text-[#0F172A] text-lg">{prog.title}</h3>
-                  <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded-full uppercase">Aktif</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <h3 className="font-bold text-[#0F172A] text-base sm:text-lg break-words truncate">{prog.title}</h3>
+                  <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded-full uppercase shrink-0">Aktif</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">{prog.exercises?.length || 0} Tugas Latihan di dalam program ini</p>
+                <p className="text-[11px] sm:text-xs text-gray-500 mt-1">{prog.exercises?.length || 0} Tugas Latihan di dalam program ini</p>
               </div>
             </div>
-            {expandedProgram === prog.id ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+            <div className="shrink-0 mt-1 sm:mt-0">
+              {expandedProgram === prog.id ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+            </div>
           </div>
 
           {expandedProgram === prog.id && (
-            <div className="p-6 border-t border-slate-100 flex flex-col gap-6">
+            <div className="p-4 md:p-6 border-t border-slate-100 flex flex-col gap-6">
               <div className="flex flex-col gap-2">
                 {(!prog.exercises || prog.exercises.length === 0) ? (
                   <div className="text-center py-4 text-gray-400 text-sm italic">Belum ada tugas di program ini.</div>
                 ) : (
                   prog.exercises.map((exe: any) => (
-                    <div key={exe.id} className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-                      <div className="flex items-center gap-3">
-                        <GripVertical className="w-4 h-4 text-gray-400 cursor-grab" />
-                        <div>
-                          <span className="text-sm font-bold text-[#0F172A] block">{exe.name}</span>
-                          <span className="text-xs text-gray-500 font-medium">Target: {exe.sets} Set × {exe.reps} Repetisi</span>
+                    <div key={exe.id} className="flex items-start sm:items-center justify-between bg-white p-3 sm:p-4 rounded-xl border border-slate-200 shadow-sm gap-3">
+                      <div className="flex items-start sm:items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        <GripVertical className="w-4 h-4 text-gray-400 cursor-grab shrink-0 mt-1 sm:mt-0" />
+                        <div className="flex-1 min-w-0">
+                          <span className="text-sm font-bold text-[#0F172A] block break-words">{exe.name}</span>
+                          <span className="text-[11px] sm:text-xs text-gray-500 font-medium block mt-0.5">Target: {exe.sets} Set × {exe.reps} Repetisi</span>
                         </div>
                       </div>
-                      <button className="text-gray-400 hover:text-red-500 transition-colors">
-                        <Trash2 className="w-4 h-4" />
+                      <button className="text-gray-400 hover:text-red-500 transition-colors shrink-0 p-1 sm:p-0">
+                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
                     </div>
                   ))

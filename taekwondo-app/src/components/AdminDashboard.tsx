@@ -161,6 +161,11 @@ export default function AdminDashboard({
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [isStatsLoading, setIsStatsLoading] = useState(true);
 
+  // Gallery State
+  const [galleryItems, setGalleryItems] = useState<any[]>([]);
+  const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  const [currentGalleryItem, setCurrentGalleryItem] = useState<{ id?: string, imageUrl: string, category: string, title: string }>({ imageUrl: "", category: "LATIHAN", title: "" });
+
   const fetchDashboardStats = async () => {
     setIsStatsLoading(true);
     try {
@@ -400,6 +405,8 @@ export default function AdminDashboard({
       fetchPayments();
       fetchExpenses();
       fetchCoaches();
+    } else if (activeTab === "gallery") {
+      fetchGallery();
     }
   }, [activeTab]);
 
@@ -609,6 +616,51 @@ export default function AdminDashboard({
       console.error("Error fetching hero slides:", e);
     } finally {
       setIsLoadingSlides(false);
+    }
+  };
+
+  const fetchGallery = async () => {
+    try {
+      const res = await fetch("/api/gallery");
+      if (res.ok) {
+        const data = await res.json();
+        setGalleryItems(data);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleSaveGallery = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentGalleryItem.imageUrl) {
+      alert("Harap unggah gambar terlebih dahulu.");
+      return;
+    }
+    try {
+      const res = await fetch("/api/gallery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(currentGalleryItem),
+      });
+      if (res.ok) {
+        setIsGalleryModalOpen(false);
+        fetchGallery();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDeleteGallery = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus foto galeri ini?")) return;
+    try {
+      const res = await fetch(`/api/gallery?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchGallery();
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -1484,7 +1536,8 @@ export default function AdminDashboard({
                 { id: "coaches", label: "Manajemen Pelatih", icon: <Shield className="w-4 h-4" /> },
                 { id: "achievements", label: "Prestasi Member", icon: <Award className="w-4 h-4" /> },
                 { id: "announcements", label: "📢 Pengumuman", icon: <Megaphone className="w-4 h-4" /> },
-                { id: "hero_slides", label: "Slider Hero (Juara)", icon: <Sparkles className="w-4 h-4" /> }
+                { id: "hero_slides", label: "Slider Hero (Juara)", icon: <Sparkles className="w-4 h-4" /> },
+                { id: "gallery", label: "Galeri Foto", icon: <FileText className="w-4 h-4" /> }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -4329,6 +4382,152 @@ export default function AdminDashboard({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Gallery Panel */}
+      {activeTab === "gallery" && (
+        <div className="flex-grow p-8 h-full overflow-y-auto">
+          <div className="flex justify-between items-end mb-8">
+            <div>
+              <h1 className="text-3xl font-black text-[#0F172A] tracking-tight">Manajemen Galeri</h1>
+              <p className="text-gray-500 text-sm mt-1">Kelola foto-foto yang tampil di halaman Galeri Aktivitas.</p>
+            </div>
+            <button 
+              onClick={() => {
+                setCurrentGalleryItem({ imageUrl: "", category: "LATIHAN", title: "" });
+                setIsGalleryModalOpen(true);
+              }}
+              className="bg-[#E10600] hover:bg-red-700 text-white px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-lg shadow-red-500/20 active:scale-95"
+            >
+              <Plus className="w-5 h-5" /> Tambah Foto Galeri
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {galleryItems.map((item: any) => (
+              <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 group relative">
+                <div className="aspect-[4/3] bg-slate-100 relative">
+                  <img src={item.imageUrl} alt={item.title || "Gallery Item"} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                    <button 
+                      onClick={() => handleDeleteGallery(item.id)}
+                      className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                <div className="p-4 border-t border-slate-100">
+                  <span className="inline-block px-2.5 py-1 bg-slate-100 text-[#0F172A] rounded-md text-[9px] font-black uppercase tracking-wider mb-2">
+                    {item.category}
+                  </span>
+                  <h3 className="font-bold text-[#0F172A] text-sm line-clamp-2">{item.title || "Tanpa Judul"}</h3>
+                  <p className="text-[10px] text-gray-400 mt-2">Ditambahkan: {new Date(item.createdAt).toLocaleDateString("id-ID")}</p>
+                </div>
+              </div>
+            ))}
+            
+            {galleryItems.length === 0 && (
+              <div className="col-span-full py-16 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-white">
+                <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-[#0F172A]">Belum ada foto galeri</h3>
+                <p className="text-sm text-gray-500 mt-1">Klik tombol 'Tambah Foto Galeri' untuk mulai mengunggah.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Gallery Modal */}
+      {isGalleryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+              <div>
+                <h3 className="font-black text-[#0F172A] text-xl">Tambah Foto Galeri</h3>
+                <p className="text-gray-400 text-xs mt-1">Unggah foto aktivitas dojang untuk landing page.</p>
+              </div>
+              <button onClick={() => setIsGalleryModalOpen(false)} className="text-gray-400 hover:text-[#0F172A] p-2 bg-white rounded-full shadow-sm">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto">
+              <form onSubmit={handleSaveGallery} className="flex flex-col gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Foto Aktivitas <span className="text-red-500">*</span></label>
+                  <div className="w-full aspect-[4/3] bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center relative overflow-hidden group">
+                    {currentGalleryItem.imageUrl ? (
+                      <div className="absolute inset-0">
+                        <img src={currentGalleryItem.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button 
+                            type="button" 
+                            onClick={() => setCurrentGalleryItem({ ...currentGalleryItem, imageUrl: "" })}
+                            className="bg-white/90 text-red-600 rounded-full p-2 shadow-lg"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer p-4 hover:bg-slate-100 transition-colors">
+                        <Upload className="w-8 h-8 text-gray-300 mb-2" />
+                        <span className="text-xs font-bold text-gray-500">Klik untuk unggah foto</span>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const url = await uploadToServer(file, file.name);
+                            if (url) {
+                              setCurrentGalleryItem({ ...currentGalleryItem, imageUrl: url });
+                            } else {
+                              alert("Gagal unggah foto");
+                            }
+                          }} 
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Kategori <span className="text-red-500">*</span></label>
+                  <select 
+                    value={currentGalleryItem.category} 
+                    onChange={e => setCurrentGalleryItem({ ...currentGalleryItem, category: e.target.value })} 
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] font-bold text-[#0F172A]"
+                    required
+                  >
+                    <option value="LATIHAN">Latihan</option>
+                    <option value="KEJUARAAN">Kejuaraan</option>
+                    <option value="UKT">Ujian Kenaikan Tingkat (UKT)</option>
+                    <option value="SEMINAR">Seminar / Diklat</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Judul / Caption <span className="text-gray-400 font-normal">(Opsional)</span></label>
+                  <input 
+                    type="text" 
+                    value={currentGalleryItem.title} 
+                    onChange={e => setCurrentGalleryItem({ ...currentGalleryItem, title: e.target.value })} 
+                    placeholder="e.g. Latihan Rutin Kelas Dewasa" 
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]" 
+                  />
+                </div>
+
+                <div className="flex gap-3 mt-4 pt-4 border-t border-slate-100">
+                  <button type="button" onClick={() => setIsGalleryModalOpen(false)} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl text-xs transition-all">Batal</button>
+                  <button type="submit" disabled={!currentGalleryItem.imageUrl} className="flex-1 bg-[#E10600] hover:bg-red-700 text-white font-bold py-3 rounded-xl text-xs transition-all disabled:opacity-50">Simpan Foto</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
       {/* Tournament Modal */}

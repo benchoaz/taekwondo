@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Database PostgreSQL
   postgres:
-    image: postgres:17-alpine
+    image: docker.io/library/postgres:17-alpine
     container_name: taekwondo_db
     environment:
       POSTGRES_USER: taekwondo_user

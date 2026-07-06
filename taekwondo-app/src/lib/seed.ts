@@ -13,11 +13,15 @@ export async function seedDatabase() {
   await prisma.gallery.deleteMany({});
   await prisma.article.deleteMany({});
 
+  const bcrypt = require('bcryptjs');
+  const hashedPassword = await bcrypt.hash('admin123', 10);
+  const userPassword = await bcrypt.hash('password123', 10);
+
   // Seed Users
   const userAdmin = await prisma.user.create({
     data: {
       email: 'admin@taekwondo.com',
-      password: 'password123', // In real apps, bcrypt this.
+      password: hashedPassword,
       role: 'ADMIN',
     },
   });
@@ -25,7 +29,7 @@ export async function seedDatabase() {
   const userCoach = await prisma.user.create({
     data: {
       email: 'coach.ahmad@taekwondo.com',
-      password: 'password123',
+      password: userPassword,
       role: 'COACH',
     },
   });
@@ -33,7 +37,7 @@ export async function seedDatabase() {
   const userMember = await prisma.user.create({
     data: {
       email: 'member.beni@taekwondo.com',
-      password: 'password123',
+      password: userPassword,
       role: 'MEMBER',
     },
   });

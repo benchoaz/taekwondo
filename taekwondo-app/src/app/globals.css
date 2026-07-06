@@ -44,6 +44,34 @@ body {
   border-radius: 20px;
 }
 
+.glass-card-shop {
+  background: linear-gradient(180deg, rgba(45, 52, 73, 0.4) 0%, rgba(13, 19, 36, 0.9) 100%);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.shine-effect {
+  position: relative;
+  overflow: hidden;
+}
+.shine-effect::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.03), transparent);
+  transform: rotate(45deg);
+  animation: shine 6s infinite;
+}
+@keyframes shine {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
+}
+
 .glow-hover:hover {
   box-shadow: 0 0 20px rgba(225, 6, 0, 0.25);
   border-color: rgba(225, 6, 0, 0.4);

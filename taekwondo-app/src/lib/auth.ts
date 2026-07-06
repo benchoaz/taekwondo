@@ -8,13 +8,13 @@ interface SessionPayload {
 }
 
 export const getJwtSecretKey = () => {
-  const secret = process.env.JWT_SECRET_KEY;
+  const secret = process.env.JWT_SECRET || process.env.JWT_SECRET_KEY;
   if (!secret || secret.length === 0) {
     if (process.env.NODE_ENV === "production") {
-      throw new Error("JWT_SECRET_KEY environment variable is missing!");
+      throw new Error("JWT_SECRET environment variable is missing!");
     }
     // Safe ephemeral fallback in dev to prevent hardcoded key exploits
-    console.warn("WARNING: JWT_SECRET_KEY not set. Using default dev key.");
+    console.warn("WARNING: JWT_SECRET not set. Using default dev key.");
     return "dev-secret-key-1234567890-fallback";
   }
   return secret;

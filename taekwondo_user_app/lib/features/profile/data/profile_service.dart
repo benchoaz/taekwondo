@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../../core/constants/api_constants.dart';
+import '../../../core/network/dio_client.dart';
 
 class ProfileAchievement {
   final String title;
@@ -53,7 +51,8 @@ class ProfileData {
   factory ProfileData.fromJson(Map<String, dynamic> json) {
     final achievementsList = (json['achievements'] as List?)
             ?.map((e) => ProfileAchievement.fromJson(e))
-            .toList() ?? [];
+            .toList() ??
+        [];
 
     return ProfileData(
       name: json['name'] ?? '',
@@ -63,55 +62,59 @@ class ProfileData {
       age: json['age'] ?? 0,
       weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
       height: json['height'] != null ? (json['height'] as num).toDouble() : null,
-      waistCircum: json['waistCircum'] != null ? (json['waistCircum'] as num).toDouble() : null,
+      waistCircum: json['waistCircum'] != null
+          ? (json['waistCircum'] as num).toDouble()
+          : null,
       achievements: achievementsList,
     );
   }
 }
 
+/// Service untuk operasi profile yang membutuhkan referensi Riverpod.
+/// Diakses via [profileServiceProvider].
 class ProfileService {
-  final Dio _dio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final Ref _ref;
+  ProfileService(this._ref);
 
-  Future<bool> updateBiometrics(double? weight, double? height, double? waistCircum) async {
+  /// Update data biometrik member (berat, tinggi, lingkar perut).
+  Future<bool> updateBiometrics(
+    double? weight,
+    double? height,
+    double? waistCircum,
+  ) async {
     try {
-      final token = await _storage.read(key: 'auth_token');
-      if (token == null) return false;
-
-      final response = await _dio.put(
-        '/api/profile/biometrics',
+      final dio = _ref.read(dioProvider);
+      final response = await dio.put(
+        '/profile/biometrics',
         data: {
           'weight': weight,
           'height': height,
           'waistCircum': waistCircum,
         },
-        options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
-
       return response.statusCode == 200;
     } catch (e) {
-      debugPrint("Update biometrics error: $e");
+      debugPrint('[ProfileService] Update biometrics error: $e');
       return false;
     }
   }
 }
 
-// Provider untuk data Profile
+/// Provider untuk ProfileService (butuh Ref).
+final profileServiceProvider = Provider<ProfileService>((ref) {
+  return ProfileService(ref);
+});
+
+/// Provider untuk mengambil data profil member yang sedang login.
+/// Menggunakan [dioProvider] — JWT token di-inject otomatis.
 final profileProvider = FutureProvider.autoDispose<ProfileData?>((ref) async {
-  const storage = FlutterSecureStorage();
-  final token = await storage.read(key: 'auth_token');
-  
-  final dio = Dio(BaseOptions(
-    baseUrl: ApiConstants.baseUrl,
-    headers: {
-      'Authorization': 'Bearer $token',
-    },
-  ));
+  final dio = ref.watch(dioProvider);
 
   final response = await dio.get('/profile');
   if (response.statusCode == 200 && response.data['success'] == true) {
     return ProfileData.fromJson(response.data['data']);
   } else {
-    throw Exception('Failed to load profile');
+    throw Exception('Gagal memuat profil');
   }
 });
+

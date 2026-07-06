@@ -1,0 +1,7 @@
+.vercel
+.env*
+taekwondo_project.tar.gz
+screen.png
+*.png:Zone.Identifier
+*.html:Zone.Identifier
+*.md:Zone.Identifier

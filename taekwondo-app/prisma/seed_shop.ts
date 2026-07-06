@@ -21,6 +21,7 @@ async function main() {
       type: "PROFILE_FRAME" as const,
       rarity: "COMMON" as const,
       price: 50,
+      imageUrl: "/shop/badge_white_biasa.png",
       cssValue: "2px solid #F8FAFC",
       sortOrder: 1,
     },
@@ -30,6 +31,7 @@ async function main() {
       type: "PROFILE_FRAME" as const,
       rarity: "COMMON" as const,
       price: 100,
+      imageUrl: "/shop/badge_white_biasa.png",
       cssValue: "3px solid #FFD700",
       sortOrder: 2,
     },
@@ -39,6 +41,7 @@ async function main() {
       type: "PROFILE_FRAME" as const,
       rarity: "RARE" as const,
       price: 350,
+      imageUrl: "/shop/badge_green_langka.jpg",
       cssValue: "3px solid transparent; background: linear-gradient(#1e293b, #1e293b) padding-box, linear-gradient(135deg, #E10600, #FF6B35) border-box",
       sortOrder: 3,
     },
@@ -48,6 +51,7 @@ async function main() {
       type: "PROFILE_FRAME" as const,
       rarity: "RARE" as const,
       price: 450,
+      imageUrl: "/shop/badge_green_langka.jpg",
       cssValue: "3px solid #3b82f6; box-shadow: 0 0 12px #3b82f6",
       sortOrder: 4,
     },
@@ -57,6 +61,7 @@ async function main() {
       type: "PROFILE_FRAME" as const,
       rarity: "EPIC" as const,
       price: 900,
+      imageUrl: "/shop/badge_gold_epic.jpg",
       cssValue: "3px solid transparent; background: linear-gradient(#1e293b, #1e293b) padding-box, linear-gradient(135deg, #a855f7, #ec4899) border-box",
       sortOrder: 5,
     },
@@ -65,8 +70,9 @@ async function main() {
       description: "Bingkai berkilauan emas murni. Hanya layak bagi para legenda Dojang sejati.",
       type: "PROFILE_FRAME" as const,
       rarity: "LEGENDARY" as const,
-      price: 3000,
-      cssValue: "3px solid transparent; background: linear-gradient(#1e293b, #1e293b) padding-box, linear-gradient(135deg, #FFD700, #FFA500, #FFD700) border-box",
+      price: 5000,
+      imageUrl: "/shop/badge_black_legenda.jpg",
+      cssValue: "3px solid transparent; background: linear-gradient(#1e293b, #1e293b) padding-box, linear-gradient(135deg, #f59e0b, #fbbf24) border-box",
       sortOrder: 6,
     },
 
@@ -153,6 +159,15 @@ async function main() {
     // ========================================
     // EMBLEMS
     // ========================================
+    {
+      name: "Badge Green Belt (Langka)",
+      description: "Sabuk Hijau melambangkan benih yang mulai tumbuh dan mengakar kuat dalam Taekwondo.",
+      type: "EMBLEM" as const,
+      rarity: "RARE" as const,
+      price: 350,
+      imageUrl: "/shop/badge_green_rare.jpg",
+      sortOrder: 29,
+    },
     {
       name: "Emblem Harimau 🐯",
       description: "Lambang harimau — simbol kekuatan dan keberanian para Hwarang.",

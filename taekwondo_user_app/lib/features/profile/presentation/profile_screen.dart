@@ -644,7 +644,7 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                   onPressed: () async {
-                    final success = await ProfileService().updateBiometrics(weight, height, waist);
+                    final success = await ref.read(profileServiceProvider).updateBiometrics(weight, height, waist);
                     if (context.mounted) {
                       Navigator.pop(context);
                       if (success) {

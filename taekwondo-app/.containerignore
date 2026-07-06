@@ -1,0 +1,18 @@
+# .containerignore untuk Next.js Taekwondo App
+.git
+.gitignore
+.vercel
+node_modules
+.next
+out
+build
+*.log
+.env
+.env.local
+.env.production
+.env.development
+README.md
+DESIGN.md
+taekwondo_project.tar.gz
+screen.png
+Dockerfile

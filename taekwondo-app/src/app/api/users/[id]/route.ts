@@ -20,14 +20,20 @@ export async function PUT(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    const bcrypt = require("bcryptjs");
+
     // Update user
+    let updateData: any = {
+      email: email !== undefined ? email : existingUser.email,
+      role: role !== undefined ? role : existingUser.role,
+    };
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id },
-      data: {
-        email: email !== undefined ? email : existingUser.email,
-        role: role !== undefined ? role : existingUser.role,
-        ...(password && { password }), // Update password if provided
-      },
+      data: updateData,
     });
 
     // Update associated coach/member name
@@ -113,9 +119,11 @@ export async function PATCH(
     }
 
     if (action === "RESET_PASSWORD") {
+      const bcrypt = require("bcryptjs");
+      const hashedPassword = await bcrypt.hash("password123", 10);
       await prisma.user.update({
         where: { id },
-        data: { password: "password123" }, // Reset to default password
+        data: { password: hashedPassword }, // Reset to default password hashed
       });
       return NextResponse.json({ success: true, message: "Password reset to default (password123)" });
     }

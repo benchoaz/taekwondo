@@ -6,7 +6,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../auth/domain/user_model.dart';
-import '../../auth/data/auth_provider.dart';
 
 // Neo-Brutalism Theme Colors
 const Color m3OnPrimaryFixedVariant = Color(0xFF003DAA);

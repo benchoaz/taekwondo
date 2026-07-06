@@ -27,8 +27,8 @@ export async function notifyUser(opts: NotifyOptions) {
 
   if (opts.userId !== 'ALL') {
     // fcmToken is on User, not Member — find via Member.userId
-    const member = await prisma.member.findUnique({
-      where: { id: opts.userId },
+    const member = await prisma.member.findFirst({
+      where: { userId: opts.userId },
       include: { user: { select: { fcmToken: true } } },
     });
     if (member?.user?.fcmToken) {

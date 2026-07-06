@@ -9,7 +9,7 @@ interface ShopItem {
   id: string; name: string; description: string;
   type: "PROFILE_FRAME" | "TITLE" | "THEME" | "EMBLEM";
   rarity: "COMMON" | "RARE" | "EPIC" | "LEGENDARY";
-  price: number; cssValue: string | null; isLimited: boolean;
+  price: number; cssValue: string | null; imageUrl: string | null; isLimited: boolean;
   owned: boolean; equipped: boolean;
 }
 
@@ -206,62 +206,56 @@ export default function ShopPage() {
         {filtered.map(item => {
           const r = RARITY[item.rarity];
           const t = TYPE[item.type];
-          const canAfford = wallet >= item.price;
           return (
-            <button key={item.id} onClick={() => { setSelected(item); setActionStatus(null); }}
-              className="relative rounded-2xl p-3 text-left transition-all hover:scale-105 active:scale-95 border"
-              style={{ background: r.bg, borderColor: r.border }}>
+            <div key={item.id} className="glass-card-shop rounded-xl p-4 min-h-[240px] relative group shine-effect border-t-[3px]" style={{ borderTopColor: r.color, boxShadow: (item.rarity === 'LEGENDARY' || item.rarity === 'EPIC') ? `0 -4px 25px ${r.color}40` : `0 -4px 20px ${r.color}20` }}>
+              <div onClick={() => { setSelected(item); setActionStatus(null); }} className="cursor-pointer">
+                {/* Top badges */}
+                <div className="flex justify-between items-start mb-2">
+                  <div className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase" style={{ background: `${r.color}30`, color: r.color }}>
+                    {r.label}
+                  </div>
+                  {item.owned ? (
+                    <span className="text-[12px] font-black text-green-400">✓ Dimiliki</span>
+                  ) : (
+                    <span className="material-symbols-outlined text-[18px]" style={{ color: `${r.color}80` }}>lock</span>
+                  )}
+                </div>
 
-              {/* Rarity glow for LEGENDARY/EPIC */}
-              {(item.rarity === "LEGENDARY" || item.rarity === "EPIC") && (
-                <div className="absolute inset-0 rounded-2xl opacity-20 blur-xl" style={{ background: r.color }} />
-              )}
+                {/* Icon / Image */}
+                <div className="w-full aspect-square flex items-center justify-center mb-3 relative">
+                  {(item.rarity === "LEGENDARY" || item.rarity === "EPIC") && (
+                    <div className="absolute inset-0 blur-2xl rounded-full" style={{ background: `${r.color}20` }} />
+                  )}
+                  {item.imageUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 relative z-10" />
+                  ) : (
+                    <div className="text-6xl text-center relative z-10 group-hover:scale-105 transition-transform duration-500">{t.icon}</div>
+                  )}
+                </div>
 
-              {/* Top badges */}
-              <div className="relative flex items-start justify-between mb-2">
-                <span className="text-[9px] font-black px-2 py-0.5 rounded-full border"
-                  style={{ color: r.color, borderColor: r.color + "60", background: r.color + "15" }}>
-                  {r.label}
+                {/* Name */}
+                <h3 className="font-headline-sm text-[14px] leading-tight text-white mb-1 font-bold">{item.name}</h3>
+
+                {/* Stars */}
+                <div className="flex gap-1 mb-3">
+                  {Array.from({ length: r.stars }).map((_, i) => (
+                    <Star key={i} className="w-3.5 h-3.5 fill-current" style={{ color: r.color }} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Bottom Button */}
+              <button 
+                onClick={() => { setSelected(item); setActionStatus(null); }}
+                className="w-full py-2 rounded-lg flex items-center justify-center gap-1 active:scale-95 transition-all mt-2 border"
+                style={{ background: `${r.color}20`, borderColor: `${r.color}40` }}
+              >
+                <span className="text-[14px] font-bold" style={{ color: r.color }}>
+                  {item.owned ? (item.equipped ? "Sedang Dipakai" : "Pasang Item") : `${item.price.toLocaleString()} DC`}
                 </span>
-                <div className="flex items-center gap-1">
-                  {item.isLimited && <span className="text-[9px] font-black text-red-400 animate-pulse">⏰</span>}
-                  {item.owned && <span className="text-[9px] font-black text-green-400">✓</span>}
-                </div>
-              </div>
-
-              {/* Icon */}
-              <div className="relative text-4xl text-center my-3">{t.icon}</div>
-
-              {/* Name */}
-              <p className="relative font-black text-sm text-white leading-tight mb-1">{item.name}</p>
-
-              {/* Stars */}
-              <div className="relative flex gap-0.5 mb-2">
-                {Array.from({ length: r.stars }).map((_, i) => (
-                  <Star key={i} className="w-2.5 h-2.5 fill-current" style={{ color: r.color }} />
-                ))}
-              </div>
-
-              {/* Price + affordability */}
-              <div className="relative flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <span className="text-sm">🪙</span>
-                  <span className={`font-black text-sm ${canAfford && !item.owned ? "text-yellow-300" : item.owned ? "text-green-400" : "text-slate-400"}`}>
-                    {item.owned ? "Dimiliki" : item.price.toLocaleString() + " DC"}
-                  </span>
-                </div>
-                {item.equipped && (
-                  <span className="text-[9px] bg-green-500/20 text-green-400 border border-green-500/40 px-1.5 py-0.5 rounded-full font-black">Aktif</span>
-                )}
-              </div>
-
-              {/* Can't afford overlay */}
-              {!item.owned && !canAfford && (
-                <div className="absolute top-2 right-2">
-                  <span className="text-xs">🔒</span>
-                </div>
-              )}
-            </button>
+              </button>
+            </div>
           );
         })}
       </div>
@@ -371,7 +365,7 @@ export default function ShopPage() {
 
       {/* ── Item Detail Modal ── */}
       {selected && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-end" onClick={e => { if (e.target === e.currentTarget) { setSelected(null); setActionStatus(null); } }}>
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-[60] flex items-end" onClick={e => { if (e.target === e.currentTarget) { setSelected(null); setActionStatus(null); } }}>
           <div className="w-full max-w-md mx-auto bg-[#0f172a] border border-slate-700 rounded-t-3xl p-6 space-y-4">
             {/* Handle bar */}
             <div className="w-10 h-1 rounded-full mx-auto" style={{ background: RARITY[selected.rarity].color }} />

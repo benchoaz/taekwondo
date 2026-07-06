@@ -26,7 +26,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email atau kata sandi yang Anda masukkan salah." }, { status: 401 });
     }
 
-    if (user.password !== password) {
+    const bcrypt = require("bcryptjs");
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       return NextResponse.json({ error: "Email atau kata sandi yang Anda masukkan salah." }, { status: 401 });
     }
 

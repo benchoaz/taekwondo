@@ -61,10 +61,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email, Role, and Birth Date are required for Member" }, { status: 400 });
     }
 
+    const bcrypt = require("bcryptjs");
+    const hashedPassword = await bcrypt.hash("password123", 10);
+
     const newUser = await prisma.user.create({
       data: {
         email,
-        password: "password123", // Default seed password
+        password: hashedPassword, // Default seed password
         role,
       },
     });

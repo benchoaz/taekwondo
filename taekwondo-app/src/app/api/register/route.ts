@@ -25,11 +25,14 @@ export async function POST(request: Request) {
     const settings = await prisma.setting.findUnique({ where: { id: "default" } });
     const dojangName = settings?.dojangName || "WHITE TIGER TAEKWONDO";
 
+    const bcrypt = require("bcryptjs");
+    const hashedPassword = await bcrypt.hash("password123", 10); // default seed password hashed
+
     // 1. Create User
     const newUser = await prisma.user.create({
       data: {
         email: formattedEmail,
-        password: "password123", // Default password for new register, change later
+        password: hashedPassword, // Default password for new register, change later
         role: "MEMBER",
       },
     });

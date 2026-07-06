@@ -5,9 +5,9 @@ import { getToken } from "next-auth/jwt";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const filePathArray = params.path;
+  const { path: filePathArray } = await params;
   const relativePath = filePathArray.join("/");
   
   // Storage base path - fallback to local project storage if not defined

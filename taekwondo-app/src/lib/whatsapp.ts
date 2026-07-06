@@ -1,43 +1,63 @@
 /**
  * WhatsApp Gateway Integration
  * ---------------------------------
- * Menggunakan Fonnte API (atau provider sejenis)
- * Memerlukan FONNTE_API_KEY di .env
+ * Menggunakan WAHA (WhatsApp HTTP API)
+ * Memerlukan WAHA_BASE_URL dan WAHA_SESSION di .env
  */
 
-const FONNTE_API_URL = "https://api.fonnte.com/send";
+function formatPhoneNumber(phone: string): string {
+  // Hapus karakter selain angka
+  let cleaned = phone.replace(/\D/g, "");
+  
+  // Ubah awalan 0 menjadi 62
+  if (cleaned.startsWith("0")) {
+    cleaned = "62" + cleaned.substring(1);
+  }
+  
+  // WAHA butuh akhiran @c.us untuk nomor personal
+  if (!cleaned.endsWith("@c.us")) {
+    cleaned += "@c.us";
+  }
+  
+  return cleaned;
+}
 
 /**
- * Fungsi utilitas untuk mengirim pesan WhatsApp
- * @param target Nomor tujuan (bisa dipisah koma untuk bulk)
+ * Fungsi utilitas untuk mengirim pesan WhatsApp via WAHA
+ * @param target Nomor tujuan (bisa dipisah koma untuk bulk, atau array, tapi kita asumsikan 1 nomor per panggilan untuk WAHA sederhana)
  * @param message Isi pesan
  */
 export async function sendWhatsAppMessage(target: string, message: string) {
-  const apiKey = process.env.FONNTE_API_KEY;
+  const baseUrl = process.env.WAHA_BASE_URL || "http://localhost:3000";
+  const session = process.env.WAHA_SESSION || "default";
   
-  if (!apiKey) {
-    console.warn("[WhatsApp Mock] FONNTE_API_KEY tidak ditemukan. Pesan tidak benar-benar dikirim.");
+  // Jika ini simulasi atau belum disetting
+  if (baseUrl === "http://localhost:3000" && !process.env.WAHA_BASE_URL) {
+    console.warn("[WhatsApp Mock] WAHA_BASE_URL tidak diset. Pesan tidak benar-benar dikirim.");
     console.log(`[To: ${target}] Message:\n${message}`);
-    return { status: true, detail: "Mock send success (No API Key)" };
+    return { status: true, detail: "Mock send success (No Base URL)" };
   }
 
+  const formattedTarget = formatPhoneNumber(target);
+
   try {
-    const response = await fetch(FONNTE_API_URL, {
+    const response = await fetch(`${baseUrl}/api/sendText`, {
       method: "POST",
       headers: {
-        Authorization: apiKey,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
       },
-      body: new URLSearchParams({
-        target: target,
-        message: message,
-        countryCode: "62", // Default to Indonesia
+      body: JSON.stringify({
+        chatId: formattedTarget,
+        text: message,
+        session: session,
       }),
     });
 
     const result = await response.json();
-    return result;
+    return { status: response.ok, data: result };
   } catch (error) {
-    console.error("Error sending WhatsApp message:", error);
+    console.error("Error sending WhatsApp message via WAHA:", error);
     return { status: false, reason: String(error) };
   }
 }

@@ -42,6 +42,7 @@ export async function POST(request: Request) {
       data: {
         userId: newUser.id,
         fullName: name,
+        phone: phone, // Save WhatsApp number for SPP notifications
         memberNumber: `PENDING-${Math.floor(1000 + Math.random() * 9000)}`,
         status: "PENDING_VERIFICATION",
         dateOfBirth: new Date(birthDate),

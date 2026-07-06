@@ -14,11 +14,9 @@ const nextConfig: NextConfig = {
   // Izinkan Next.js memuat resource JavaScript (HMR) melalui tunnel Cloudflare
   allowedDevOrigins: ['whitetigertkd.my.id'],
   async headers() {
-    // Di tahap produksi, ganti ALLOWED_ORIGIN di file .env dengan domain frontend (misal: https://taekwondodojang.com)
-    // Jika tidak di-set, defaultnya aman dengan mengembalikan localhost.
-    const allowedOrigin = process.env.NODE_ENV === 'production' 
-        ? (process.env.ALLOWED_ORIGIN || 'https://taekwondodojang.com')
-        : '*';
+    // Di tahap produksi, mobile app (APK) mungkin tidak mengirimkan header Origin standar.
+    // Oleh karena itu kita mengizinkan semua origin (*) khusus untuk path /api
+    const allowedOrigin = '*';
 
     return [
       {

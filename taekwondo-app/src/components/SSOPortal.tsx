@@ -231,14 +231,16 @@ export default function SSOPortal({
         </div>
 
         {/* Quick Helper Simulator Tags - Dipindah ke Luar Kotak Utama! */}
-        <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-2 mt-6 p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl">
-          <span className="text-[9px] font-bold text-white uppercase tracking-wider block">Simulasi Login Cepat:</span>
-          <div className="flex flex-wrap justify-center gap-2">
-            <button type="button" onClick={() => fillQuickCredential("admin@taekwondo.com")} className="bg-red-500 hover:bg-red-600 text-white border border-red-400 rounded px-3 py-1 text-[9px] font-bold transition-colors">Admin</button>
-            <button type="button" onClick={() => fillQuickCredential("coach.ahmad@taekwondo.com")} className="bg-blue-500 hover:bg-blue-600 text-white border border-blue-400 rounded px-3 py-1 text-[9px] font-bold transition-colors">Coach</button>
-            <button type="button" onClick={() => fillQuickCredential("member.beni@taekwondo.com")} className="bg-slate-600 hover:bg-slate-700 text-white border border-slate-500 rounded px-3 py-1 text-[9px] font-bold transition-colors">Member</button>
+        {process.env.NODE_ENV !== "production" && (
+          <div className="w-full max-w-sm mx-auto flex flex-col items-center gap-2 mt-6 p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl">
+            <span className="text-[9px] font-bold text-white uppercase tracking-wider block">Simulasi Login Cepat:</span>
+            <div className="flex flex-wrap justify-center gap-2">
+              <button type="button" onClick={() => fillQuickCredential("admin@taekwondo.com")} className="bg-red-500 hover:bg-red-600 text-white border border-red-400 rounded px-3 py-1 text-[9px] font-bold transition-colors">Admin</button>
+              <button type="button" onClick={() => fillQuickCredential("coach.ahmad@taekwondo.com")} className="bg-blue-500 hover:bg-blue-600 text-white border border-blue-400 rounded px-3 py-1 text-[9px] font-bold transition-colors">Coach</button>
+              <button type="button" onClick={() => fillQuickCredential("member.beni@taekwondo.com")} className="bg-slate-600 hover:bg-slate-700 text-white border border-slate-500 rounded px-3 py-1 text-[9px] font-bold transition-colors">Member</button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

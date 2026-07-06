@@ -269,6 +269,20 @@ export default function AdminDashboard({
   const [articleAuthor, setArticleAuthor] = useState("Admin Editorial");
   const [articleImage, setArticleImage] = useState<string | null>(null);
 
+  // Tournaments / Kejuaraan State
+  const [tournaments, setTournaments] = useState<any[]>([]);
+  const [isLoadingTournaments, setIsLoadingTournaments] = useState(false);
+  const [showTournamentModal, setShowTournamentModal] = useState(false);
+  const [tournamentTitle, setTournamentTitle] = useState("");
+  const [tournamentLevel, setTournamentLevel] = useState("Provinsi");
+  const [tournamentLocation, setTournamentLocation] = useState("");
+  const [tournamentStartDate, setTournamentStartDate] = useState("");
+  const [tournamentEndDate, setTournamentEndDate] = useState("");
+  const [tournamentPosterUrl, setTournamentPosterUrl] = useState<string | null>(null);
+  const [tournamentProposalUrl, setTournamentProposalUrl] = useState<string | null>(null);
+  const [tournamentLink, setTournamentLink] = useState("");
+  const [isSavingTournament, setIsSavingTournament] = useState(false);
+
   // Coach Management State
   const [coaches, setCoaches] = useState<CoachData[]>([]);
   const [isLoadingCoaches, setIsLoadingCoaches] = useState(false);
@@ -380,6 +394,8 @@ export default function AdminDashboard({
       fetchSettings();
     } else if (activeTab === "events") {
       fetchArticles();
+    } else if (activeTab === "tournaments") {
+      fetchTournaments();
     } else if (activeTab === "analytics") {
       fetchPayments();
       fetchExpenses();
@@ -430,6 +446,79 @@ export default function AdminDashboard({
       console.error("Error fetching articles:", e);
     } finally {
       setIsLoadingArticles(false);
+    }
+  };
+
+  const fetchTournaments = async () => {
+    setIsLoadingTournaments(true);
+    try {
+      const res = await fetch("/api/events?status=PUBLISHED");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) setTournaments(data.data);
+      }
+    } catch (e) {
+      console.error("Error fetching tournaments:", e);
+    } finally {
+      setIsLoadingTournaments(false);
+    }
+  };
+
+  const handleSaveTournament = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingTournament(true);
+    try {
+      const res = await fetch("/api/admin/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: tournamentTitle,
+          level: tournamentLevel,
+          location: tournamentLocation,
+          startDate: tournamentStartDate,
+          endDate: tournamentEndDate,
+          posterUrl: tournamentPosterUrl,
+          proposalUrl: tournamentProposalUrl,
+          link: tournamentLink,
+        }),
+      });
+
+      if (res.ok) {
+        alert("Kejuaraan berhasil ditambahkan!");
+        setShowTournamentModal(false);
+        setTournamentTitle("");
+        setTournamentLocation("");
+        setTournamentStartDate("");
+        setTournamentEndDate("");
+        setTournamentPosterUrl(null);
+        setTournamentProposalUrl(null);
+        setTournamentLink("");
+        fetchTournaments();
+      } else {
+        const err = await res.json();
+        alert("Error: " + (err.error || "Gagal menyimpan kejuaraan"));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan.");
+    } finally {
+      setIsSavingTournament(false);
+    }
+  };
+
+  const handleDeleteTournament = async (id: string) => {
+    if (!confirm("Hapus kejuaraan ini permanen?")) return;
+    try {
+      const res = await fetch(`/api/admin/events?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        alert("Kejuaraan berhasil dihapus!");
+        fetchTournaments();
+      } else {
+        const err = await res.json();
+        alert("Error: " + (err.error || "Gagal menghapus kejuaraan"));
+      }
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -2435,6 +2524,84 @@ export default function AdminDashboard({
             </div>
           )}
 
+          {activeTab === "tournaments" && (
+            <div className="flex flex-col gap-6">
+              <div className="flex justify-between items-center gap-4">
+                <div>
+                  <h2 className="text-3xl font-black text-[#0F172A] font-display">Kalender Kejuaraan</h2>
+                  <p className="text-gray-400 text-xs mt-1">Kelola jadwal turnamen dan kejuaraan untuk member.</p>
+                </div>
+                <button 
+                  onClick={() => setShowTournamentModal(true)}
+                  className="bg-[#E10600] hover:bg-[#C00500] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                >
+                  <Plus className="w-4 h-4" /> Tambah Kejuaraan
+                </button>
+              </div>
+
+              {/* Grid of Tournaments */}
+              {isLoadingTournaments ? (
+                <div className="text-center py-12 text-gray-400 text-xs">Memuat daftar kejuaraan...</div>
+              ) : tournaments.length === 0 ? (
+                <div className="bg-white border border-slate-100 rounded-2xl p-12 text-center text-gray-400 text-xs">
+                  Belum ada jadwal kejuaraan yang ditambahkan. Klik "Tambah Kejuaraan" di atas.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {tournaments.map((tour) => (
+                    <div key={tour.id} className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
+                      <div>
+                        {tour.posterUrl && (
+                          <div className="w-full h-40 bg-slate-100 relative">
+                            <img src={tour.posterUrl} alt="Poster" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <div className="p-5">
+                          <span className="text-[9px] font-bold uppercase tracking-wider text-[#E10600] bg-red-50 px-2 py-0.5 rounded-full mb-2 inline-block">
+                            {tour.level}
+                          </span>
+                          <h3 className="font-black text-[#0F172A] leading-tight mb-2">{tour.title}</h3>
+                          <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                            <MapPin className="w-3.5 h-3.5" /> {tour.location}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
+                            <Calendar className="w-3.5 h-3.5" /> 
+                            {new Date(tour.startDate).toLocaleDateString("id-ID")} - {new Date(tour.endDate).toLocaleDateString("id-ID")}
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            {tour.proposalUrl && (
+                              <a href={tour.proposalUrl} target="_blank" className="flex-1 bg-slate-100 text-[#0F172A] text-[10px] font-bold text-center py-2 rounded-lg hover:bg-slate-200">
+                                Proposal
+                              </a>
+                            )}
+                            {tour.link && (
+                              <a href={tour.link} target="_blank" className="flex-1 bg-slate-100 text-[#0F172A] text-[10px] font-bold text-center py-2 rounded-lg hover:bg-slate-200">
+                                Info Lain
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-3 border-t border-slate-100 bg-slate-50 flex justify-between">
+                        <span className="text-[10px] font-bold text-gray-400">
+                          Status: <span className="text-green-600">{tour.status}</span>
+                        </span>
+                        <button 
+                          onClick={() => handleDeleteTournament(tour.id)}
+                          className="text-[#E10600] hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {activeTab === "coaches" && (
             <div className="flex flex-col gap-6">
               <div>
@@ -4162,6 +4329,85 @@ export default function AdminDashboard({
               </div>
             </div>
           )}
+        </div>
+      )}
+      {/* Tournament Modal */}
+      {showTournamentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+              <div>
+                <h3 className="font-black text-[#0F172A] text-xl">Tambah Kejuaraan</h3>
+                <p className="text-gray-400 text-xs mt-1">Masukkan informasi jadwal dan detail turnamen.</p>
+              </div>
+              <button onClick={() => setShowTournamentModal(false)} className="text-gray-400 hover:text-[#0F172A] p-2 bg-white rounded-full shadow-sm">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto">
+              <form id="tournamentForm" onSubmit={handleSaveTournament} className="flex flex-col gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Nama Kejuaraan *</label>
+                  <input type="text" value={tournamentTitle} onChange={e => setTournamentTitle(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none focus:ring-2 focus:ring-[#E10600]/20 focus:border-[#E10600] transition-all" placeholder="Contoh: Kejurda Taekwondo Jatim 2026" />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Tingkat *</label>
+                    <select value={tournamentLevel} onChange={e => setTournamentLevel(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none focus:ring-2 focus:ring-[#E10600]/20 focus:border-[#E10600]">
+                      <option value="Lokal">Lokal (Kab/Kota)</option>
+                      <option value="Provinsi">Provinsi</option>
+                      <option value="Nasional">Nasional</option>
+                      <option value="Internasional">Internasional</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Lokasi *</label>
+                    <input type="text" value={tournamentLocation} onChange={e => setTournamentLocation(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none" placeholder="Contoh: GOR Jayabaya" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Tanggal Mulai *</label>
+                    <input type="date" value={tournamentStartDate} onChange={e => setTournamentStartDate(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Tanggal Selesai *</label>
+                    <input type="date" value={tournamentEndDate} onChange={e => setTournamentEndDate(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Poster URL (Opsional)</label>
+                  <input type="url" value={tournamentPosterUrl || ""} onChange={e => setTournamentPosterUrl(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none" placeholder="https://.../poster.jpg" />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Proposal PDF URL (Opsional)</label>
+                    <input type="url" value={tournamentProposalUrl || ""} onChange={e => setTournamentProposalUrl(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none" placeholder="https://..." />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Link Info (Opsional)</label>
+                    <input type="url" value={tournamentLink} onChange={e => setTournamentLink(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none" placeholder="https://..." />
+                  </div>
+                </div>
+              </form>
+            </div>
+            
+            <div className="p-6 border-t border-slate-100 bg-slate-50 rounded-b-2xl">
+              <button 
+                type="submit" 
+                form="tournamentForm"
+                disabled={isSavingTournament}
+                className="w-full bg-[#E10600] hover:bg-[#C00500] text-white py-3 rounded-xl font-bold text-xs shadow-md shadow-[#E10600]/25 transition-all active:scale-95 disabled:opacity-50"
+              >
+                {isSavingTournament ? "Menyimpan..." : "Simpan Kejuaraan"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

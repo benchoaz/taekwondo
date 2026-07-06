@@ -565,28 +565,42 @@ export default function LandingPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
           <AnimatePresence mode="popLayout">
-            {filteredGallery.map((item, idx) => (
-              <motion.div
-                key={item.title}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.3 }}
-                className="relative rounded-[20px] overflow-hidden h-64 shadow-sm group border border-[#0F172A]/5"
-              >
-                <Image src={item.img} alt={item.title} fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
-                <div className="absolute bottom-6 left-6 right-6">
-                  <span className="bg-[#E10600] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded block w-max mb-2">
-                    {item.type}
-                  </span>
-                  <h4 className="text-white font-bold text-sm">{item.title}</h4>
-                </div>
-              </motion.div>
-            ))}
+            {filteredGallery.map((item, idx) => {
+              // Menentukan tinggi dinamis secara pseudo-random tapi konsisten berdasarkan index
+              // Pola variasi tinggi untuk nuansa scrapbook/masonry
+              const heights = ["h-[300px]", "h-[450px]", "h-[250px]", "h-[380px]", "h-[500px]", "h-[320px]"];
+              const randomHeight = heights[idx % heights.length];
+
+              return (
+                <motion.div
+                  key={item.img + idx}
+                  layout
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.6, delay: (idx % 6) * 0.1, ease: "easeOut" }}
+                  className={`relative rounded-3xl overflow-hidden ${randomHeight} w-full shadow-lg group border-4 border-white break-inside-avoid hover:z-10`}
+                >
+                  <Image 
+                    src={item.img} 
+                    alt={item.title} 
+                    fill 
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" 
+                    className="object-cover group-hover:scale-110 transition-transform duration-[1.5s] ease-out" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/90 via-[#0F172A]/10 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-500"></div>
+                  
+                  <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                    <span className="bg-white/20 backdrop-blur-md border border-white/30 text-white text-[10px] font-black uppercase px-3 py-1.5 rounded-full inline-block mb-3 shadow-sm">
+                      {item.type}
+                    </span>
+                    <h4 className="text-white font-extrabold text-lg sm:text-xl leading-snug drop-shadow-lg">{item.title}</h4>
+                  </div>
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </div>
       </section>

@@ -212,7 +212,7 @@ export default function SSOPortal({
             </p>
             <div className="flex flex-col gap-3">
               <a 
-                href="https://wa.me/6285258183564"
+                href={settings.phone ? `https://wa.me/${settings.phone.replace(/\D/g, "").replace(/^0/, "62")}` : "#"}
                 target="_blank" 
                 rel="noreferrer"
                 className="w-full bg-[#25D366] hover:bg-[#1DA851] text-white py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md shadow-[#25D366]/20"

@@ -21,27 +21,49 @@ export default function Home() {
 
   // Start with intro by default to prevent blocking UI
   useEffect(() => {
-    // Show intro immediately to avoid blank screen or infinite spinner
-    setShowIntro(true);
-    setLoadingSettings(false);
+    // Cek apakah ada sesi aktif yang tersimpan
+    const savedView = typeof window !== 'undefined' ? sessionStorage.getItem('currentView') as any : null;
+    const savedEmail = typeof window !== 'undefined' ? sessionStorage.getItem('userEmail') : null;
     
-    // Fetch settings in background
-    fetch("/api/settings")
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.showIntro === false) {
-          setShowIntro(false);
-        }
-      })
-      .catch(err => {
-        console.error("Error loading settings:", err);
-      });
+    if (savedView && savedView !== 'landing' && savedView !== 'sso') {
+      setCurrentView(savedView);
+      if (savedEmail) setUserEmail(savedEmail);
+      setShowIntro(false);
+      setLoadingSettings(false);
+    } else {
+      // Show intro immediately to avoid blank screen or infinite spinner
+      setShowIntro(true);
+      setLoadingSettings(false);
+      
+      // Fetch settings in background
+      fetch("/api/settings")
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.showIntro === false) {
+            setShowIntro(false);
+          }
+        })
+        .catch(err => {
+          console.error("Error loading settings:", err);
+        });
+    }
   }, []);
 
   const handleNavigate = (view: "landing" | "member" | "coach" | "admin" | "verify" | "schedule-view" | "sso" | "register", email?: string) => {
     setCurrentView(view);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('currentView', view);
+    }
+    
     if (email) {
       setUserEmail(email);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('userEmail', email);
+      }
+    } else {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('userEmail');
+      }
     }
   };
 
@@ -76,33 +98,33 @@ export default function Home() {
 
           {currentView === "sso" && (
             <SSOPortal 
-              onBack={() => setCurrentView("landing")}
+              onBack={() => handleNavigate("landing")}
               onNavigate={(role, email) => handleNavigate(role as any, email)}
             />
           )}
 
           {currentView === "member" && (
-            <MemberDashboard userEmail={userEmail} onBack={() => setCurrentView("sso")} />
+            <MemberDashboard userEmail={userEmail} onBack={() => handleNavigate("sso")} />
           )}
 
           {currentView === "coach" && (
-            <CoachDashboard onBack={() => setCurrentView("sso")} />
+            <CoachDashboard onBack={() => handleNavigate("sso")} />
           )}
 
           {currentView === "admin" && (
-            <AdminDashboard onBack={() => setCurrentView("sso")} />
+            <AdminDashboard onBack={() => handleNavigate("sso")} />
           )}
 
           {currentView === "verify" && (
-            <CertificateVerification onBack={() => setCurrentView("landing")} />
+            <CertificateVerification onBack={() => handleNavigate("landing")} />
           )}
 
           {currentView === "schedule-view" && (
-            <ScheduleCalendar onBack={() => setCurrentView("landing")} />
+            <ScheduleCalendar onBack={() => handleNavigate("landing")} />
           )}
 
           {currentView === "register" && (
-            <RegistrationForm onBack={() => setCurrentView("landing")} />
+            <RegistrationForm onBack={() => handleNavigate("landing")} />
           )}
         </>
       )}

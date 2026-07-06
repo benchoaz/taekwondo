@@ -182,49 +182,7 @@ export default function SSOPortal({
             </button>
           </form>
 
-          {/* Social login divider */}
-          <div className="w-full flex items-center justify-center gap-3 my-4">
-            <hr className="w-full border-slate-200" />
-            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest text-center shrink-0">OR CONTINUE WITH</span>
-            <hr className="w-full border-slate-200" />
-          </div>
 
-          {/* Google SSO */}
-          <button 
-            type="button"
-            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-            className="w-full bg-white border border-slate-200 text-gray-700 py-2.5 rounded-xl font-bold text-[11px] flex items-center justify-center gap-2 hover:bg-slate-50 transition-all active:scale-95 cursor-pointer mb-2.5"
-          >
-            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5">
-              <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.74 14.93 1 12 1 7.37 1 3.4 3.65 1.44 7.51l3.79 2.94C6.18 7.42 8.87 5.04 12 5.04z"/>
-              <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.28 1.48-1.12 2.74-2.38 3.58l3.7 2.87c2.16-1.99 3.71-4.92 3.71-8.6z"/>
-              <path fill="#FBBC05" d="M5.23 14.75a7.12 7.12 0 0 1 0-4.5l-3.79-2.94a11.98 11.98 0 0 0 0 10.38l3.79-2.94z"/>
-              <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.7-2.87c-1.03.69-2.35 1.1-4.26 1.1-3.13 0-5.82-2.38-6.77-5.41L1.44 16.3C3.4 20.15 7.37 23 12 23z"/>
-            </svg>
-            Continue with Google
-          </button>
-          
-          {/* Email Magic Link */}
-          <button 
-            type="button"
-            onClick={() => {
-              if(!email) {
-                setErrorMsg("Silakan isi alamat email Anda terlebih dahulu.");
-                return;
-              }
-              setIsLoading(true);
-              signIn("email", { email, callbackUrl: "/dashboard", redirect: false })
-                .then((res) => {
-                  setIsLoading(false);
-                  if (res?.error) setErrorMsg("Gagal mengirim link ke email Anda.");
-                  else setErrorMsg("✅ Link Ajaib berhasil dikirim ke " + email + ". Cek Inbox Anda!");
-                });
-            }}
-            className="w-full bg-[#0F172A] text-white py-2.5 rounded-xl font-bold text-[11px] flex items-center justify-center gap-2 hover:bg-slate-800 transition-all active:scale-95 cursor-pointer"
-          >
-            <Mail className="w-3.5 h-3.5" />
-            Send Magic Link to Email
-          </button>
 
           <span className="text-[9px] text-gray-400 font-semibold block text-center mt-4">
             Need technical support? <button type="button" onClick={() => setShowSupportPopup(true)} className="text-[#E10600] hover:underline cursor-pointer">Contact Admin</button>

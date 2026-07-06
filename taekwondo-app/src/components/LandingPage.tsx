@@ -17,7 +17,8 @@ import {
   Mail,
   Phone,
   BookOpen,
-  User
+  User,
+  CalendarOff
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import HeroSlider from "@/components/HeroSlider";
@@ -50,6 +51,7 @@ export default function LandingPage({
   const [dbGallery, setDbGallery] = useState<any[]>([]);
   const [dbAchievements, setDbAchievements] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
+  const [dbStats, setDbStats] = useState({ members: 0, coaches: 0, achievements: 0 });
 
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
 
@@ -71,6 +73,22 @@ export default function LandingPage({
       })
       .catch(err => console.error("Error fetching articles:", err));
       
+    // Fetch Events from Database
+    fetch("/api/events")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setEvents(data);
+      })
+      .catch(err => console.error("Error fetching events:", err));
+
+    // Fetch Landing Stats
+    fetch("/api/landing-stats")
+      .then(res => res.json())
+      .then(data => {
+        if (data) setDbStats(data);
+      })
+      .catch(err => console.error("Error fetching stats:", err));
+
     // Fetch Coaches from Database
     fetch("/api/coaches")
       .then(res => res.json())
@@ -285,15 +303,15 @@ export default function LandingPage({
 
           <div className="flex flex-wrap justify-center gap-12 mt-8 pt-8 border-t border-white/20 text-white w-full max-w-2xl">
             <div className="text-center">
-              <span className="block font-black text-4xl">500+</span>
+              <span className="block font-black text-4xl">{dbStats.members > 0 ? dbStats.members : "500+"}</span>
               <span className="text-gray-300 text-xs font-semibold uppercase tracking-widest mt-1 block">Anggota</span>
             </div>
             <div className="text-center">
-              <span className="block font-black text-4xl">{displayCoaches.length}</span>
+              <span className="block font-black text-4xl">{dbStats.coaches > 0 ? dbStats.coaches : displayCoaches.length}</span>
               <span className="text-gray-300 text-xs font-semibold uppercase tracking-widest mt-1 block">Pelatih Bersertifikat</span>
             </div>
             <div className="text-center">
-              <span className="block font-black text-4xl">100+</span>
+              <span className="block font-black text-4xl">{dbStats.achievements > 0 ? dbStats.achievements : "100+"}</span>
               <span className="text-gray-300 text-xs font-semibold uppercase tracking-widest mt-1 block">Medali</span>
             </div>
           </div>
@@ -588,7 +606,7 @@ export default function LandingPage({
 
           {events.length === 0 ? (
             <div className="text-center py-12 border border-white/10 rounded-xl bg-white/5">
-              <span className="material-symbols-outlined text-4xl text-gray-500 mb-2 block">event_busy</span>
+              <CalendarOff className="w-16 h-16 text-slate-500 mx-auto mb-4 opacity-50" />
               <p className="text-gray-400 font-medium">Belum ada jadwal kejuaraan terdekat.</p>
             </div>
           ) : (

@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     let setting = await prisma.setting.findUnique({
@@ -73,10 +75,10 @@ export async function POST(request: Request) {
         address,
         email,
         phone,
-        registrationFee: registrationFee ? parseFloat(registrationFee) : undefined,
-        sppFee: sppFee ? parseFloat(sppFee) : undefined,
-        sessionFee: sessionFee ? parseFloat(sessionFee) : undefined,
-        uktFee: uktFee ? parseFloat(uktFee) : undefined,
+        registrationFee: registrationFee !== undefined && registrationFee !== null ? parseFloat(registrationFee) : undefined,
+        sppFee: sppFee !== undefined && sppFee !== null ? parseFloat(sppFee) : undefined,
+        sessionFee: sessionFee !== undefined && sessionFee !== null ? parseFloat(sessionFee) : undefined,
+        uktFee: uktFee !== undefined && uktFee !== null ? parseFloat(uktFee) : undefined,
         uktRequirements: uktRequirements !== undefined ? uktRequirements : undefined,
         uktFees: uktFees !== undefined ? uktFees : undefined,
         showIntro: showIntro !== undefined ? showIntro : undefined,
@@ -95,10 +97,10 @@ export async function POST(request: Request) {
         address: address || "Jl. Pahlawan Olahraga No. 88, Senayan, Jakarta Selatan, DKI Jakarta",
         email: email || "info@taekwondo.com",
         phone: phone || "+62 812-3456-7890",
-        registrationFee: registrationFee ? parseFloat(registrationFee) : 150000,
-        sppFee: sppFee ? parseFloat(sppFee) : 100000,
-        sessionFee: sessionFee ? parseFloat(sessionFee) : 15000,
-        uktFee: uktFee ? parseFloat(uktFee) : 150000,
+        registrationFee: registrationFee !== undefined && registrationFee !== null ? parseFloat(registrationFee) : 150000,
+        sppFee: sppFee !== undefined && sppFee !== null ? parseFloat(sppFee) : 100000,
+        sessionFee: sessionFee !== undefined && sessionFee !== null ? parseFloat(sessionFee) : 15000,
+        uktFee: uktFee !== undefined && uktFee !== null ? parseFloat(uktFee) : 150000,
         uktRequirements: uktRequirements || ["Surat Izin Orang Tua", "Foto Selfie 3x4"],
         uktFees: uktFees || {},
         showIntro: showIntro !== undefined ? showIntro : true,

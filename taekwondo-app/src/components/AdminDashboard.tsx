@@ -141,6 +141,14 @@ interface AchievementData {
   certificateUrl?: string | null;
 }
 
+interface DashboardStats {
+  totalAnggota: number;
+  totalPelatih: number;
+  passRate: string;
+  registrationFee: number;
+  chartData: any[];
+}
+
 export default function AdminDashboard({ 
   onBack 
 }: { 
@@ -149,6 +157,28 @@ export default function AdminDashboard({
   const [activeTab, setActiveTab] = useState("payments"); // Default to financial menu
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
+  
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+
+  const fetchDashboardStats = async () => {
+    setIsStatsLoading(true);
+    try {
+      const res = await fetch("/api/admin/dashboard-stats");
+      if (res.ok) {
+        const data = await res.json();
+        setDashboardStats(data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsStatsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardStats();
+  }, []);
   const [tournamentName, setTournamentName] = useState("");
   const [tournamentAmount, setTournamentAmount] = useState("");
   const [isSubmittingTournamentBilling, setIsSubmittingTournamentBilling] = useState(false);
@@ -1093,15 +1123,8 @@ export default function AdminDashboard({
     }
   };
 
-  // Recharts Simulated Data
-  const analyticsData = [
-    { name: "Jan", Anggota: 120, Pelatih: 15, LulusUKT: 45 },
-    { name: "Feb", Anggota: 150, Pelatih: 18, LulusUKT: 50 },
-    { name: "Mar", Anggota: 210, Pelatih: 20, LulusUKT: 90 },
-    { name: "Apr", Anggota: 340, Pelatih: 20, LulusUKT: 110 },
-    { name: "Mei", Anggota: 450, Pelatih: 20, LulusUKT: 130 },
-    { name: "Jun", Anggota: 500, Pelatih: 20, LulusUKT: 160 }
-  ];
+  // Recharts Simulated Data -> Now Real Data
+  const analyticsData = dashboardStats?.chartData || [];
 
   // Calculate dynamic totals from payments list
   const getFinancialTotals = () => {
@@ -2212,18 +2235,22 @@ export default function AdminDashboard({
 
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                {[
-                  { label: "Total Anggota", val: "500", desc: "+12% Bulan Ini", color: "text-[#0F172A]" },
-                  { label: "Pelatih Aktif", val: coaches.length.toString() || "0", desc: "Sertifikat Kukkiwon", color: "text-[#E10600]" },
-                  { label: "Tingkat Kelulusan", val: "94.2%", desc: "Evaluasi UKT Terakhir", color: "text-green-600" },
-                  { label: "Biaya Registrasi", val: `Rp ${settings.registrationFee.toLocaleString("id-ID")}`, desc: "Pengaturan Aktif", color: "text-[#0F172A]" }
-                ].map((s, idx) => (
-                  <div key={idx} className="bg-white border border-[#0F172A]/5 rounded-2xl p-6 shadow-sm">
-                    <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider block">{s.label}</span>
-                    <span className={`text-3xl font-black block mt-2 ${s.color}`}>{s.val}</span>
-                    <span className="text-gray-400 text-[10px] block mt-1">{s.desc}</span>
-                  </div>
-                ))}
+                {isStatsLoading ? (
+                  <div className="col-span-4 text-center py-10 text-gray-500 font-bold">Memuat statistik real-time...</div>
+                ) : (
+                  [
+                    { label: "Total Anggota", val: dashboardStats?.totalAnggota.toString() || "0", desc: "Member Aktif", color: "text-[#0F172A]" },
+                    { label: "Pelatih Aktif", val: dashboardStats?.totalPelatih.toString() || "0", desc: "Total Coach", color: "text-[#E10600]" },
+                    { label: "Tingkat Kelulusan", val: `${dashboardStats?.passRate || 0}%`, desc: "Semua Partisipan UKT", color: "text-green-600" },
+                    { label: "Biaya Registrasi", val: `Rp ${(dashboardStats?.registrationFee || 150000).toLocaleString("id-ID")}`, desc: "Pengaturan Aktif", color: "text-[#0F172A]" }
+                  ].map((s, idx) => (
+                    <div key={idx} className="bg-white border border-[#0F172A]/5 rounded-2xl p-6 shadow-sm">
+                      <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider block">{s.label}</span>
+                      <span className={`text-3xl font-black block mt-2 ${s.color}`}>{s.val}</span>
+                      <span className="text-gray-400 text-[10px] block mt-1">{s.desc}</span>
+                    </div>
+                  ))
+                )}
               </div>
 
               {/* Charts Panel */}

@@ -48,8 +48,8 @@ export async function POST(request: Request) {
         weight: weight ? parseFloat(weight) : null,
         height: height ? parseFloat(height) : null,
         waistCircum: waistCircum ? parseFloat(waistCircum) : null,
-        selfieUrl: selfie, // Storing base64 data url directly
-        kkUrl: kk, // Storing base64 data url directly
+        selfieUrl: selfie,
+        kkUrl: kk,
       },
     });
 

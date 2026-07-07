@@ -7,8 +7,8 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, email, phone, birthDate, selfie, kk, weight, height, waistCircum } = body;
 
-    if (!name || !email || !phone || !birthDate || !selfie || !kk) {
-      return NextResponse.json({ error: "Semua data pendaftaran wajib diisi (termasuk selfie & KK)" }, { status: 400 });
+    if (!name || !email || !phone || !birthDate || !kk) {
+      return NextResponse.json({ error: "Semua data pendaftaran wajib diisi (termasuk KK)" }, { status: 400 });
     }
 
     const formattedEmail = email.trim().toLowerCase();

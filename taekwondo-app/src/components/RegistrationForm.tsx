@@ -16,7 +16,6 @@ export default function RegistrationForm({
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [birthDate, setBirthDate] = useState("");
-  const [selfie, setSelfie] = useState<string | null>(null);
   const [kk, setKk] = useState<string | null>(null);
   
   // Payment upload states
@@ -28,36 +27,6 @@ export default function RegistrationForm({
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [qrisData, setQrisData] = useState<{qrString: string, amount: number} | null>(null);
-
-  // Webcam states
-  const [isCameraActive, setIsCameraActive] = useState(false);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-
-  // Start Webcam
-  const startCamera = async () => {
-    try {
-      setErrorMsg("");
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
-      setIsCameraActive(true);
-    } catch (err: any) {
-      setErrorMsg("Gagal mengakses kamera. Pastikan Anda memberikan izin kamera.");
-    }
-  };
-
-  // Stop Webcam
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
-    }
-    setIsCameraActive(false);
-  };
 
   const uploadToServer = async (file: File | Blob, filename: string): Promise<string | null> => {
     try {
@@ -89,31 +58,6 @@ export default function RegistrationForm({
     } catch (err) {
       console.error("Upload error:", err);
       return null;
-    }
-  };
-
-  // Capture Photo
-  const capturePhoto = () => {
-    if (videoRef.current) {
-      const canvas = document.createElement("canvas");
-      canvas.width = videoRef.current.videoWidth || 640;
-      canvas.height = videoRef.current.videoHeight || 480;
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob(async (blob) => {
-          if (blob) {
-            // Upload immediately
-            const url = await uploadToServer(blob, "webcam-selfie.jpg");
-            if (url) {
-              setSelfie(url);
-              stopCamera();
-            } else {
-              setErrorMsg("Gagal mengunggah foto selfie. Coba lagi.");
-            }
-          }
-        }, "image/jpeg");
-      }
     }
   };
 
@@ -150,10 +94,6 @@ export default function RegistrationForm({
     setSuccessMsg("");
     setQrisData(null);
 
-    if (!selfie) {
-      setErrorMsg("Silakan ambil foto selfie Anda terlebih dahulu.");
-      return;
-    }
     if (!kk) {
       setErrorMsg("Silakan unggah pindaian/foto Kartu Keluarga (KK) Anda.");
       return;
@@ -169,7 +109,6 @@ export default function RegistrationForm({
           email,
           phone,
           birthDate,
-          selfie,
           kk,
         }),
       });
@@ -187,7 +126,6 @@ export default function RegistrationForm({
         setEmail("");
         setPhone("");
         setBirthDate("");
-        setSelfie(null);
         setKk(null);
       } else {
         setErrorMsg(data.error || "Gagal melakukan pendaftaran.");
@@ -246,16 +184,17 @@ export default function RegistrationForm({
 
       <div className="relative z-10 w-full max-w-2xl mx-auto flex flex-col gap-8">
         <button 
-          onClick={() => { stopCamera(); onBack(); }} 
+          onClick={() => { onBack(); }} 
           className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white transition-colors cursor-pointer w-fit"
         >
-          <ArrowLeft className="w-4 h-4" /> Kembali ke Beranda
+          <ArrowLeft className="w-4 h-4" />
+          <span>Kembali</span>
         </button>
 
         {/* Tab Selector */}
         <div className="bg-white/5 border border-white/10 rounded-2xl p-1.5 flex gap-2 w-full">
           <button
-            onClick={() => { stopCamera(); setErrorMsg(""); setSuccessMsg(""); setActiveMode("register"); }}
+            onClick={() => { setErrorMsg(""); setSuccessMsg(""); setActiveMode("register"); }}
             className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               activeMode === "register" 
                 ? "bg-[#E10600] text-white shadow-lg" 
@@ -265,7 +204,7 @@ export default function RegistrationForm({
             Pendaftaran Online Baru
           </button>
           <button
-            onClick={() => { stopCamera(); setErrorMsg(""); setSuccessMsg(""); setActiveMode("payment"); }}
+            onClick={() => { setErrorMsg(""); setSuccessMsg(""); setActiveMode("payment"); }}
             className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               activeMode === "payment" 
                 ? "bg-[#E10600] text-white shadow-lg" 
@@ -306,7 +245,7 @@ export default function RegistrationForm({
             <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-6">
               <div className="text-center md:text-left mb-2">
                 <h2 className="text-2xl font-black font-display text-white">Formulir Registrasi Anggota</h2>
-                <p className="text-gray-400 text-xs mt-1">Lengkapi data Anda, ambil foto selfie verifikasi, dan unggah pindaian Kartu Keluarga.</p>
+                <p className="text-gray-400 text-xs mt-1">Lengkapi data Anda dan unggah pindaian Kartu Keluarga.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -357,61 +296,6 @@ export default function RegistrationForm({
                   />
                 </div>
               </div>
-
-              {/* Selfie Camera Section */}
-              <div className="border border-white/10 rounded-2xl p-6 bg-[#0F172A]/50">
-                <label className="block text-xs font-bold text-gray-300 uppercase mb-3">Foto Selfie Verifikasi Wajah</label>
-                
-                {selfie ? (
-                  <div className="relative w-40 h-40 mx-auto rounded-xl overflow-hidden border-2 border-emerald-500 shadow-md">
-                    <img src={selfie} alt="Selfie preview" className="w-full h-full object-cover" />
-                    <button 
-                      type="button" 
-                      onClick={() => setSelfie(null)}
-                      className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] px-3 py-1 rounded-full cursor-pointer"
-                    >
-                      Ulangi Foto
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center min-h-[160px] border border-dashed border-white/20 rounded-xl p-4 text-center">
-                    <div className={`w-full flex-col items-center gap-3 ${isCameraActive ? 'flex' : 'hidden'}`}>
-                      <video ref={videoRef} autoPlay playsInline muted className="w-full max-w-[320px] h-[240px] rounded-lg bg-black object-cover" />
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={capturePhoto}
-                          className="bg-[#E10600] hover:bg-[#C00500] text-white px-4 py-2 rounded-lg font-bold text-xs cursor-pointer flex items-center gap-1.5"
-                        >
-                          <Camera className="w-4 h-4" /> Tangkap Foto
-                        </button>
-                        <button
-                          type="button"
-                          onClick={stopCamera}
-                          className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-bold text-xs cursor-pointer"
-                        >
-                          Batal
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {!isCameraActive && (
-                      <div className="flex flex-col items-center gap-3">
-                        <Camera className="w-8 h-8 text-gray-400" />
-                        <span className="text-xs text-gray-400">Verifikasi wajah diperlukan untuk mencocokkan identitas Anda.</span>
-                        <button
-                          type="button"
-                          onClick={startCamera}
-                          className="bg-white/10 hover:bg-white/25 border border-white/20 text-white px-4 py-2.5 rounded-xl font-bold text-xs cursor-pointer"
-                        >
-                          Aktifkan Kamera
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
               {/* KK Upload Section */}
               <div className="border border-white/10 rounded-2xl p-6 bg-[#0F172A]/50">
                 <label className="block text-xs font-bold text-gray-300 uppercase mb-3">Foto / Scan Kartu Keluarga (KK)</label>

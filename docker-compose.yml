@@ -33,10 +33,23 @@ services:
       - JWT_SECRET=taekwondo_secret_key_2026_super_secure
       - NODE_ENV=production
       - STORAGE_PATH=/app/storage
+      - WAHA_BASE_URL=http://waha:3000
+      - WHATSAPP_API_KEY=taekwondo_waha_key_2026_super_secure
     depends_on:
       postgres:
         condition: service_healthy
+      waha:
+        condition: service_started
     restart: always
+
+  # WhatsApp Gateway (WAHA) - NoWeb Edition for low RAM usage
+  waha:
+    image: devlikeapro/waha:noweb
+    container_name: taekwondo_waha
+    restart: always
+    environment:
+      WHATSAPP_API_KEY: taekwondo_waha_key_2026_super_secure
+      # Tidak ada port yang diekspos ke publik untuk keamanan. Hanya bisa diakses secara internal oleh Next.js
 
 volumes:
   postgres_data:

@@ -50,6 +50,9 @@ export default function MemberDashboard({
     email: string;
     selfieUrl?: string | null;
     certDocUrl?: string | null;
+    weight?: number | null;
+    height?: number | null;
+    waistCircum?: number | null;
   } | null>(null);
 
   // Profile Edit States
@@ -58,6 +61,9 @@ export default function MemberDashboard({
   const [editEmail, setEditEmail] = useState("");
   const [editSelfieUrl, setEditSelfieUrl] = useState<string | null>(null);
   const [editCertDocUrl, setEditCertDocUrl] = useState<string | null>(null);
+  const [editWeight, setEditWeight] = useState("");
+  const [editHeight, setEditHeight] = useState("");
+  const [editWaistCircum, setEditWaistCircum] = useState("");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [payments, setPayments] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>(null);
@@ -940,6 +946,9 @@ export default function MemberDashboard({
           currentBelt: profile.currentBelt,
           ...(editSelfieUrl !== null && { selfieUrl: editSelfieUrl }),
           ...(editCertDocUrl !== null && { certDocUrl: editCertDocUrl }),
+          ...(editWeight && { weight: editWeight }),
+          ...(editHeight && { height: editHeight }),
+          ...(editWaistCircum && { waistCircum: editWaistCircum }),
         }),
       });
       const data = await res.json();
@@ -950,6 +959,9 @@ export default function MemberDashboard({
           email: editEmail,
           ...(editSelfieUrl !== null && { selfieUrl: editSelfieUrl }),
           ...(editCertDocUrl !== null && { certDocUrl: editCertDocUrl }),
+          weight: editWeight ? parseFloat(editWeight) : null,
+          height: editHeight ? parseFloat(editHeight) : null,
+          waistCircum: editWaistCircum ? parseFloat(editWaistCircum) : null,
         } : null);
         setShowEditProfileModal(false);
         alert("Profil berhasil diperbarui!");
@@ -1732,6 +1744,9 @@ export default function MemberDashboard({
                   setEditEmail(profile.email || "");
                   setEditSelfieUrl(profile.selfieUrl ?? null);
                   setEditCertDocUrl(profile.certDocUrl ?? null);
+                  setEditWeight(profile.weight ? String(profile.weight) : "");
+                  setEditHeight(profile.height ? String(profile.height) : "");
+                  setEditWaistCircum(profile.waistCircum ? String(profile.waistCircum) : "");
                   setShowEditProfileModal(true);
                 }
               }}
@@ -3033,6 +3048,39 @@ export default function MemberDashboard({
                     className="w-full bg-[#F8FAFC] border border-[#0F172A]/5 text-gray-400 rounded-xl px-4 py-3 text-xs outline-none cursor-not-allowed font-bold text-[#E10600]"
                   />
                   <span className="text-[9px] text-[#E10600] font-bold block mt-1">Hanya bisa diubah oleh Pelatih/Admin</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Berat Badan (kg)</label>
+                  <input 
+                    type="number" step="0.1"
+                    value={editWeight}
+                    onChange={(e) => setEditWeight(e.target.value)}
+                    placeholder="Contoh: 45.5"
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Tinggi Badan (cm)</label>
+                  <input 
+                    type="number" step="0.1"
+                    value={editHeight}
+                    onChange={(e) => setEditHeight(e.target.value)}
+                    placeholder="Contoh: 155"
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Lingkar Perut (cm)</label>
+                  <input 
+                    type="number" step="0.1"
+                    value={editWaistCircum}
+                    onChange={(e) => setEditWaistCircum(e.target.value)}
+                    placeholder="Lingkar perut untuk ukuran Sabuk/Dobok"
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                  />
                 </div>
               </div>
 

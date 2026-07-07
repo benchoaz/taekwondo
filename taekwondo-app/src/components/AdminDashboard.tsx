@@ -42,7 +42,8 @@ import {
   Eye,
   EyeOff,
   UploadCloud,
-  RefreshCw
+  RefreshCw,
+  Download
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import SppManagement from "./SppManagement";
@@ -960,6 +961,18 @@ export default function AdminDashboard({
     }
   };
 
+  const downloadTemplateCsv = () => {
+    const csvContent = "Nama Lengkap,Nomor WhatsApp\nBudi Santoso,081234567890\nAndi Wijaya,085712341234\n";
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "template_import_member.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleImportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!importFile) return;
@@ -967,23 +980,32 @@ export default function AdminDashboard({
     setIsImporting(true);
     try {
       const text = await importFile.text();
-      // Simple CSV Parse: split by \n and ,
+      // Simple CSV Parse: split by \n
       const rows = text.split("\n").filter(row => row.trim().length > 0);
       
       const membersToImport = [];
       // Skip header if it exists. Let's assume row 1 is header if it contains "nama"
       let startIndex = 0;
-      if (rows[0].toLowerCase().includes("nama")) {
+      if (rows[0].toLowerCase().includes("nama") || rows[0].toLowerCase().includes("whatsapp")) {
         startIndex = 1;
       }
 
       for (let i = startIndex; i < rows.length; i++) {
-        const cols = rows[i].split(",");
+        // Detect delimiter: comma or semicolon
+        let cols = rows[i].split(",");
+        if (cols.length < 2) {
+          cols = rows[i].split(";");
+        }
+        
         if (cols.length >= 2) {
-          membersToImport.push({
-            name: cols[0].trim(),
-            phone: cols[1].trim()
-          });
+          const name = cols[0].trim().replace(/^["']|["']$/g, '');
+          const phone = cols[1].trim().replace(/^["']|["']$/g, '');
+          if (name && phone) {
+            membersToImport.push({
+              name,
+              phone
+            });
+          }
         }
       }
 
@@ -4950,14 +4972,22 @@ export default function AdminDashboard({
               <form onSubmit={handleImportSubmit} className="flex flex-col gap-5">
                 
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-xs text-blue-800">
-                  <p className="font-bold mb-1">Format CSV yang Diterima:</p>
-                  <p className="mb-2">Pastikan file CSV memiliki kolom yang dipisahkan oleh tanda koma <code>(,)</code> dengan susunan:</p>
+                  <p className="font-bold mb-1">Format Excel / CSV yang Diterima:</p>
+                  <p className="mb-2">Pastikan file memiliki kolom dengan susunan:</p>
                   <ul className="list-disc pl-5 mb-2 font-mono bg-white p-2 rounded border border-blue-100">
                     <li>Nama Lengkap, Nomor WhatsApp</li>
                     <li>Budi Santoso, 081234567890</li>
-                    <li>Andi Wijaya, 085712341234</li>
+                    <li>Andi Wijaya, 6285712341234</li>
                   </ul>
-                  <p>Baris pertama yang mengandung kata "nama" akan otomatis diabaikan sebagai header.</p>
+                  <p className="mb-2">Pemisah kolom bisa menggunakan koma <code>(,)</code> atau titik koma <code>(;)</code>. Nomor WhatsApp bisa diawali 08xx atau 62xx (akan diformat otomatis).</p>
+                  
+                  <button
+                    type="button"
+                    onClick={downloadTemplateCsv}
+                    className="w-full mt-2 text-center text-xs font-bold text-[#E10600] hover:text-[#C00500] bg-red-50 hover:bg-red-100 py-2 rounded-xl border border-dashed border-red-200 transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Download Template CSV (Excel)
+                  </button>
                 </div>
 
                 <div className="flex flex-col gap-2">

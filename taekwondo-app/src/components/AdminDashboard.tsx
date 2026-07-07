@@ -163,6 +163,11 @@ interface DashboardStats {
   chartData: any[];
 }
 
+const MONTH_NAMES = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+];
+
 export default function AdminDashboard({ 
   onBack 
 }: { 
@@ -204,7 +209,8 @@ export default function AdminDashboard({
   const [selectedBillingMembers, setSelectedBillingMembers] = useState<string[]>([]);
 
   // SPP Billing form states
-  const [sppPeriod, setSppPeriod] = useState("");
+  const [sppMonth, setSppMonth] = useState(new Date().getMonth() + 1);
+  const [sppYear, setSppYear] = useState(new Date().getFullYear());
   const [sppAmount, setSppAmount] = useState("");
   const [sppDueDate, setSppDueDate] = useState("");
   const [selectedSppMembers, setSelectedSppMembers] = useState<string[]>([]);
@@ -1558,12 +1564,14 @@ export default function AdminDashboard({
 
   const handleIssueSppBilling = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!sppPeriod || !sppAmount || !sppDueDate) return;
+    if (!sppMonth || !sppYear || !sppAmount || !sppDueDate) return;
     if (selectedSppMembers.length === 0) {
       alert("Silakan pilih minimal satu anggota penerima tagihan SPP.");
       return;
     }
     setIsSubmittingSpp(true);
+
+    const periodString = `${MONTH_NAMES[sppMonth - 1]} ${sppYear}`;
 
     try {
       const res = await fetch("/api/payments", {
@@ -1573,14 +1581,13 @@ export default function AdminDashboard({
           action: "spp-billing",
           memberIds: selectedSppMembers,
           amount: parseFloat(sppAmount),
-          purpose: `SPP Bulan ${sppPeriod}`,
+          purpose: `SPP Bulan ${periodString}`,
           dueDate: sppDueDate,
         }),
       });
 
       if (res.ok) {
         alert(`Berhasil menerbitkan tagihan SPP untuk ${selectedSppMembers.length} anggota!`);
-        setSppPeriod("");
         setSppDueDate("");
         setSelectedSppMembers([]);
         fetchPayments();
@@ -2156,14 +2163,26 @@ export default function AdminDashboard({
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                       <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Bulan / Periode SPP</label>
-                      <input 
-                        type="text" 
-                        placeholder="Contoh: Juli 2026"
-                        value={sppPeriod}
-                        onChange={(e) => setSppPeriod(e.target.value)}
-                        required
-                        className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                      />
+                      <div className="flex gap-2">
+                        <select 
+                          value={sppMonth}
+                          onChange={(e) => setSppMonth(parseInt(e.target.value))}
+                          className="w-1/2 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] font-bold"
+                        >
+                          {MONTH_NAMES.map((m, i) => (
+                            <option key={i} value={i + 1}>{m}</option>
+                          ))}
+                        </select>
+                        <select 
+                          value={sppYear}
+                          onChange={(e) => setSppYear(parseInt(e.target.value))}
+                          className="w-1/2 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] font-bold"
+                        >
+                          {Array.from({ length: 11 }, (_, i) => 2025 + i).map((yr) => (
+                            <option key={yr} value={yr}>{yr}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
                     <div>

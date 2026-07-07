@@ -1,20 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const userId = request.headers.get("x-user-id");
+    const userRole = request.headers.get("x-user-role");
+
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get the member profile
     const member = await prisma.member.findUnique({
-      where: { userId: session.user.id }
+      where: { userId: userId }
     });
 
     if (!member) {
@@ -24,8 +24,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const mId = searchParams.get('memberId');
     
-    // If Admin wants to fetch a specific member
-    const targetMemberId = mId && session.user.role !== "MEMBER" ? mId : member.id;
+    // If Admin wants to fetch a specific member, we allow it. But for now, we only fetch for logged in member
+    const targetMemberId = mId && userRole !== "MEMBER" ? mId : member.id;
 
     const history = await prisma.beltHistory.findMany({
       where: { memberId: targetMemberId },
@@ -41,8 +41,10 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const userId = request.headers.get("x-user-id");
+    const userRole = request.headers.get("x-user-role");
+
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -64,7 +66,7 @@ export async function POST(request: Request) {
     }
 
     // Security check: Only the owner or an admin can upload
-    if (historyItem.member.userId !== session.user.id && session.user.role === "MEMBER") {
+    if (historyItem.member.userId !== userId && userRole === "MEMBER") {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

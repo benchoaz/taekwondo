@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const users = await prisma.user.findMany({
+    const users = await (prisma.user.findMany as any)({
       select: {
         id: true,
         email: true,
@@ -18,6 +18,7 @@ export async function GET() {
             currentBelt: true,
             progress: true,
             certDocUrl: true,
+            prepaidMonthsRemaining: true,
           }
         },
         coach: {
@@ -32,7 +33,7 @@ export async function GET() {
     });
     
     // Map to custom payload for compatibility
-    const formattedUsers = users.map((u) => ({
+    const formattedUsers = users.map((u: any) => ({
       id: u.id,
       memberId: u.member?.id || null,
       coachId: u.coach?.id || null,
@@ -49,6 +50,7 @@ export async function GET() {
       currentBelt: u.member?.currentBelt || null,
       progress: u.member?.progress || 0,
       certDocUrl: u.role === "COACH" ? u.coach?.certDocUrl : u.member?.certDocUrl || null,
+      prepaidMonthsRemaining: u.member?.prepaidMonthsRemaining || 0,
     }));
 
     return NextResponse.json(formattedUsers);

@@ -84,6 +84,7 @@ model Member {
   weight         Float?        @map("weight")             // Berat Badan (kg)
   height         Float?        @map("height")             // Tinggi Badan (cm)
   waistCircum    Float?        @map("waist_circum")       // Lingkar Perut (cm)
+  prepaidMonthsRemaining Int        @default(0) @map("prepaid_months_remaining")
   // Gamification Shop
   dojangCoins    Int           @default(0) @map("dojang_coins")
   activeFrameId  String?       @map("active_frame_id")

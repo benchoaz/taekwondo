@@ -8,7 +8,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, email, role, currentBelt, selfieUrl, certDocUrl, password, weight, height, waistCircum } = body;
+    const { name, email, role, currentBelt, selfieUrl, certDocUrl, password, weight, height, waistCircum, prepaidMonthsRemaining } = body;
 
     // Fetch user details first to see if role changed
     const existingUser = await prisma.user.findUnique({
@@ -67,6 +67,7 @@ export async function PUT(
             ...(weight !== undefined && { weight: weight ? parseFloat(weight) : null }),
             ...(height !== undefined && { height: height ? parseFloat(height) : null }),
             ...(waistCircum !== undefined && { waistCircum: waistCircum ? parseFloat(waistCircum) : null }),
+            ...(prepaidMonthsRemaining !== undefined && { prepaidMonthsRemaining: parseInt(prepaidMonthsRemaining) }),
           },
         });
       } else {

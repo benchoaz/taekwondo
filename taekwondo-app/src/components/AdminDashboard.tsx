@@ -361,6 +361,7 @@ export default function AdminDashboard({
   const [editUserBelt, setEditUserBelt] = useState("Sabuk Putih (10 Geup)");
   const [editUserPassword, setEditUserPassword] = useState("");
   const [editCertDocUrl, setEditCertDocUrl] = useState<string | null>(null);
+  const [editUserPrepaid, setEditUserPrepaid] = useState(0);
 
   // Events / News State
   const [articles, setArticles] = useState<ArticleData[]>([]);
@@ -1051,6 +1052,7 @@ export default function AdminDashboard({
     setEditUserRole(user.role);
     setEditUserBelt(user.currentBelt || "Sabuk Putih (10 Geup)");
     setEditCertDocUrl(user.certDocUrl || null);
+    setEditUserPrepaid((user as any).prepaidMonthsRemaining || 0);
     setEditUserPassword("");
     setShowEditUserModal(true);
   };
@@ -1069,6 +1071,7 @@ export default function AdminDashboard({
           role: editUserRole,
           currentBelt: editUserRole === "MEMBER" ? editUserBelt : undefined,
           certDocUrl: editCertDocUrl,
+          prepaidMonthsRemaining: editUserRole === "MEMBER" ? editUserPrepaid : 0,
           ...(editUserPassword && { password: editUserPassword }),
         }),
       });
@@ -1081,6 +1084,7 @@ export default function AdminDashboard({
           role: editUserRole,
           currentBelt: editUserRole === "MEMBER" ? editUserBelt : null,
           certDocUrl: editCertDocUrl,
+          prepaidMonthsRemaining: editUserRole === "MEMBER" ? editUserPrepaid : 0,
         } : u));
         setShowEditUserModal(false);
         setEditingUser(null);
@@ -3825,6 +3829,22 @@ export default function AdminDashboard({
                       <option value={editUserBelt}>{editUserBelt}</option>
                     )}
                   </select>
+                </div>
+              )}
+
+              {editUserRole === "MEMBER" && (
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Saldo Prabayar SPP (Bulan)</label>
+                  <input 
+                    type="number" 
+                    min={0}
+                    max={12}
+                    value={editUserPrepaid}
+                    onChange={(e) => setEditUserPrepaid(Math.max(0, parseInt(e.target.value) || 0))}
+                    placeholder="Contoh: 3, 5, 6, 12 (0 jika bulanan)" 
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] font-bold"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">Tagihan SPP bulanan siswa akan otomatis lunas tanpa perlu ditagih selama saldo bulan ini masih aktif.</p>
                 </div>
               )}
 

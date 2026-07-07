@@ -45,14 +45,17 @@ export async function POST(req: NextRequest) {
       });
 
       if (!existing) {
-        // Create Payment record first
+        const isPrepaid = ((member as any).prepaidMonthsRemaining || 0) > 0;
+
+        // Create Payment record
         const newPayment = await prisma.payment.create({
           data: {
             memberId: member.id,
             amount: sppFee,
             purpose: `SPP Bulan ${monthName} ${year}`,
-            status: "PENDING",
+            status: isPrepaid ? "COMPLETED" : "PENDING",
             dueDate: dueDate,
+            paidAt: isPrepaid ? new Date() : null,
           }
         });
 
@@ -64,26 +67,48 @@ export async function POST(req: NextRequest) {
             year: year,
             amount: sppFee,
             dueDate: dueDate,
-            status: "UNPAID",
+            status: isPrepaid ? "PAID" : "UNPAID",
             paymentId: newPayment.id
           }
         });
         generatedCount++;
 
-        // Kirim WhatsApp (Mock / Fonnte)
-        const paymentLink = `https://taekwondo.com/payment/${newPayment.id}`;
-        if (member.phone) {
-          await sendSppInvoiceNotification(member.phone, member.fullName, monthName, year, sppFee, paymentLink);
-        }
-
-        // Kirim Push Notification (FCM)
-        if (member.user?.fcmToken) {
-          const title = "Tagihan SPP Baru 📝";
-          const body = `Halo ${member.fullName}, tagihan SPP bulan ${monthName} ${year} sebesar Rp${sppFee.toLocaleString("id-ID")} telah diterbitkan.`;
-          await sendPushNotification(member.user.fcmToken, title, body, {
-            type: "SPP_INVOICE",
-            paymentId: newPayment.id
+        if (isPrepaid) {
+          // Decrement prepaidMonthsRemaining by 1
+          await (prisma.member.update as any)({
+            where: { id: member.id },
+            data: { prepaidMonthsRemaining: { decrement: 1 } }
           });
+
+          // Send WhatsApp Notification for automatic prepaid payment
+          if (member.phone) {
+            const { sendWhatsAppMessage } = await import("@/lib/whatsapp");
+            await sendWhatsAppMessage(
+              member.phone,
+              `🥋 *SPP LUNAS OTOMATIS* 🥋\n\n` +
+              `Halo *${member.fullName}*,\n` +
+              `Tagihan SPP bulan *${monthName} ${year}* sebesar *Rp ${sppFee.toLocaleString("id-ID")}* telah **LUNAS** otomatis menggunakan saldo bayar di muka Anda.\n\n` +
+              `Sisa saldo prabayar Anda: *${((member as any).prepaidMonthsRemaining || 0) - 1} bulan*.\n\n` +
+              `Terima kasih! 🙏`
+            );
+          }
+        } else {
+          // Kirim WhatsApp (Mock / Fonnte)
+          const origin = req.headers.get("origin") || `https://${req.headers.get("host")}` || "https://whitetigertraksaan.com";
+          const paymentLink = `${origin}/payment/${newPayment.id}`;
+          if (member.phone) {
+            await sendSppInvoiceNotification(member.phone, member.fullName, monthName, year, sppFee, paymentLink);
+          }
+
+          // Kirim Push Notification (FCM)
+          if (member.user?.fcmToken) {
+            const title = "Tagihan SPP Baru 📝";
+            const body = `Halo ${member.fullName}, tagihan SPP bulan ${monthName} ${year} sebesar Rp${sppFee.toLocaleString("id-ID")} telah diterbitkan.`;
+            await sendPushNotification(member.user.fcmToken, title, body, {
+              type: "SPP_INVOICE",
+              paymentId: newPayment.id
+            });
+          }
         }
       }
     }

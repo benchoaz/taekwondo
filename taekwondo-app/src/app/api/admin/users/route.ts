@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
           fullName: name,
           memberNumber: `WT-${Math.floor(1000 + Math.random() * 9000)}`,
           dateOfBirth: dob,
+          status: "ACTIVE",
           // Removed weight, height, waistCircum per user request
         },
       });

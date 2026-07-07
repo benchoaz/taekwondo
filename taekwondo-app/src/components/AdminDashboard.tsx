@@ -364,6 +364,7 @@ export default function AdminDashboard({
   const [editUserPrepaid, setEditUserPrepaid] = useState(0);
   const [editUserPhone, setEditUserPhone] = useState("");
   const [editUserBeltHistory, setEditUserBeltHistory] = useState<any[]>([]);
+  const [editUserStatus, setEditUserStatus] = useState("ACTIVE");
 
   // Events / News State
   const [articles, setArticles] = useState<ArticleData[]>([]);
@@ -1057,6 +1058,7 @@ export default function AdminDashboard({
     setEditUserPrepaid((user as any).prepaidMonthsRemaining || 0);
     setEditUserPhone((user as any).phone || "");
     setEditUserBeltHistory((user as any).beltHistory || []);
+    setEditUserStatus((user as any).status || "ACTIVE");
     setEditUserPassword("");
     setShowEditUserModal(true);
   };
@@ -1078,6 +1080,7 @@ export default function AdminDashboard({
           prepaidMonthsRemaining: editUserRole === "MEMBER" ? editUserPrepaid : 0,
           phone: editUserRole === "MEMBER" ? editUserPhone : undefined,
           beltHistory: editUserRole === "MEMBER" ? editUserBeltHistory : undefined,
+          status: editUserRole === "MEMBER" ? editUserStatus : undefined,
           ...(editUserPassword && { password: editUserPassword }),
         }),
       });
@@ -3853,6 +3856,22 @@ export default function AdminDashboard({
                     ].includes(editUserBelt) && (
                       <option value={editUserBelt}>{editUserBelt}</option>
                     )}
+                  </select>
+                </div>
+              )}
+
+              {editUserRole === "MEMBER" && (
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Status Anggota</label>
+                  <select 
+                    value={editUserStatus}
+                    onChange={(e) => setEditUserStatus(e.target.value)}
+                    className="w-full bg-white border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] font-semibold text-[#0F172A]"
+                  >
+                    <option value="ACTIVE">Aktif (Bisa Menerima Tagihan & Latihan)</option>
+                    <option value="PENDING_VERIFICATION">Menunggu Verifikasi</option>
+                    <option value="INACTIVE">Nonaktif</option>
+                    <option value="REJECTED">Ditolak</option>
                   </select>
                 </div>
               )}

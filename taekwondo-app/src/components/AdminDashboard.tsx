@@ -3851,21 +3851,7 @@ export default function AdminDashboard({
                 </div>
               )}
 
-              {editUserRole === "MEMBER" && (
-                <div>
-                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Saldo Prabayar SPP (Bulan)</label>
-                  <input 
-                    type="number" 
-                    min={0}
-                    max={12}
-                    value={editUserPrepaid}
-                    onChange={(e) => setEditUserPrepaid(Math.max(0, parseInt(e.target.value) || 0))}
-                    placeholder="Contoh: 3, 5, 6, 12 (0 jika bulanan)" 
-                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] font-bold"
-                  />
-                  <p className="text-[10px] text-gray-400 mt-1">Tagihan SPP bulanan siswa akan otomatis lunas tanpa perlu ditagih selama saldo bulan ini masih aktif.</p>
-                </div>
-              )}
+
 
               {(editUserRole === "MEMBER" || editUserRole === "COACH") && (
                 <div>

@@ -362,6 +362,7 @@ export default function AdminDashboard({
   const [editUserPassword, setEditUserPassword] = useState("");
   const [editCertDocUrl, setEditCertDocUrl] = useState<string | null>(null);
   const [editUserPrepaid, setEditUserPrepaid] = useState(0);
+  const [editUserPhone, setEditUserPhone] = useState("");
 
   // Events / News State
   const [articles, setArticles] = useState<ArticleData[]>([]);
@@ -1053,6 +1054,7 @@ export default function AdminDashboard({
     setEditUserBelt(user.currentBelt || "Sabuk Putih (10 Geup)");
     setEditCertDocUrl(user.certDocUrl || null);
     setEditUserPrepaid((user as any).prepaidMonthsRemaining || 0);
+    setEditUserPhone((user as any).phone || "");
     setEditUserPassword("");
     setShowEditUserModal(true);
   };
@@ -1072,6 +1074,7 @@ export default function AdminDashboard({
           currentBelt: editUserRole === "MEMBER" ? editUserBelt : undefined,
           certDocUrl: editCertDocUrl,
           prepaidMonthsRemaining: editUserRole === "MEMBER" ? editUserPrepaid : 0,
+          phone: editUserRole === "MEMBER" ? editUserPhone : undefined,
           ...(editUserPassword && { password: editUserPassword }),
         }),
       });
@@ -1085,6 +1088,7 @@ export default function AdminDashboard({
           currentBelt: editUserRole === "MEMBER" ? editUserBelt : null,
           certDocUrl: editCertDocUrl,
           prepaidMonthsRemaining: editUserRole === "MEMBER" ? editUserPrepaid : 0,
+          phone: editUserRole === "MEMBER" ? editUserPhone : null,
         } : u));
         setShowEditUserModal(false);
         setEditingUser(null);
@@ -3765,6 +3769,19 @@ export default function AdminDashboard({
                   className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
                 />
               </div>
+
+              {editUserRole === "MEMBER" && (
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">No. WhatsApp / HP</label>
+                  <input 
+                    type="text" 
+                    value={editUserPhone}
+                    onChange={(e) => setEditUserPhone(e.target.value)}
+                    placeholder="Contoh: 08123456789 atau 628123456789" 
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] font-bold"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Password Baru (Opsional)</label>

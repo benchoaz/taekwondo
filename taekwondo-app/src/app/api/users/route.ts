@@ -19,6 +19,7 @@ export async function GET() {
             progress: true,
             certDocUrl: true,
             prepaidMonthsRemaining: true,
+            phone: true,
           }
         },
         coach: {
@@ -51,6 +52,7 @@ export async function GET() {
       progress: u.member?.progress || 0,
       certDocUrl: u.role === "COACH" ? u.coach?.certDocUrl : u.member?.certDocUrl || null,
       prepaidMonthsRemaining: u.member?.prepaidMonthsRemaining || 0,
+      phone: u.member?.phone || null,
     }));
 
     return NextResponse.json(formattedUsers);

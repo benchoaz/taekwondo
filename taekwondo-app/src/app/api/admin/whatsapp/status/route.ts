@@ -37,11 +37,15 @@ export async function GET(request: NextRequest) {
        qrData = await getWahaAuthQr();
     }
 
-    return NextResponse.json({ 
+    const response = NextResponse.json({ 
       success: true, 
       status: statusData.status,
       qrCode: qrData?.data ? `data:${(qrData.mimetype || 'image/png').trim()};base64,${qrData.data.replace(/\\s+/g, '')}` : null
     });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
 
   } catch (error: any) {
     console.error("WAHA Status Error:", error);

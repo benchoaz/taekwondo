@@ -277,7 +277,8 @@ export default function AdminDashboard({
 
   const fetchWahaStatus = async () => {
     try {
-      const res = await fetch("/api/admin/whatsapp/status");
+      const timestamp = new Date().getTime();
+      const res = await fetch(`/api/admin/whatsapp/status?t=${timestamp}`);
       if (res.ok) {
         const data = await res.json();
         setWahaStatus(data.status);

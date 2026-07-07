@@ -3741,13 +3741,15 @@ export default function AdminDashboard({
       {/* Edit User Modal */}
       {showEditUserModal && editingUser && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-[24px] p-8 w-full max-w-md shadow-2xl border border-slate-100 flex flex-col gap-6">
-            <div>
+          <div className="bg-white rounded-[24px] w-full max-w-md shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] overflow-hidden">
+            {/* Header */}
+            <div className="p-6 border-b border-slate-100">
               <h3 className="text-lg font-black text-[#0F172A] font-display">Sesuaikan Detail User / Sabuk</h3>
               <p className="text-gray-400 text-xs">Ubah data anggota, pelatih, atau sesuaikan tingkatan sabuk member.</p>
             </div>
 
-            <form onSubmit={handleUpdateUser} className="flex flex-col gap-4">
+            {/* Scrollable Form Content */}
+            <form onSubmit={handleUpdateUser} className="flex flex-col gap-4 p-6 overflow-y-auto flex-1">
               <div>
                 <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Nama Lengkap</label>
                 <input 
@@ -3928,7 +3930,8 @@ export default function AdminDashboard({
                 </div>
               )}
 
-              <div className="flex gap-3 mt-4">
+              {/* Action Buttons */}
+              <div className="flex gap-3 mt-4 border-t border-slate-100 pt-4 sticky bottom-0 bg-white">
                 <button 
                   type="button" 
                   onClick={() => {

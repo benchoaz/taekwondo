@@ -292,7 +292,10 @@ model Notification {
   type      NotificationType @default(ANNOUNCEMENT)
   link      String?
   isRead    Boolean          @default(false) @map("is_read")
+  startAt   DateTime?        @map("start_at")    // Tanggal mulai tampil
+  expiresAt DateTime?        @map("expires_at")  // Tanggal kadaluwarsa (otomatis hilang)
   createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt @map("updated_at")
 }
 
 enum NotificationType {

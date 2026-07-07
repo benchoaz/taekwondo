@@ -1224,11 +1224,55 @@ export default function AdminDashboard({
   };
 
   // Settings Actions
+  const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(file); // fallback
+        
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          if (!blob) return resolve(file);
+          const resizedFile = new File([blob], file.name, {
+            type: 'image/jpeg',
+            lastModified: Date.now(),
+          });
+          resolve(resizedFile);
+        }, 'image/jpeg', 0.85); // 85% quality
+      };
+      img.onerror = () => resolve(file); // fallback
+    });
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: "logo" | "heroBg") => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const url = await uploadToServer(file, file.name);
+    // Otomatis menyesuaikan ukuran agar tidak terlalu besar
+    const processedFile = await resizeImage(
+      file, 
+      type === "heroBg" ? 1920 : 500, // Max width: 1920 for BG, 500 for logo
+      type === "heroBg" ? 1080 : 500  // Max height
+    );
+
+    const url = await uploadToServer(processedFile, processedFile.name);
     if (url) {
       setSettings(prev => ({
         ...prev,

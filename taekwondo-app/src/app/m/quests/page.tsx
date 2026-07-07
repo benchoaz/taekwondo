@@ -82,6 +82,13 @@ export default function QuestsPage() {
       return;
     }
 
+    if (videoFile && videoFile.size > 10 * 1024 * 1024) {
+      alert("❌ Ukuran video terlalu besar! Maksimal 10MB. Silakan kompres video Anda terlebih dahulu.");
+      setCompleting(null);
+      setUploading(false);
+      return;
+    }
+
     try {
       let uploadedUrl = "";
       if (videoFile) {

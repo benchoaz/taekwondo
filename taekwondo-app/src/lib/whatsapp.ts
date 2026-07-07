@@ -140,6 +140,26 @@ export async function sendWelcomeCredentials(
     `Silakan login dan segera perbarui **Password**, **Tanggal Lahir**, serta data fisik (Tinggi/Berat Badan) Anda di menu Edit Profil.\n\n` +
     `Terima kasih! 🥋`;
 
+}
+
+/**
+ * Mengirim broadcast pengumuman dojang ke nomor WhatsApp anggota
+ */
+export async function sendAnnouncementNotification(
+  phone: string,
+  memberName: string,
+  title: string,
+  content: string,
+  link?: string
+) {
+  const message = `📢 *PENGUMUMAN* 📢\n\n` +
+    `Halo ${memberName},\n\n` +
+    `Ada pengumuman penting terbaru:\n\n` +
+    `*${title}*\n` +
+    `${content}\n\n` +
+    (link ? `Untuk informasi lengkap, silakan kunjungi tautan berikut:\n${link}\n\n` : "") +
+    `Terima kasih! 🥋`;
+
   return sendWhatsAppMessage(phone, message);
 }
 

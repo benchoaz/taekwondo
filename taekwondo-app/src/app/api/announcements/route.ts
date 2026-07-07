@@ -23,15 +23,15 @@ export async function POST(request: Request) {
       },
     });
 
-    // Get all active members with FCM tokens (fcmToken is on User model)
+    // Get all active members
     const members = await prisma.member.findMany({
       where: {
         status: { notIn: ['PENDING_VERIFICATION', 'INACTIVE', 'REJECTED'] },
-        user: { fcmToken: { not: null } },
       },
       include: { user: { select: { fcmToken: true } } },
     });
 
+    // 1. Send FCM Push Notifications
     let notified = 0;
     const pushPromises = members
       .filter((m) => m.user?.fcmToken)
@@ -45,7 +45,27 @@ export async function POST(request: Request) {
       );
     await Promise.allSettled(pushPromises);
 
-    return NextResponse.json({ success: true, notified, totalMembers: members.length });
+    // 2. Send WhatsApp Broadcast via WAHA
+    let waNotified = 0;
+    const { sendAnnouncementNotification } = await import("@/lib/whatsapp");
+    const origin = request.headers.get("origin") || `https://${request.headers.get("host")}` || "https://whitetigertraksaan.com";
+    const fullLink = link ? (link.startsWith("http") ? link : `${origin}${link}`) : undefined;
+
+    const waPromises = members
+      .filter((m) => m.phone)
+      .map((m) =>
+        sendAnnouncementNotification(m.phone!, m.fullName, title, message, fullLink)
+          .then((res) => { if (res && res.status) waNotified++; })
+          .catch((err) => console.error('WhatsApp broadcast error:', err))
+      );
+    await Promise.allSettled(waPromises);
+
+    return NextResponse.json({ 
+      success: true, 
+      notified, 
+      waNotified,
+      totalMembers: members.length 
+    });
   } catch (error: any) {
     console.error('Announcement error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });

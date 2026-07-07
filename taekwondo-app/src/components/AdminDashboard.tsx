@@ -41,7 +41,8 @@ import {
   Star,
   Eye,
   EyeOff,
-  UploadCloud
+  UploadCloud,
+  RefreshCw
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import SppManagement from "./SppManagement";
@@ -270,6 +271,43 @@ export default function AdminDashboard({
     }
   };  
   
+  const [wahaStatus, setWahaStatus] = useState<string>("LOADING");
+  const [wahaQrCode, setWahaQrCode] = useState<string | null>(null);
+  const [showWahaQrModal, setShowWahaQrModal] = useState(false);
+
+  const fetchWahaStatus = async () => {
+    try {
+      const res = await fetch("/api/admin/whatsapp/status");
+      if (res.ok) {
+        const data = await res.json();
+        setWahaStatus(data.status);
+        if (data.qrCode) {
+          setWahaQrCode(data.qrCode);
+        } else {
+          setWahaQrCode(null);
+        }
+      } else {
+        setWahaStatus("ERROR");
+      }
+    } catch (e) {
+      setWahaStatus("OFFLINE");
+    }
+  };
+
+  const handleRestartWaha = async () => {
+    setWahaStatus("LOADING");
+    setWahaQrCode(null);
+    await fetch("/api/admin/whatsapp/session", { method: "DELETE" });
+    await fetch("/api/admin/whatsapp/session", { method: "POST" });
+    setTimeout(fetchWahaStatus, 3000);
+  };
+
+  useEffect(() => {
+    if (activeTab === "settings") {
+      fetchWahaStatus();
+    }
+  }, [activeTab]);
+
   const [settings, setSettings] = useState<SettingData>({
     logoUrl: null,
     heroBgUrl: null,
@@ -3139,6 +3177,58 @@ export default function AdminDashboard({
                 <p className="text-gray-400 text-xs mt-1">Ubah metadata dojang, logo, visual background hero, motto, dan biaya pendaftaran.</p>
               </div>
 
+              {/* WAHA Gateway Panel */}
+              <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-8 shadow-sm flex flex-col gap-6">
+                <div className="flex justify-between items-center border-b border-[#0F172A]/5 pb-4">
+                  <div>
+                    <h3 className="font-extrabold text-sm text-[#0F172A]">WhatsApp Gateway (WAHA)</h3>
+                    <p className="text-[10px] text-gray-400 mt-1">Status koneksi bot WhatsApp untuk notifikasi otomatis.</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase ${
+                      wahaStatus === "WORKING" ? "bg-green-100 text-green-700" :
+                      wahaStatus === "LOADING" || wahaStatus === "STARTING" ? "bg-amber-100 text-amber-700 animate-pulse" :
+                      "bg-red-100 text-red-700"
+                    }`}>
+                      {wahaStatus === "WORKING" ? "TERHUBUNG" :
+                       wahaStatus === "SCAN_QR_CODE" ? "MENUNGGU SCAN" :
+                       wahaStatus === "LOADING" || wahaStatus === "STARTING" ? "MEMUAT..." : "TERPUTUS"}
+                    </span>
+                    <button 
+                      onClick={fetchWahaStatus}
+                      className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors"
+                      title="Refresh Status"
+                    >
+                      <RefreshCw className={`w-4 h-4 text-slate-600 ${wahaStatus === "LOADING" ? "animate-spin" : ""}`} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <div className="text-xs text-gray-600">
+                    Jika bot tidak merespon, pastikan nomor WhatsApp Anda aktif dan terhubung ke internet. Anda bisa mencoba menyambung ulang atau melihat QR Code.
+                  </div>
+                  <div className="flex gap-2">
+                    {wahaStatus === "SCAN_QR_CODE" && (
+                      <button 
+                        onClick={() => setShowWahaQrModal(true)}
+                        type="button"
+                        className="px-4 py-2 bg-[#0F172A] hover:bg-[#1E293B] text-white text-xs font-bold rounded-xl transition-all whitespace-nowrap"
+                      >
+                        Lihat QR Code
+                      </button>
+                    )}
+                    <button 
+                      onClick={handleRestartWaha}
+                      type="button"
+                      className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-all whitespace-nowrap"
+                    >
+                      Mulai Ulang (Restart)
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <form onSubmit={handleSaveSettings} className="flex flex-col gap-8">
                 {/* Branding Assets Panel */}
                 <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-8 shadow-sm flex flex-col gap-6">
@@ -4904,6 +4994,38 @@ export default function AdminDashboard({
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* WAHA QR Modal */}
+      {showWahaQrModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-gray-100 flex flex-col">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <div>
+                <h3 className="font-black text-[#0F172A] text-xl font-display">Tautkan Perangkat</h3>
+                <p className="text-xs text-gray-500 mt-1">Buka WhatsApp di HP Anda dan scan QR Code ini.</p>
+              </div>
+              <button onClick={() => setShowWahaQrModal(false)} className="text-gray-400 hover:text-[#E10600] transition-colors p-2 hover:bg-red-50 rounded-full">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-8 flex flex-col items-center justify-center bg-white min-h-[300px]">
+              {wahaQrCode ? (
+                <img src={wahaQrCode} alt="WhatsApp QR Code" className="w-64 h-64 border-4 border-white rounded-xl shadow-sm" />
+              ) : (
+                <div className="flex flex-col items-center text-gray-400">
+                  <RefreshCw className="w-8 h-8 animate-spin mb-4 text-slate-300" />
+                  <p className="text-xs font-bold text-slate-500">Memuat QR Code...</p>
+                  <p className="text-[10px] text-center mt-2 max-w-[200px]">Pastikan sesi sudah direstart atau sedang berjalan.</p>
+                </div>
+              )}
+            </div>
+            <div className="p-4 bg-blue-50 text-blue-800 text-[10px] text-center border-t border-blue-100">
+              QR Code hanya berlaku selama beberapa detik. Tutup dan buka kembali jika gagal.
             </div>
           </div>
         </div>

@@ -46,6 +46,7 @@ export async function sendWhatsAppMessage(target: string, message: string) {
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
+        "X-Api-Key": process.env.WHATSAPP_API_KEY || "",
       },
       body: JSON.stringify({
         chatId: formattedTarget,
@@ -140,4 +141,72 @@ export async function sendWelcomeCredentials(
     `Terima kasih! 🥋`;
 
   return sendWhatsAppMessage(phone, message);
+}
+
+// -----------------------------------------------------------------
+// WAHA Management Functions (Admin Only)
+// -----------------------------------------------------------------
+
+const getWahaHeaders = () => ({
+  "Content-Type": "application/json",
+  "Accept": "application/json",
+  "X-Api-Key": process.env.WHATSAPP_API_KEY || "",
+});
+
+const getWahaUrl = () => process.env.WAHA_BASE_URL || "http://waha:3000";
+const getWahaSession = () => process.env.WAHA_SESSION || "default";
+
+export async function getWahaStatus() {
+  try {
+    const res = await fetch(`${getWahaUrl()}/api/sessions/${getWahaSession()}`, {
+      headers: getWahaHeaders()
+    });
+    if (!res.ok) {
+      if (res.status === 404) return { status: "STOPPED" };
+      return { status: "ERROR" };
+    }
+    const data = await res.json();
+    return { status: data.status, name: data.name }; // "STARTING", "SCAN_QR_CODE", "WORKING", "FAILED"
+  } catch (error) {
+    return { status: "OFFLINE" };
+  }
+}
+
+export async function startWahaSession() {
+  try {
+    const res = await fetch(`${getWahaUrl()}/api/sessions/start`, {
+      method: "POST",
+      headers: getWahaHeaders(),
+      body: JSON.stringify({ name: getWahaSession() })
+    });
+    return res.ok;
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function stopWahaSession() {
+  try {
+    const res = await fetch(`${getWahaUrl()}/api/sessions/stop`, {
+      method: "POST",
+      headers: getWahaHeaders(),
+      body: JSON.stringify({ name: getWahaSession() })
+    });
+    return res.ok;
+  } catch (error) {
+    return false;
+  }
+}
+
+export async function getWahaAuthQr() {
+  try {
+    const res = await fetch(`${getWahaUrl()}/api/${getWahaSession()}/auth/qr`, {
+      headers: getWahaHeaders()
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data; // { "mimetype": "image/png", "data": "iVBORw0KGgo...", "url": "..." }
+  } catch (error) {
+    return null;
+  }
 }

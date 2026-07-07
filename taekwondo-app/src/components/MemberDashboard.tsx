@@ -64,6 +64,7 @@ export default function MemberDashboard({
   const [schedules, setSchedules] = useState<any[]>([]);
   const [dojoMembers, setDojoMembers] = useState<any[]>([]);
   const [achievements, setAchievements] = useState<any[]>([]);
+  const [beltHistory, setBeltHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Self-Upload Achievement States
@@ -678,6 +679,14 @@ export default function MemberDashboard({
           // Fetch UKT details
           await fetchUktStatus(mId);
 
+          // Fetch Belt History
+          try {
+            const resHist = await fetch(`/api/member/belt-history?memberId=${mId}`);
+            if (resHist.ok) {
+              setBeltHistory(await resHist.json());
+            }
+          } catch(e) { console.error("Error fetching belt history", e); }
+
           // Fetch schedules
           try {
             const resSched = await fetch("/api/schedules");
@@ -757,16 +766,61 @@ export default function MemberDashboard({
 
     for (let i = 0; i < currentIndex; i++) {
       list.unshift({
+        id: `mock-${i}`,
         from: `${beltSequence[i].name} (${beltSequence[i].level})`,
         to: `${beltSequence[i+1].name} (${beltSequence[i+1].level})`,
-        date: dateMock[dateIdx % dateMock.length]
+        date: dateMock[dateIdx % dateMock.length],
+        certUrl: null
       });
       dateIdx++;
     }
     return list;
   };
 
-  const dynamicHistory = getDynamicHistory();
+  const dynamicHistory = beltHistory.length > 0 ? beltHistory.map(bh => {
+    const d = new Date(bh.promotedAt);
+    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+    return {
+      id: bh.id,
+      from: bh.fromBelt,
+      to: bh.toBelt,
+      date: `${months[d.getMonth()]} ${d.getFullYear()}`,
+      certUrl: bh.certUrl
+    };
+  }) : getDynamicHistory();
+
+  const handleUploadCert = async (e: React.ChangeEvent<HTMLInputElement>, historyId: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (historyId.startsWith('mock-')) {
+      alert("Silakan hubungi Admin untuk merekam riwayat sabuk Anda ke sistem sebelum mengunggah sertifikat secara mandiri.");
+      return;
+    }
+
+    try {
+      const url = await uploadToServer(file, file.name);
+      if (url) {
+        const res = await fetch("/api/member/belt-history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ historyId, certUrl: url })
+        });
+        if (res.ok) {
+          alert("Sertifikat berhasil diunggah!");
+          if (profile?.id) {
+            const resHist = await fetch(`/api/member/belt-history?memberId=${profile.id}`);
+            if (resHist.ok) setBeltHistory(await resHist.json());
+          }
+        } else {
+          alert("Gagal menyimpan tautan sertifikat.");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat mengunggah.");
+    }
+  };
 
   const handleConfetti = () => {
     confetti({
@@ -1898,7 +1952,26 @@ export default function MemberDashboard({
                             <h4 className="font-bold text-sm text-[#0F172A]">{item.to}</h4>
                             <p className="text-gray-400 text-xs mt-0.5">Lulus Ujian Kenaikan Tingkat (UKT)</p>
                           </div>
-                          <span className="px-3 py-1 bg-slate-100 text-gray-500 rounded-full text-[10px] font-bold">{item.date}</span>
+                          <div className="flex flex-col items-end gap-2">
+                            <span className="px-3 py-1 bg-slate-100 text-gray-500 rounded-full text-[10px] font-bold">{item.date}</span>
+                            {item.certUrl ? (
+                              <a href={item.certUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[10px] text-blue-600 font-bold hover:underline bg-blue-50 px-2 py-1 rounded-md">
+                                <Award className="w-3.5 h-3.5" />
+                                Lihat Sertifikat
+                              </a>
+                            ) : (
+                              <label className="flex items-center gap-1 text-[10px] text-slate-500 font-medium hover:text-slate-700 bg-slate-50 hover:bg-slate-100 px-2 py-1 rounded-md cursor-pointer transition-colors border border-slate-200 shadow-sm">
+                                <Upload className="w-3 h-3" />
+                                Unggah Sertifikat
+                                <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  accept="image/*,application/pdf"
+                                  onChange={(e) => handleUploadCert(e, item.id)}
+                                />
+                              </label>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -1987,8 +2060,17 @@ export default function MemberDashboard({
                       {dynamicHistory.map((hist, idx) => (
                         <div key={idx} className="relative">
                           <span className="absolute -left-[31px] top-1 w-4 h-4 bg-green-500 rounded-full border-4 border-white shadow-sm"></span>
-                          <span className="font-bold text-xs text-[#0F172A] block">{hist.to}</span>
-                          <span className="text-[10px] text-gray-400 mt-0.5 block">Lulus pada {hist.date}</span>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <span className="font-bold text-xs text-[#0F172A] block">{hist.to}</span>
+                              <span className="text-[10px] text-gray-400 mt-0.5 block">Lulus pada {hist.date}</span>
+                            </div>
+                            {hist.certUrl && (
+                              <a href={hist.certUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 font-bold hover:underline flex items-center gap-1">
+                                <Award className="w-3 h-3" /> Sertifikat
+                              </a>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>

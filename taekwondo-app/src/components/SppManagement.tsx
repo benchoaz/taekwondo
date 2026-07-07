@@ -49,9 +49,30 @@ export default function SppManagement() {
   const [isMarkingPaid, setIsMarkingPaid] = useState(false);
   const [catatanAdmin, setCatatanAdmin] = useState("");
 
+  // Prepaid billing states
+  const [members, setMembers] = useState<any[]>([]);
+  const [selectedPrepaidMember, setSelectedPrepaidMember] = useState("");
+  const [prepaidYear, setPrepaidYear] = useState(new Date().getFullYear());
+  const [selectedPrepaidMonths, setSelectedPrepaidMonths] = useState<number[]>([]);
+  const [prepaidAmount, setPrepaidAmount] = useState(100000);
+  const [isSubmittingPrepaid, setIsSubmittingPrepaid] = useState(false);
+
   useEffect(() => {
     fetchInvoices();
+    fetchMembers();
   }, []);
+
+  const fetchMembers = async () => {
+    try {
+      const res = await fetch("/api/users");
+      if (res.ok) {
+        const data = await res.json();
+        setMembers(data.filter((u: any) => u.role === "MEMBER" && u.memberId));
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const fetchInvoices = async () => {
     setIsLoading(true);
@@ -145,6 +166,44 @@ export default function SppManagement() {
     }
   };
 
+  const handleSavePrepaid = async () => {
+    if (!selectedPrepaidMember) {
+      alert("Silakan pilih anggota terlebih dahulu.");
+      return;
+    }
+    if (selectedPrepaidMonths.length === 0) {
+      alert("Silakan pilih minimal satu bulan untuk pembayaran prabayar.");
+      return;
+    }
+    setIsSubmittingPrepaid(true);
+    try {
+      const res = await fetch("/api/spp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          memberId: selectedPrepaidMember,
+          year: prepaidYear,
+          months: selectedPrepaidMonths,
+          amount: prepaidAmount
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ Berhasil mencatat pembayaran prabayar untuk ${selectedPrepaidMonths.length} bulan.`);
+        setSelectedPrepaidMember("");
+        setSelectedPrepaidMonths([]);
+        fetchInvoices();
+      } else {
+        alert(data.error || "Gagal memproses pembayaran prabayar.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan.");
+    } finally {
+      setIsSubmittingPrepaid(false);
+    }
+  };
+
   // ─── Filter Logic ───────────────────────────────────────────────────
   const filteredInvoices = invoices.filter(inv => {
     const statusMatch = filterStatus === "ALL" || inv.status === filterStatus;
@@ -183,7 +242,7 @@ export default function SppManagement() {
       </div>
 
       {/* Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Generate Tagihan */}
         <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex flex-col gap-4">
           <div className="flex items-center gap-3">
@@ -245,6 +304,89 @@ export default function SppManagement() {
           >
             <Send className="w-4 h-4" />
             {isReminding ? "⏳ Mengirim..." : "📱 Kirim Blast Pengingat (WA)"}
+          </button>
+        </div>
+
+        {/* Input Pembayaran Prabayar */}
+        <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <CheckCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-[#0F172A]">Input Bayar di Muka</h3>
+              <p className="text-xs text-gray-500">Menerbitkan & melunasi langsung bulan depan</p>
+            </div>
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            <select
+              value={selectedPrepaidMember}
+              onChange={e => setSelectedPrepaidMember(e.target.value)}
+              className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2 text-xs font-bold outline-none"
+            >
+              <option value="">Pilih Anggota...</option>
+              {members.map(m => (
+                <option key={m.memberId} value={m.memberId}>{m.name} ({m.memberNumber})</option>
+              ))}
+            </select>
+
+            <div className="flex gap-2">
+              <select
+                value={prepaidYear}
+                onChange={e => setPrepaidYear(parseInt(e.target.value))}
+                className="w-1/2 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2 text-xs font-bold outline-none"
+              >
+                {Array.from({ length: 11 }, (_, i) => 2025 + i).map((yr) => (
+                  <option key={yr} value={yr}>{yr}</option>
+                ))}
+              </select>
+              <input
+                type="number"
+                placeholder="Nominal"
+                value={prepaidAmount}
+                onChange={e => setPrepaidAmount(parseInt(e.target.value) || 100000)}
+                className="w-1/2 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2 text-xs font-bold outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex-1">
+            <span className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Pilih Bulan (Bisa Lebih Dari Satu)</span>
+            <div className="grid grid-cols-4 gap-1.5">
+              {monthNames.map((m, i) => {
+                const monthNum = i + 1;
+                const isChecked = selectedPrepaidMonths.includes(monthNum);
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => {
+                      if (isChecked) {
+                        setSelectedPrepaidMonths(selectedPrepaidMonths.filter(x => x !== monthNum));
+                      } else {
+                        setSelectedPrepaidMonths([...selectedPrepaidMonths, monthNum]);
+                      }
+                    }}
+                    className={`py-1 rounded-lg text-[10px] font-bold transition-all border ${
+                      isChecked 
+                        ? "bg-emerald-500 border-emerald-500 text-white shadow-sm" 
+                        : "bg-[#F8FAFC] border-slate-200 text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    {m.substring(0, 3)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <button
+            onClick={handleSavePrepaid}
+            disabled={isSubmittingPrepaid || !selectedPrepaidMember || selectedPrepaidMonths.length === 0}
+            className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-xs shadow-md hover:bg-emerald-700 transition-colors disabled:opacity-50"
+          >
+            {isSubmittingPrepaid ? "⏳ Menyimpan..." : "✅ Simpan Bayar di Muka"}
           </button>
         </div>
       </div>

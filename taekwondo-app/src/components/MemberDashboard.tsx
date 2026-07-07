@@ -106,10 +106,49 @@ export default function MemberDashboard({
   const [qrError, setQrError] = useState<string | null>(null);
   const [qrPollingRef, setQrPollingRef] = useState<NodeJS.Timeout | null>(null);
 
+  const resizeImage = (file: File | Blob, maxWidth: number, maxHeight: number): Promise<File | Blob> => {
+    if (!file.type.startsWith('image/')) return Promise.resolve(file); // Don't resize PDFs/Docs
+    
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(file);
+        
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => {
+          if (!blob) return resolve(file);
+          // Preserve filename if it's a File object
+          if (file instanceof File) {
+            resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+          } else {
+            resolve(blob);
+          }
+        }, 'image/jpeg', 0.85);
+      };
+      img.onerror = () => resolve(file);
+    });
+  };
+
   const uploadToServer = async (file: File | Blob, filename: string): Promise<string | null> => {
     try {
+      const processedFile = await resizeImage(file, 1200, 1200);
       const formData = new FormData();
-      formData.append("file", file, filename);
+      formData.append("file", processedFile, filename);
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,

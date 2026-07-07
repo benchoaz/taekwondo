@@ -295,8 +295,10 @@ export default function AdminDashboard({
 
   // Users state
   const [users, setUsers] = useState<UserData[]>([]);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);  const [showAddModal, setShowAddModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const [newUserName, setNewUserName] = useState("");
   const [newUserUsername, setNewUserUsername] = useState("");
   const [newUserPassword, setNewUserPassword] = useState("");
@@ -916,6 +918,62 @@ export default function AdminDashboard({
       setNewUserError("Terjadi kesalahan server.");
     } finally {
       setIsSubmittingNewUser(false);
+    }
+  };
+
+  const handleImportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!importFile) return;
+
+    setIsImporting(true);
+    try {
+      const text = await importFile.text();
+      // Simple CSV Parse: split by \n and ,
+      const rows = text.split("\n").filter(row => row.trim().length > 0);
+      
+      const membersToImport = [];
+      // Skip header if it exists. Let's assume row 1 is header if it contains "nama"
+      let startIndex = 0;
+      if (rows[0].toLowerCase().includes("nama")) {
+        startIndex = 1;
+      }
+
+      for (let i = startIndex; i < rows.length; i++) {
+        const cols = rows[i].split(",");
+        if (cols.length >= 2) {
+          membersToImport.push({
+            name: cols[0].trim(),
+            phone: cols[1].trim()
+          });
+        }
+      }
+
+      if (membersToImport.length === 0) {
+        alert("Tidak ada data yang valid ditemukan di file CSV.");
+        setIsImporting(false);
+        return;
+      }
+
+      const res = await fetch("/api/admin/users/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ members: membersToImport }),
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+        setShowImportModal(false);
+        setImportFile(null);
+        fetchUsers();
+      } else {
+        alert(data.error || "Gagal mengimport data.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan saat memproses file.");
+    } finally {
+      setIsImporting(false);
     }
   };
 
@@ -2518,12 +2576,20 @@ export default function AdminDashboard({
                   <h2 className="text-3xl font-black text-[#0F172A] font-display">Manajemen User &amp; Peran</h2>
                   <p className="text-gray-400 text-xs mt-1">Kelola data otentikasi serta role-based access control (RBAC) dojang.</p>
                 </div>
-                <button 
-                  onClick={() => setShowAddModal(true)}
-                  className="bg-[#E10600] hover:bg-[#C00500] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
-                >
-                  <Plus className="w-4 h-4" /> Tambah User
-                </button>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => setShowImportModal(true)}
+                    className="bg-[#0F172A] hover:bg-[#1E293B] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 border border-white/10"
+                  >
+                    <UploadCloud className="w-4 h-4" /> Import CSV
+                  </button>
+                  <button 
+                    onClick={() => setShowAddModal(true)}
+                    className="bg-[#E10600] hover:bg-[#C00500] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah User
+                  </button>
+                </div>
               </div>
 
               {/* Search filter block */}
@@ -4770,6 +4836,74 @@ export default function AdminDashboard({
               >
                 {isSavingTournament ? "Menyimpan..." : "Simpan Kejuaraan"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSV Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl border border-gray-100 flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <div>
+                <h3 className="font-black text-[#0F172A] text-xl font-display">Import Member Lama</h3>
+                <p className="text-xs text-gray-500 mt-1">Upload file CSV yang berisi data anggota lama.</p>
+              </div>
+              <button onClick={() => setShowImportModal(false)} className="text-gray-400 hover:text-[#E10600] transition-colors p-2 hover:bg-red-50 rounded-full">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto">
+              <form onSubmit={handleImportSubmit} className="flex flex-col gap-5">
+                
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-xs text-blue-800">
+                  <p className="font-bold mb-1">Format CSV yang Diterima:</p>
+                  <p className="mb-2">Pastikan file CSV memiliki kolom yang dipisahkan oleh tanda koma <code>(,)</code> dengan susunan:</p>
+                  <ul className="list-disc pl-5 mb-2 font-mono bg-white p-2 rounded border border-blue-100">
+                    <li>Nama Lengkap, Nomor WhatsApp</li>
+                    <li>Budi Santoso, 081234567890</li>
+                    <li>Andi Wijaya, 085712341234</li>
+                  </ul>
+                  <p>Baris pertama yang mengandung kata "nama" akan otomatis diabaikan sebagai header.</p>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-xs font-bold text-[#0F172A] uppercase">Pilih File (.csv)</label>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    onChange={(e) => setImportFile(e.target.files?.[0] || null)}
+                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#0F172A] file:text-white hover:file:bg-[#1E293B] cursor-pointer"
+                    required
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowImportModal(false)}
+                    className="px-5 py-2.5 text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                    disabled={isImporting}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isImporting || !importFile}
+                    className="px-5 py-2.5 text-xs font-bold text-white bg-[#E10600] hover:bg-[#C00500] rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {isImporting ? (
+                      <>Memproses...</>
+                    ) : (
+                      <>
+                        <UploadCloud className="w-4 h-4" /> Import Sekarang
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

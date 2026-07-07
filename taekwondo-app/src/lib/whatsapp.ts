@@ -120,3 +120,24 @@ export async function sendSppReminder(
 
   return sendWhatsAppMessage(phone, message);
 }
+
+/**
+ * Mengirim pesan selamat datang dan kredensial login (Untuk Import Anggota Lama)
+ */
+export async function sendWelcomeCredentials(
+  phone: string,
+  memberName: string,
+  username: string,
+  password: string,
+  memberId: string
+) {
+  const message = `Selamat datang di Sistem Digital Taekwondo, ${memberName}!\n\n` +
+    `Data keanggotaan Anda telah berhasil dimasukkan ke dalam sistem baru. Berikut adalah akun untuk login ke Dashboard Member Anda:\n\n` +
+    `*ID Anggota:* ${memberId}\n` +
+    `*Username:* ${username}\n` +
+    `*Password:* ${password}\n\n` +
+    `Silakan login dan segera perbarui **Password**, **Tanggal Lahir**, serta data fisik (Tinggi/Berat Badan) Anda di menu Edit Profil.\n\n` +
+    `Terima kasih! 🥋`;
+
+  return sendWhatsAppMessage(phone, message);
+}

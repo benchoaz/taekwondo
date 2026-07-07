@@ -22,12 +22,16 @@ export async function POST(request: Request) {
         include: { member: true, coach: true }
       });
     } else {
-      // Find by Member Number (case insensitive)
-      const member = await prisma.member.findUnique({
-        where: { memberNumber: email.trim().toUpperCase() },
-        include: { user: { include: { member: true, coach: true } } }
+      // Find by Username OR Member Number
+      user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { username: formattedInput },
+            { member: { memberNumber: email.trim().toUpperCase() } }
+          ]
+        },
+        include: { member: true, coach: true }
       });
-      user = member?.user;
     }
 
     if (!user) {

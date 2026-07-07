@@ -21,7 +21,9 @@ export async function POST(req: NextRequest) {
 
     // Ambil semua member aktif beserta relasi user-nya untuk fcmToken
     const activeMembers = await prisma.member.findMany({
-      where: { status: "ACTIVE" },
+      where: { 
+        status: { in: ["ACTIVE", "AKTIF"] }
+      },
       include: { user: true }
     });
 

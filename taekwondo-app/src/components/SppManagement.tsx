@@ -203,12 +203,15 @@ export default function SppManagement() {
             >
               {monthNames.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
             </select>
-            <input
-              type="number"
+            <select
               value={targetYear}
               onChange={e => setTargetYear(parseInt(e.target.value))}
-              className="w-1/2 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2 text-sm outline-none"
-            />
+              className="w-1/2 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2 text-sm outline-none font-bold"
+            >
+              {Array.from({ length: 11 }, (_, i) => 2025 + i).map((yr) => (
+                <option key={yr} value={yr}>{yr}</option>
+              ))}
+            </select>
           </div>
           <button
             onClick={handleGenerateInvoices}

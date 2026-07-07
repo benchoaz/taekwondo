@@ -49,6 +49,7 @@ services:
     restart: always
     environment:
       WHATSAPP_API_KEY: taekwondo_waha_key_2026_super_secure
+      WHATSAPP_HOOKS: '[{"url": "http://web:3030/api/whatsapp/webhook", "events": ["message", "message.created"]}]'
       # Tidak ada port yang diekspos ke publik untuk keamanan. Hanya bisa diakses secara internal oleh Next.js
 
 volumes:

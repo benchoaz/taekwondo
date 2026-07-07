@@ -204,9 +204,21 @@ export async function getWahaAuthQr() {
       headers: getWahaHeaders()
     });
     if (!res.ok) return null;
+    
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("image/png")) {
+      const arrayBuffer = await res.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      return {
+        mimetype: "image/png",
+        data: buffer.toString("base64")
+      };
+    }
+
     const data = await res.json();
     return data; // { "mimetype": "image/png", "data": "iVBORw0KGgo...", "url": "..." }
   } catch (error) {
+    console.error("Error fetching WAHA QR:", error);
     return null;
   }
 }

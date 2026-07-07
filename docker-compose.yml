@@ -44,7 +44,7 @@ services:
 
   # WhatsApp Gateway (WAHA) - NoWeb Edition for low RAM usage
   waha:
-    image: devlikeapro/waha:noweb
+    image: docker.io/devlikeapro/waha:noweb
     container_name: taekwondo_waha
     restart: always
     environment:

@@ -30,7 +30,17 @@ import {
   Award,
   Megaphone,
   Bell,
-  User
+  User,
+  Play,
+  Book,
+  Flag,
+  CheckCircle,
+  Video,
+  HelpCircle,
+  Activity,
+  Star,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import SppManagement from "./SppManagement";
@@ -182,6 +192,18 @@ export default function AdminDashboard({
   };
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowAddModal(false);
+      }
+    };
+    if (showAddModal) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showAddModal]);
+
+  useEffect(() => {
     fetchDashboardStats();
   }, []);
   const [tournamentName, setTournamentName] = useState("");
@@ -286,12 +308,12 @@ export default function AdminDashboard({
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newUserName, setNewUserName] = useState("");
-  const [newUserEmail, setNewUserEmail] = useState("");
-  const [newUserRole, setNewUserRole] = useState("MEMBER");
+  const [newUserUsername, setNewUserUsername] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [showNewUserPassword, setShowNewUserPassword] = useState(false);
   const [newUserBirthDate, setNewUserBirthDate] = useState("");
-  const [newUserWeight, setNewUserWeight] = useState("");
-  const [newUserHeight, setNewUserHeight] = useState("");
-  const [newUserWaistCircum, setNewUserWaistCircum] = useState("");
+  const [isSubmittingNewUser, setIsSubmittingNewUser] = useState(false);
+  const [newUserError, setNewUserError] = useState("");
 
   const [showEditUserModal, setShowEditUserModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
@@ -415,6 +437,10 @@ export default function AdminDashboard({
 
   // Lazy load data based on active tab to optimize initial load speed and reduce network load
   useEffect(() => {
+    if (activeTab === "dashboard") {
+      // Assuming fetchStats exists or is meant to be fetched here. If it doesn't, skip it.
+      // But looking at the code, it probably is dashboard data. Let's just restore the if-else chain.
+    }
     if (activeTab === "payments") {
       fetchPayments();
       fetchUsers(); // Needed for billing/member selection
@@ -825,40 +851,68 @@ export default function AdminDashboard({
   };
 
   // User Actions
+  // User Actions
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUserName || !newUserEmail) return;
+    setNewUserError("");
 
+    // Client-side validations
+    if (newUserName.length < 3 || newUserName.length > 100) {
+      return setNewUserError("Nama lengkap minimal 3 dan maksimal 100 karakter.");
+    }
+    if (!/^[a-zA-Z\s]+$/.test(newUserName)) {
+      return setNewUserError("Nama lengkap hanya boleh mengandung huruf dan spasi.");
+    }
+    
+    if (newUserUsername.length < 4 || newUserUsername.length > 30) {
+      return setNewUserError("Username minimal 4 dan maksimal 30 karakter.");
+    }
+    if (!/^[a-z0-9_.]+$/.test(newUserUsername)) {
+      return setNewUserError("Username hanya boleh mengandung huruf kecil, angka, underscore, dan titik tanpa spasi.");
+    }
+
+    if (newUserPassword.length < 8 || newUserPassword.length > 50) {
+      return setNewUserError("Password minimal 8 dan maksimal 50 karakter.");
+    }
+    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newUserPassword) || /\s/.test(newUserPassword)) {
+      return setNewUserError("Password minimal harus mengandung 1 huruf besar, 1 huruf kecil, 1 angka, dan tanpa spasi.");
+    }
+
+    const today = new Date();
+    const dob = new Date(newUserBirthDate);
+    if (dob > today) {
+      return setNewUserError("Tanggal lahir tidak boleh di masa depan.");
+    }
+
+    setIsSubmittingNewUser(true);
     try {
-      const res = await fetch("/api/users", {
+      const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: newUserName,
-          email: newUserEmail,
-          role: newUserRole,
+          username: newUserUsername,
+          password: newUserPassword,
+          role: "MEMBER",
           birthDate: newUserBirthDate,
-          weight: newUserWeight ? parseFloat(newUserWeight) : null,
-          height: newUserHeight ? parseFloat(newUserHeight) : null,
-          waistCircum: newUserWaistCircum ? parseFloat(newUserWaistCircum) : null,
         }),
       });
       const data = await res.json();
       if (res.ok) {
-        setUsers([data, ...users]);
+        setUsers([data.user, ...users]);
         setNewUserName("");
-        setNewUserEmail("");
+        setNewUserUsername("");
+        setNewUserPassword("");
         setNewUserBirthDate("");
-        setNewUserWeight("");
-        setNewUserHeight("");
-        setNewUserWaistCircum("");
         setShowAddModal(false);
-        fetchCoaches(); // Refresh coach list
       } else {
-        alert(data.error || "Gagal menambah user");
+        setNewUserError(data.error || "Gagal menambah user");
       }
     } catch (err) {
       console.error(err);
+      setNewUserError("Terjadi kesalahan server.");
+    } finally {
+      setIsSubmittingNewUser(false);
     }
   };
 
@@ -3367,99 +3421,99 @@ export default function AdminDashboard({
             </div>
 
             <form onSubmit={handleAddUser} className="flex flex-col gap-4">
-              <div>
-                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Nama Lengkap</label>
-                <input 
-                  type="text" 
-                  value={newUserName}
-                  onChange={(e) => setNewUserName(e.target.value)}
-                  placeholder="Masukkan nama lengkap" 
-                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Alamat Email</label>
-                <input 
-                  type="email" 
-                  value={newUserEmail}
-                  onChange={(e) => setNewUserEmail(e.target.value)}
-                  placeholder="nama@taekwondo.com" 
-                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                />
-              </div>
-
-              {newUserRole === "MEMBER" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Tanggal Lahir <span className="text-[#E10600]">*</span></label>
-                    <input 
-                      type="date" 
-                      required
-                      value={newUserBirthDate}
-                      onChange={(e) => setNewUserBirthDate(e.target.value)}
-                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Berat Badan (kg)</label>
-                    <input 
-                      type="number" step="0.1"
-                      value={newUserWeight}
-                      onChange={(e) => setNewUserWeight(e.target.value)}
-                      placeholder="Contoh: 45.5"
-                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Tinggi Badan (cm)</label>
-                    <input 
-                      type="number" step="0.1"
-                      value={newUserHeight}
-                      onChange={(e) => setNewUserHeight(e.target.value)}
-                      placeholder="Contoh: 155"
-                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Lingkar Perut (cm)</label>
-                    <input 
-                      type="number" step="0.1"
-                      value={newUserWaistCircum}
-                      onChange={(e) => setNewUserWaistCircum(e.target.value)}
-                      placeholder="Lingkar perut untuk ukuran Dobok/Sabuk"
-                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                    />
-                  </div>
+              {newUserError && (
+                <div className="bg-red-50 text-[#E10600] p-3 rounded-xl text-xs font-semibold border border-red-100 flex items-center gap-2">
+                  <Shield size={14} />
+                  <span>{newUserError}</span>
                 </div>
               )}
+              
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Nama Lengkap <span className="text-[#E10600]">*</span></label>
+                <div className="relative">
+                  <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input 
+                    type="text" 
+                    required
+                    autoFocus
+                    value={newUserName}
+                    onChange={(e) => setNewUserName(e.target.value)}
+                    placeholder="Masukkan nama lengkap" 
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl pl-10 pr-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                  />
+                </div>
+              </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Peran Sistem (Role)</label>
-                <select 
-                  value={newUserRole}
-                  onChange={(e) => setNewUserRole(e.target.value)}
-                  className="w-full bg-white border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                >
-                  <option value="MEMBER">Anggota (Member)</option>
-                  <option value="COACH">Pelatih (Coach)</option>
-                  <option value="ADMIN">Super Admin (Administrator)</option>
-                </select>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Username <span className="text-[#E10600]">*</span></label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">@</div>
+                  <input 
+                    type="text" 
+                    required
+                    value={newUserUsername}
+                    onChange={(e) => setNewUserUsername(e.target.value)}
+                    placeholder="Masukkan username" 
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl pl-9 pr-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Password <span className="text-[#E10600]">*</span></label>
+                <div className="relative">
+                  <Shield size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input 
+                    type={showNewUserPassword ? "text" : "password"}
+                    required
+                    value={newUserPassword}
+                    onChange={(e) => setNewUserPassword(e.target.value)}
+                    placeholder="Masukkan password" 
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl pl-10 pr-10 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowNewUserPassword(!showNewUserPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#0F172A]"
+                  >
+                    {showNewUserPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col">
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Tanggal Lahir <span className="text-[#E10600]">*</span></label>
+                <input 
+                  type="date" 
+                  required
+                  value={newUserBirthDate}
+                  onChange={(e) => setNewUserBirthDate(e.target.value)}
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                />
               </div>
 
               <div className="flex gap-3 mt-4">
                 <button 
                   type="button" 
                   onClick={() => setShowAddModal(false)}
-                  className="w-full bg-slate-100 text-gray-500 py-3 rounded-xl font-bold text-xs"
+                  disabled={isSubmittingNewUser}
+                  className="w-full bg-slate-100 text-gray-500 py-3 rounded-xl font-bold text-xs disabled:opacity-50"
                 >
                   Batal
                 </button>
                 <button 
                   type="submit" 
-                  className="w-full bg-[#E10600] text-white py-3 rounded-xl font-bold text-xs shadow-md"
+                  disabled={isSubmittingNewUser}
+                  className="w-full bg-[#E10600] text-white py-3 rounded-xl font-bold text-xs shadow-md disabled:opacity-50 flex justify-center items-center gap-2"
                 >
-                  Daftarkan User
+                  {isSubmittingNewUser ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Memproses...
+                    </>
+                  ) : (
+                    "Daftarkan User"
+                  )}
                 </button>
               </div>
             </form>

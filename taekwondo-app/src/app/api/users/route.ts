@@ -7,6 +7,7 @@ export async function GET() {
       select: {
         id: true,
         email: true,
+        username: true,
         role: true,
         createdAt: true,
         member: {
@@ -38,6 +39,7 @@ export async function GET() {
         : u.role === "COACH" 
           ? (u.coach?.fullName || "Master Ahmad S.B.") 
           : (u.member?.fullName || "Beni Setiawan"),
+      username: u.username || u.email,
       email: u.email,
       role: u.role,
       status: "AKTIF",

@@ -9,7 +9,7 @@ export default function SSOPortal({
   onNavigate 
 }: { 
   onBack: () => void;
-  onNavigate: (view: "member" | "coach" | "admin", email?: string) => void;
+  onNavigate: (view: "member" | "coach" | "admin" | "register", email?: string) => void;
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -193,8 +193,14 @@ export default function SSOPortal({
 
 
 
-          <span className="text-[9px] text-gray-400 font-semibold block text-center mt-4">
-            Need technical support? <button type="button" onClick={() => setShowSupportPopup(true)} className="text-[#E10600] hover:underline cursor-pointer">Contact Admin</button>
+          <span className="text-[9px] text-gray-400 font-semibold flex items-center justify-center gap-3 mt-4">
+            <span>
+              Belum punya akun? <button type="button" onClick={() => onNavigate("register")} className="text-[#E10600] hover:underline cursor-pointer">Daftar Baru</button>
+            </span>
+            <span className="text-gray-300">|</span>
+            <span>
+              Need support? <button type="button" onClick={() => setShowSupportPopup(true)} className="text-gray-500 hover:underline cursor-pointer">Contact Admin</button>
+            </span>
           </span>
         </div>
 

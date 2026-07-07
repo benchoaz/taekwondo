@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       status: statusData.status,
-      qrCode: qrData?.data || null // Base64 image
+      qrCode: qrData?.data ? `data:${qrData.mimetype || 'image/png'};base64,${qrData.data}` : null
     });
 
   } catch (error: any) {

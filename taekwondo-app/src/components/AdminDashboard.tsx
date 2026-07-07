@@ -192,18 +192,6 @@ export default function AdminDashboard({
   };
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setShowAddModal(false);
-      }
-    };
-    if (showAddModal) {
-      window.addEventListener("keydown", handleKeyDown);
-    }
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showAddModal]);
-
-  useEffect(() => {
     fetchDashboardStats();
   }, []);
   const [tournamentName, setTournamentName] = useState("");
@@ -434,6 +422,18 @@ export default function AdminDashboard({
   useEffect(() => {
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowAddModal(false);
+      }
+    };
+    if (showAddModal) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showAddModal]);
 
   // Lazy load data based on active tab to optimize initial load speed and reduce network load
   useEffect(() => {

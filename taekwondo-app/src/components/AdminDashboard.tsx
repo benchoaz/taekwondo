@@ -363,6 +363,7 @@ export default function AdminDashboard({
   const [editCertDocUrl, setEditCertDocUrl] = useState<string | null>(null);
   const [editUserPrepaid, setEditUserPrepaid] = useState(0);
   const [editUserPhone, setEditUserPhone] = useState("");
+  const [editUserBeltHistory, setEditUserBeltHistory] = useState<any[]>([]);
 
   // Events / News State
   const [articles, setArticles] = useState<ArticleData[]>([]);
@@ -1055,6 +1056,7 @@ export default function AdminDashboard({
     setEditCertDocUrl(user.certDocUrl || null);
     setEditUserPrepaid((user as any).prepaidMonthsRemaining || 0);
     setEditUserPhone((user as any).phone || "");
+    setEditUserBeltHistory((user as any).beltHistory || []);
     setEditUserPassword("");
     setShowEditUserModal(true);
   };
@@ -1075,23 +1077,15 @@ export default function AdminDashboard({
           certDocUrl: editCertDocUrl,
           prepaidMonthsRemaining: editUserRole === "MEMBER" ? editUserPrepaid : 0,
           phone: editUserRole === "MEMBER" ? editUserPhone : undefined,
+          beltHistory: editUserRole === "MEMBER" ? editUserBeltHistory : undefined,
           ...(editUserPassword && { password: editUserPassword }),
         }),
       });
       const data = await res.json();
       if (res.ok) {
-        setUsers(users.map(u => u.id === editingUser.id ? { 
-          ...u, 
-          name: editUserName, 
-          email: editUserEmail, 
-          role: editUserRole,
-          currentBelt: editUserRole === "MEMBER" ? editUserBelt : null,
-          certDocUrl: editCertDocUrl,
-          prepaidMonthsRemaining: editUserRole === "MEMBER" ? editUserPrepaid : 0,
-          phone: editUserRole === "MEMBER" ? editUserPhone : null,
-        } : u));
         setShowEditUserModal(false);
         setEditingUser(null);
+        fetchUsers(); // Refresh users list and states to get the latest belt history
         fetchCoaches(); // Refresh coach list
       } else {
         alert(data.error || "Gagal mengupdate user");
@@ -1099,6 +1093,18 @@ export default function AdminDashboard({
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleUploadHistoryCert = (index: number, base64Url: string) => {
+    const updatedHistory = [...editUserBeltHistory];
+    updatedHistory[index] = { ...updatedHistory[index], certUrl: base64Url };
+    setEditUserBeltHistory(updatedHistory);
+  };
+
+  const handleRemoveHistoryCert = (index: number) => {
+    const updatedHistory = [...editUserBeltHistory];
+    updatedHistory[index] = { ...updatedHistory[index], certUrl: null };
+    setEditUserBeltHistory(updatedHistory);
   };
 
   // Dynamic UKT Candidate Review actions
@@ -3853,10 +3859,10 @@ export default function AdminDashboard({
 
 
 
-              {(editUserRole === "MEMBER" || editUserRole === "COACH") && (
+              {editUserRole === "COACH" && (
                 <div>
                   <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5 flex items-center justify-between">
-                    <span>Sertifikat (Opsional/UKT)</span>
+                    <span>Sertifikat Pelatih (Opsional)</span>
                     {editCertDocUrl && (
                       <span className="text-[9px] text-green-500 font-bold bg-green-50 px-2 py-0.5 rounded-md">Terlampir</span>
                     )}
@@ -3913,6 +3919,130 @@ export default function AdminDashboard({
                       </label>
                     </div>
                   )}
+                </div>
+              )}
+
+              {editUserRole === "MEMBER" && (
+                <div className="flex flex-col gap-4">
+                  <div className="border-t border-slate-100 pt-3">
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1">Riwayat Sertifikat UKT Sabuk</label>
+                    <p className="text-[10px] text-gray-400 mb-2">Setiap kenaikan sabuk terdaftar memiliki slot sertifikat terpisah.</p>
+                  </div>
+
+                  {/* 1. Main/Current Belt Upload (if changing belt or initial upload) */}
+                  {editingUser && editUserBelt !== editingUser.currentBelt && (
+                    <div className="bg-[#E10600]/5 border border-[#E10600]/20 p-4 rounded-xl flex flex-col gap-2">
+                      <span className="text-[11px] font-bold text-[#E10600]">
+                        Sertifikat untuk Sabuk Baru: {editUserBelt} (Wajib)
+                      </span>
+                      {editCertDocUrl ? (
+                        <div className="relative group rounded-lg overflow-hidden border border-slate-200 h-24">
+                          {editCertDocUrl.startsWith("data:image") ? (
+                            <img src={editCertDocUrl} alt="Sertifikat" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-slate-50 flex items-center justify-center gap-2 text-slate-400">
+                              <FileText className="w-5 h-5" />
+                              <span className="text-[10px] font-bold">PDF/Dokumen</span>
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <button
+                              type="button"
+                              onClick={() => setEditCertDocUrl(null)}
+                              className="bg-red-500 text-white p-1.5 rounded-full"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center h-20 border border-dashed rounded-lg cursor-pointer bg-white border-slate-300 hover:bg-slate-50 transition-colors">
+                          <UploadCloud className="w-5 h-5 text-slate-400 mb-1" />
+                          <span className="text-[10px] font-semibold text-slate-500">Unggah Sertifikat UKT {editUserBelt}</span>
+                          <input 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*,.pdf"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onload = (e) => {
+                                const url = e.target?.result as string;
+                                if (url) setEditCertDocUrl(url);
+                              };
+                              reader.readAsDataURL(file);
+                            }}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 2. List of Existing Historical Certificates */}
+                  <div className="flex flex-col gap-3">
+                    {editUserBeltHistory.length > 0 ? (
+                      editUserBeltHistory.map((item: any, index: number) => (
+                        <div key={item.id || index} className="p-3 bg-slate-50 border border-slate-100 rounded-xl flex flex-col gap-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-[#0F172A]">
+                              {item.fromBelt ? `${item.fromBelt} ➔ ` : ""}{item.toBelt}
+                            </span>
+                            <span className="text-[9px] text-gray-400 font-semibold">
+                              {item.promotedAt ? new Date(item.promotedAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : ""}
+                            </span>
+                          </div>
+
+                          {item.certUrl ? (
+                            <div className="relative group rounded-lg overflow-hidden border border-slate-200 h-20">
+                              {item.certUrl.startsWith("data:image") ? (
+                                <img src={item.certUrl} alt="Sertifikat" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full bg-slate-50 flex items-center justify-center gap-2 text-slate-400">
+                                  <FileText className="w-5 h-5" />
+                                  <span className="text-[10px] font-bold">PDF/Dokumen</span>
+                                </div>
+                              )}
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveHistoryCert(index)}
+                                  className="bg-red-500 text-white p-1.5 rounded-full"
+                                  title="Hapus Sertifikat"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <label className="flex flex-col items-center justify-center h-16 border border-dashed rounded-lg cursor-pointer bg-white border-slate-300 hover:bg-slate-100 transition-colors">
+                              <UploadCloud className="w-4 h-4 text-slate-400 mb-1" />
+                              <span className="text-[9px] font-semibold text-slate-500">Unggah Sertifikat UKT {item.toBelt}</span>
+                              <input 
+                                type="file" 
+                                className="hidden" 
+                                accept="image/*,.pdf"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const reader = new FileReader();
+                                  reader.onload = (e) => {
+                                    const url = e.target?.result as string;
+                                    if (url) handleUploadHistoryCert(index, url);
+                                  };
+                                  reader.readAsDataURL(file);
+                                }}
+                              />
+                            </label>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-[10px] text-gray-400 italic text-center py-2 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        Belum ada riwayat kenaikan sabuk terdaftar.
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
 

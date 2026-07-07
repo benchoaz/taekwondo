@@ -57,8 +57,10 @@ export async function PUT(
           return NextResponse.json({ error: "Sertifikat UKT wajib diunggah untuk mengubah tingkatan sabuk." }, { status: 400 });
         }
 
+        const memberId = existingUser.member.id;
+
         await prisma.member.update({
-          where: { id: existingUser.member.id },
+          where: { id: memberId },
           data: { 
             fullName: name,
             currentBelt: currentBelt !== undefined ? currentBelt : existingUser.member.currentBelt,
@@ -71,9 +73,66 @@ export async function PUT(
             ...(phone !== undefined && { phone }),
           },
         });
+
+        // 1. Handle Belt History and Certificate creation on belt change
+        if (isBeltChanging) {
+          await prisma.beltHistory.create({
+            data: {
+              memberId,
+              fromBelt: existingUser.member.currentBelt,
+              toBelt: currentBelt,
+              certUrl: newCertDocUrl || null,
+              promotedAt: new Date()
+            }
+          });
+        } else if (certDocUrl !== undefined && certDocUrl !== existingUser.member.certDocUrl) {
+          // If the certificate for the current belt is updated/replaced
+          const currentRankHistory = await prisma.beltHistory.findFirst({
+            where: {
+              memberId,
+              toBelt: existingUser.member.currentBelt
+            }
+          });
+
+          if (currentRankHistory) {
+            await prisma.beltHistory.update({
+              where: { id: currentRankHistory.id },
+              data: { certUrl: certDocUrl }
+            });
+          } else {
+            // Create a history item for the current belt if none exists
+            await prisma.beltHistory.create({
+              data: {
+                memberId,
+                fromBelt: "Sabuk Putih (10 Geup)",
+                toBelt: existingUser.member.currentBelt,
+                certUrl: certDocUrl || null,
+                promotedAt: new Date()
+              }
+            });
+          }
+        }
+
+        // 2. Handle specific updates to other items in the belt history list (if passed)
+        const { beltHistory: reqBeltHistory } = body;
+        if (reqBeltHistory && Array.isArray(reqBeltHistory)) {
+          for (const bh of reqBeltHistory) {
+            if (bh.id) {
+              await prisma.beltHistory.update({
+                where: { id: bh.id },
+                data: {
+                  certUrl: bh.certUrl !== undefined ? bh.certUrl : undefined,
+                  ...(bh.promotedAt && { promotedAt: new Date(bh.promotedAt) }),
+                }
+              });
+            }
+          }
+        }
       } else {
+        const memberId = `M-${Math.floor(1000 + Math.random() * 9000)}`;
         await prisma.member.create({
           data: { 
+            id: memberId,
             userId: id, 
             fullName: name, 
             memberNumber: `TKD-2026-00${Math.floor(10 + Math.random() * 90)}`,
@@ -82,6 +141,17 @@ export async function PUT(
             ...(certDocUrl !== undefined && { certDocUrl }),
             ...(phone !== undefined && { phone }),
           },
+        });
+
+        // Create initial history for newly created member
+        await prisma.beltHistory.create({
+          data: {
+            memberId,
+            fromBelt: "Sabuk Putih (10 Geup)",
+            toBelt: currentBelt !== undefined ? currentBelt : "Sabuk Putih (10 Geup)",
+            certUrl: certDocUrl || null,
+            promotedAt: new Date()
+          }
         });
       }
     }

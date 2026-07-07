@@ -20,6 +20,16 @@ export async function GET() {
             certDocUrl: true,
             prepaidMonthsRemaining: true,
             phone: true,
+            beltHistory: {
+              select: {
+                id: true,
+                fromBelt: true,
+                toBelt: true,
+                promotedAt: true,
+                certUrl: true,
+              },
+              orderBy: { promotedAt: "desc" }
+            }
           }
         },
         coach: {
@@ -53,6 +63,7 @@ export async function GET() {
       certDocUrl: u.role === "COACH" ? u.coach?.certDocUrl : u.member?.certDocUrl || null,
       prepaidMonthsRemaining: u.member?.prepaidMonthsRemaining || 0,
       phone: u.member?.phone || null,
+      beltHistory: u.member?.beltHistory || [],
     }));
 
     return NextResponse.json(formattedUsers);

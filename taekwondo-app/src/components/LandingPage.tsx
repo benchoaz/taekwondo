@@ -53,6 +53,7 @@ export default function LandingPage({
   const [events, setEvents] = useState<any[]>([]);
   const [dbStats, setDbStats] = useState({ members: 0, coaches: 0, achievements: 0 });
 
+  const [announcement, setAnnouncement] = useState<any>(null);
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
 
   useEffect(() => {
@@ -64,6 +65,16 @@ export default function LandingPage({
       })
       .catch(err => console.error("Error fetching settings:", err))
       .finally(() => setIsSettingsLoaded(true));
+
+    // Fetch Latest Announcement
+    fetch("/api/announcements")
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.success && data.announcement) {
+          setAnnouncement(data.announcement);
+        }
+      })
+      .catch(err => console.error("Error fetching announcement:", err));
 
     // Fetch Articles
     fetch("/api/articles")
@@ -264,6 +275,19 @@ export default function LandingPage({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Teks Berjalan Pengumuman Terakhir */}
+      {announcement && (
+        <div className="mt-[80px] bg-[#E10600] text-white py-2 overflow-hidden border-b border-[#C00500] z-30 relative">
+          <div className="max-w-7xl mx-auto px-6 flex items-center gap-4">
+            <span className="bg-white text-[#E10600] text-[10px] font-black uppercase px-2 py-0.5 rounded tracking-widest shrink-0 animate-pulse">📢 INFO</span>
+            {React.createElement('marquee', {
+              className: "text-xs font-bold font-sans tracking-wide",
+              scrollamount: "4"
+            } as any, `${announcement.title}: ${announcement.message}`)}
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="relative w-full min-h-[819px] flex items-center justify-center overflow-hidden bg-[#0F172A]">

@@ -22,6 +22,7 @@ export default function AnnouncementPanel() {
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [type, setType] = useState("ANNOUNCEMENT");
+  const [sendWhatsApp, setSendWhatsApp] = useState(false);
   const [sending, setSending] = useState(false);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
@@ -52,7 +53,7 @@ export default function AnnouncementPanel() {
       const res = await fetch("/api/announcements", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, message, type }),
+        body: JSON.stringify({ title, message, type, sendWhatsApp }),
       });
       const json = await res.json();
       if (json.success) {
@@ -183,6 +184,23 @@ export default function AnnouncementPanel() {
               <AlertTriangle className="w-4 h-4" /> {error}
             </div>
           )}
+
+          {/* WhatsApp Toggle */}
+          <div 
+            className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 cursor-pointer select-none transition-colors hover:bg-slate-100/50" 
+            onClick={() => setSendWhatsApp(!sendWhatsApp)}
+          >
+            <input 
+              type="checkbox"
+              checked={sendWhatsApp}
+              onChange={() => {}} // Handled by container div click
+              className="w-4 h-4 rounded border-gray-300 text-[#E10600] focus:ring-[#E10600] cursor-pointer"
+            />
+            <div>
+              <p className="text-xs font-bold text-[#0F172A]">Kirim Broadcast via WhatsApp</p>
+              <p className="text-[10px] text-gray-500">Kirim juga pesan ini ke nomor WhatsApp anggota yang terdaftar menggunakan WAHA gateway.</p>
+            </div>
+          </div>
 
           {/* Submit */}
           <button

@@ -6,7 +6,7 @@ import { sendPushNotification } from '@/lib/firebase-admin';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { title, message, type = 'ANNOUNCEMENT', link } = body;
+    const { title, message, type = 'ANNOUNCEMENT', link, sendWhatsApp = false } = body;
 
     if (!title || !message) {
       return NextResponse.json({ success: false, message: 'Title and message are required' }, { status: 400 });
@@ -45,20 +45,22 @@ export async function POST(request: Request) {
       );
     await Promise.allSettled(pushPromises);
 
-    // 2. Send WhatsApp Broadcast via WAHA
+    // 2. Send WhatsApp Broadcast via WAHA (only if enabled)
     let waNotified = 0;
-    const { sendAnnouncementNotification } = await import("@/lib/whatsapp");
-    const origin = request.headers.get("origin") || `https://${request.headers.get("host")}` || "https://whitetigertraksaan.com";
-    const fullLink = link ? (link.startsWith("http") ? link : `${origin}${link}`) : undefined;
+    if (sendWhatsApp) {
+      const { sendAnnouncementNotification } = await import("@/lib/whatsapp");
+      const origin = request.headers.get("origin") || `https://${request.headers.get("host")}` || "https://whitetigertraksaan.com";
+      const fullLink = link ? (link.startsWith("http") ? link : `${origin}${link}`) : undefined;
 
-    const waPromises = members
-      .filter((m) => m.phone)
-      .map((m) =>
-        sendAnnouncementNotification(m.phone!, m.fullName, title, message, fullLink)
-          .then((res) => { if (res && res.status) waNotified++; })
-          .catch((err) => console.error('WhatsApp broadcast error:', err))
-      );
-    await Promise.allSettled(waPromises);
+      const waPromises = members
+        .filter((m) => m.phone)
+        .map((m) =>
+          sendAnnouncementNotification(m.phone!, m.fullName, title, message, fullLink)
+            .then((res) => { if (res && res.status) waNotified++; })
+            .catch((err) => console.error('WhatsApp broadcast error:', err))
+        );
+      await Promise.allSettled(waPromises);
+    }
 
     return NextResponse.json({ 
       success: true, 
@@ -68,6 +70,29 @@ export async function POST(request: Request) {
     });
   } catch (error: any) {
     console.error('Announcement error:', error);
+    return NextResponse.json({ success: false, message: error.message }, { status: 500 });
+  }
+}
+
+// GET /api/announcements — Get the latest global announcement
+export async function GET() {
+  try {
+    const latestAnnouncement = await prisma.notification.findFirst({
+      where: {
+        userId: 'ALL',
+        type: 'ANNOUNCEMENT',
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      announcement: latestAnnouncement,
+    });
+  } catch (error: any) {
+    console.error('Fetch latest announcement error:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }

@@ -1775,7 +1775,7 @@ export default function AdminDashboard({
                 { id: "events", label: "Agenda Kegiatan (Event)", icon: <FileText className="w-4 h-4" /> },
                 { id: "coaches", label: "Manajemen Pelatih", icon: <Shield className="w-4 h-4" /> },
                 { id: "achievements", label: "Prestasi Member", icon: <Award className="w-4 h-4" /> },
-                { id: "announcements", label: "📢 Pengumuman", icon: <Megaphone className="w-4 h-4" /> },
+                { id: "announcements", label: "Pengumuman", icon: <Megaphone className="w-4 h-4" /> },
                 { id: "hero_slides", label: "Slider Hero (Juara)", icon: <Sparkles className="w-4 h-4" /> },
                 { id: "gallery", label: "Galeri Foto", icon: <FileText className="w-4 h-4" /> }
               ].map((tab) => (
@@ -3567,6 +3567,154 @@ export default function AdminDashboard({
               </form>
             </div>
           )}
+
+          {/* ── TAB: PENGUMUMAN (ANNOUNCEMENT BROADCAST) ── */}
+          {activeTab === "announcements" && (
+            <AnnouncementPanel />
+          )}
+
+          {/* ── TAB: SLIDER HERO ── */}
+          {activeTab === "hero_slides" && (
+            <div className="flex flex-col gap-8">
+              <div>
+                <h2 className="text-3xl font-black text-[#0F172A] font-display">Slider Hero — Wajah Para Juara</h2>
+                <p className="text-gray-400 text-xs mt-1">Kelola foto atlet berprestasi yang tampil di layar perkenalan website (setelah intro animasi).</p>
+              </div>
+
+              {/* Upload Form */}
+              <div className="bg-white border border-[#0F172A]/5 rounded-2xl p-6 shadow-sm">
+                <h3 className="font-extrabold text-sm text-[#0F172A] mb-4 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#E10600]" /> Tambah Slide Baru
+                </h3>
+                <form onSubmit={handleAddSlide} className="flex flex-col gap-4">
+                  {/* Image Upload */}
+                  <div className="border-2 border-dashed border-[#0F172A]/10 rounded-xl p-4 flex flex-col items-center gap-3 bg-[#F8FAFC]">
+                    {slideImageUrl ? (
+                      <div className="relative w-full">
+                        <img src={slideImageUrl} alt="Preview" className="w-full h-48 object-cover rounded-xl" />
+                        <button type="button" onClick={() => setSlideImageUrl(null)} className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center gap-2 cursor-pointer w-full py-4">
+                        <Upload className="w-8 h-8 text-gray-300" />
+                        <span className="text-xs font-bold text-gray-500">Klik untuk upload foto juara</span>
+                        <span className="text-[10px] text-gray-400">JPG, PNG · Rekomendasi rasio 3:4 (portrait)</span>
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const url = await uploadToServer(file, file.name);
+                          if (url) setSlideImageUrl(url);
+                          else alert("Gagal upload gambar");
+                        }} />
+                      </label>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Nama / Caption</label>
+                      <input type="text" value={slideCaption} onChange={e => setSlideCaption(e.target.value)} placeholder="e.g. Juara Nasional Kyorugi Putra" className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Keterangan Prestasi</label>
+                      <input type="text" value={slideSubtext} onChange={e => setSlideSubtext(e.target.value)} placeholder="e.g. Medali Emas · Kejurnas 2025" className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Urutan Tampil</label>
+                      <input type="number" value={slideOrder} onChange={e => setSlideOrder(e.target.value)} min="0" className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]" />
+                    </div>
+                  </div>
+
+                  <button type="submit" disabled={isSavingSlide || !slideImageUrl} className="bg-[#E10600] hover:bg-red-700 text-white font-bold py-3 rounded-xl text-xs transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    {isSavingSlide ? "Menyimpan..." : "Tambahkan ke Slider"}
+                  </button>
+                </form>
+              </div>
+
+              {/* Existing Slides Grid */}
+              <div className="bg-white border border-[#0F172A]/5 rounded-2xl p-6 shadow-sm">
+                <h3 className="font-extrabold text-sm text-[#0F172A] mb-4">Slide Aktif ({heroSlides.length})</h3>
+                {isLoadingSlides ? (
+                  <div className="text-center py-8 text-gray-400 text-xs">Memuat slides...</div>
+                ) : heroSlides.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400 text-xs border-2 border-dashed rounded-xl">Belum ada slide. Tambahkan foto juara di atas.</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {heroSlides.map((slide) => (
+                      <div key={slide.id} className="relative rounded-2xl overflow-hidden border border-[#0F172A]/5 shadow-sm group">
+                        <img src={slide.imageUrl} alt={slide.caption || ""} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                          {slide.caption && <p className="text-white font-bold text-xs leading-tight">{slide.caption}</p>}
+                          {slide.subtext && <p className="text-yellow-400 text-[10px] mt-0.5">{slide.subtext}</p>}
+                          <p className="text-white/50 text-[9px] mt-1">Urutan: #{slide.order}</p>
+                        </div>
+                        <div className="absolute top-2 right-2 flex gap-1.5">
+                          <button onClick={() => handleToggleSlide(slide.id, slide.isActive)} className={`text-[9px] font-black px-2 py-1 rounded-full transition-all ${slide.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}`}>
+                            {slide.isActive ? "AKTIF" : "NONAKTIF"}
+                          </button>
+                          <button onClick={() => { setEditingSlide(slide); setEditCaption(slide.caption || ""); setEditSubtext(slide.subtext || ""); setEditOrder(String(slide.order || 0)); setEditImageUrl(slide.imageUrl); }} className="bg-blue-500 hover:bg-blue-700 text-white rounded-full p-1 transition-all">
+                            <Edit className="w-3 h-3" />
+                          </button>
+                          <button onClick={() => handleDeleteSlide(slide.id)} className="bg-red-500 text-white rounded-full p-1 hover:bg-red-700 transition-all">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── TAB: GALERI FOTO ── */}
+          {activeTab === "gallery" && (
+            <div className="flex flex-col gap-8">
+              <div className="flex justify-between items-end">
+                <div>
+                  <h1 className="text-3xl font-black text-[#0F172A] tracking-tight">Manajemen Galeri</h1>
+                  <p className="text-gray-500 text-sm mt-1">Kelola foto-foto yang tampil di halaman Galeri Aktivitas.</p>
+                </div>
+                <button
+                  onClick={() => { setCurrentGalleryItem({ imageUrl: "", category: "LATIHAN", title: "" }); setIsGalleryModalOpen(true); }}
+                  className="bg-[#E10600] hover:bg-red-700 text-white px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-lg shadow-red-500/20 active:scale-95"
+                >
+                  <Plus className="w-5 h-5" /> Tambah Foto Galeri
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {galleryItems.map((item: any) => (
+                  <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 group relative">
+                    <div className="aspect-[4/3] bg-slate-100 relative">
+                      <img src={item.imageUrl} alt={item.title || "Gallery Item"} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                        <button onClick={() => handleDeleteGallery(item.id)} className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="p-4 border-t border-slate-100">
+                      <span className="inline-block px-2.5 py-1 bg-slate-100 text-[#0F172A] rounded-md text-[9px] font-black uppercase tracking-wider mb-2">{item.category}</span>
+                      <h3 className="font-bold text-[#0F172A] text-sm line-clamp-2">{item.title || "Tanpa Judul"}</h3>
+                      <p className="text-[10px] text-gray-400 mt-2">Ditambahkan: {new Date(item.createdAt).toLocaleDateString("id-ID")}</p>
+                    </div>
+                  </div>
+                ))}
+                {galleryItems.length === 0 && (
+                  <div className="col-span-full py-16 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-white">
+                    <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-[#0F172A]">Belum ada foto galeri</h3>
+                    <p className="text-sm text-gray-500 mt-1">Klik tombol 'Tambah Foto Galeri' untuk mulai mengunggah.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </main>
       </div>
 
@@ -4700,374 +4848,7 @@ export default function AdminDashboard({
         </div>
       )}
 
-      {/* ── TAB: PENGUMUMAN (ANNOUNCEMENT BROADCAST) ── */}
-      {activeTab === "announcements" && (
-        <AnnouncementPanel />
-      )}
-
-      {/* ── TAB: SLIDER HERO ── */}
-      {activeTab === "hero_slides" && (
-        <div className="flex flex-col gap-8">
-          <div>
-            <h2 className="text-3xl font-black text-[#0F172A] font-display">Slider Hero — Wajah Para Juara</h2>
-            <p className="text-gray-400 text-xs mt-1">Kelola foto atlet berprestasi yang tampil di layar perkenalan website (setelah intro animasi).</p>
-          </div>
-
-          {/* Upload Form */}
-          <div className="bg-white border border-[#0F172A]/5 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-extrabold text-sm text-[#0F172A] mb-4 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#E10600]" /> Tambah Slide Baru
-            </h3>
-            <form onSubmit={handleAddSlide} className="flex flex-col gap-4">
-              {/* Image Upload */}
-              <div className="border-2 border-dashed border-[#0F172A]/10 rounded-xl p-4 flex flex-col items-center gap-3 bg-[#F8FAFC]">
-                {slideImageUrl ? (
-                  <div className="relative w-full">
-                    <img src={slideImageUrl} alt="Preview" className="w-full h-48 object-cover rounded-xl" />
-                    <button type="button" onClick={() => setSlideImageUrl(null)} className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="flex flex-col items-center gap-2 cursor-pointer w-full py-4">
-                    <Upload className="w-8 h-8 text-gray-300" />
-                    <span className="text-xs font-bold text-gray-500">Klik untuk upload foto juara</span>
-                    <span className="text-[10px] text-gray-400">JPG, PNG · Rekomendasi rasio 3:4 (portrait)</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const url = await uploadToServer(file, file.name);
-                      if (url) setSlideImageUrl(url);
-                      else alert("Gagal upload gambar");
-                    }} />
-                  </label>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Nama / Caption</label>
-                  <input type="text" value={slideCaption} onChange={e => setSlideCaption(e.target.value)} placeholder="e.g. Juara Nasional Kyorugi Putra" className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Keterangan Prestasi</label>
-                  <input type="text" value={slideSubtext} onChange={e => setSlideSubtext(e.target.value)} placeholder="e.g. Medali Emas · Kejurnas 2025" className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Urutan Tampil</label>
-                  <input type="number" value={slideOrder} onChange={e => setSlideOrder(e.target.value)} min="0" className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]" />
-                </div>
-              </div>
-
-              <button type="submit" disabled={isSavingSlide || !slideImageUrl} className="bg-[#E10600] hover:bg-red-700 text-white font-bold py-3 rounded-xl text-xs transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                <Sparkles className="w-4 h-4" />
-                {isSavingSlide ? "Menyimpan..." : "Tambahkan ke Slider"}
-              </button>
-            </form>
-          </div>
-
-          {/* Existing Slides Grid */}
-          <div className="bg-white border border-[#0F172A]/5 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-extrabold text-sm text-[#0F172A] mb-4">Slide Aktif ({heroSlides.length})</h3>
-            {isLoadingSlides ? (
-              <div className="text-center py-8 text-gray-400 text-xs">Memuat slides...</div>
-            ) : heroSlides.length === 0 ? (
-              <div className="text-center py-8 text-gray-400 text-xs border-2 border-dashed rounded-xl">Belum ada slide. Tambahkan foto juara di atas.</div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {heroSlides.map((slide) => (
-                  <div key={slide.id} className="relative rounded-2xl overflow-hidden border border-[#0F172A]/5 shadow-sm group">
-                    <img src={slide.imageUrl} alt={slide.caption || ""} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                      {slide.caption && <p className="text-white font-bold text-xs leading-tight">{slide.caption}</p>}
-                      {slide.subtext && <p className="text-yellow-400 text-[10px] mt-0.5">{slide.subtext}</p>}
-                      <p className="text-white/50 text-[9px] mt-1">Urutan: #{slide.order}</p>
-                    </div>
-                    {/* Actions */}
-                    <div className="absolute top-2 right-2 flex gap-1.5">
-                      <button
-                        onClick={() => handleToggleSlide(slide.id, slide.isActive)}
-                        className={`text-[9px] font-black px-2 py-1 rounded-full transition-all ${slide.isActive ? "bg-green-500 text-white" : "bg-gray-400 text-white"}`}
-                      >
-                        {slide.isActive ? "AKTIF" : "NONAKTIF"}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingSlide(slide);
-                          setEditCaption(slide.caption || "");
-                          setEditSubtext(slide.subtext || "");
-                          setEditOrder(String(slide.order || 0));
-                          setEditImageUrl(slide.imageUrl);
-                        }}
-                        className="bg-blue-500 hover:bg-blue-700 text-white rounded-full p-1 transition-all"
-                      >
-                        <Edit className="w-3 h-3" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteSlide(slide.id)}
-                        className="bg-red-500 text-white rounded-full p-1 hover:bg-red-700 transition-all"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Edit Slide Modal */}
-          {editingSlide && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[999] flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl border border-gray-100 flex flex-col gap-4">
-                <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-                  <h3 className="font-extrabold text-lg text-[#0F172A]">Edit Slide Juara</h3>
-                  <button 
-                    onClick={() => setEditingSlide(null)}
-                    className="text-gray-400 hover:text-gray-600 rounded-full p-1 transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                
-                <form onSubmit={handleUpdateSlide} className="flex flex-col gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Foto Juara (Slide)</label>
-                    <div className="relative border-2 border-dashed border-[#0F172A]/10 rounded-xl p-4 flex flex-col items-center justify-center bg-[#F8FAFC]">
-                      {editImageUrl ? (
-                        <div className="relative w-full">
-                          <img src={editImageUrl} alt="Preview" className="w-full h-40 object-cover rounded-lg" />
-                          <button 
-                            type="button" 
-                            onClick={() => setEditImageUrl(null)}
-                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <label className="flex flex-col items-center gap-2 cursor-pointer py-4">
-                          <Upload className="w-8 h-8 text-gray-400" />
-                          <span className="text-xs font-bold text-gray-500">Upload Gambar</span>
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            className="hidden" 
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              const url = await uploadToServer(file, file.name);
-                              if (url) setEditImageUrl(url);
-                              else alert("Gagal upload gambar");
-                            }} 
-                          />
-                        </label>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Nama / Caption</label>
-                    <input 
-                      type="text" 
-                      value={editCaption} 
-                      onChange={e => setEditCaption(e.target.value)} 
-                      placeholder="e.g. Juara Nasional Kyorugi Putra" 
-                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]" 
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Keterangan Prestasi</label>
-                    <input 
-                      type="text" 
-                      value={editSubtext} 
-                      onChange={e => setEditSubtext(e.target.value)} 
-                      placeholder="e.g. Medali Emas · Kejurnas 2025" 
-                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]" 
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Urutan Tampil</label>
-                    <input 
-                      type="number" 
-                      value={editOrder} 
-                      onChange={e => setEditOrder(e.target.value)} 
-                      min="0" 
-                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]" 
-                    />
-                  </div>
-
-                  <div className="flex gap-3 mt-2">
-                    <button 
-                      type="button" 
-                      onClick={() => setEditingSlide(null)}
-                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl text-xs transition-all"
-                    >
-                      Batal
-                    </button>
-                    <button 
-                      type="submit" 
-                      disabled={isUpdatingSlide || !editImageUrl}
-                      className="flex-1 bg-[#E10600] hover:bg-red-700 text-white font-bold py-3 rounded-xl text-xs transition-all disabled:opacity-50"
-                    >
-                      {isUpdatingSlide ? "Menyimpan..." : "Simpan Perubahan"}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Gallery Panel */}
-      {activeTab === "gallery" && (
-        <div className="flex-grow p-8 h-full overflow-y-auto">
-          <div className="flex justify-between items-end mb-8">
-            <div>
-              <h1 className="text-3xl font-black text-[#0F172A] tracking-tight">Manajemen Galeri</h1>
-              <p className="text-gray-500 text-sm mt-1">Kelola foto-foto yang tampil di halaman Galeri Aktivitas.</p>
-            </div>
-            <button 
-              onClick={() => {
-                setCurrentGalleryItem({ imageUrl: "", category: "LATIHAN", title: "" });
-                setIsGalleryModalOpen(true);
-              }}
-              className="bg-[#E10600] hover:bg-red-700 text-white px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-lg shadow-red-500/20 active:scale-95"
-            >
-              <Plus className="w-5 h-5" /> Tambah Foto Galeri
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {galleryItems.map((item: any) => (
-              <div key={item.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 group relative">
-                <div className="aspect-[4/3] bg-slate-100 relative">
-                  <img src={item.imageUrl} alt={item.title || "Gallery Item"} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
-                    <button 
-                      onClick={() => handleDeleteGallery(item.id)}
-                      className="absolute top-3 right-3 bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-                <div className="p-4 border-t border-slate-100">
-                  <span className="inline-block px-2.5 py-1 bg-slate-100 text-[#0F172A] rounded-md text-[9px] font-black uppercase tracking-wider mb-2">
-                    {item.category}
-                  </span>
-                  <h3 className="font-bold text-[#0F172A] text-sm line-clamp-2">{item.title || "Tanpa Judul"}</h3>
-                  <p className="text-[10px] text-gray-400 mt-2">Ditambahkan: {new Date(item.createdAt).toLocaleDateString("id-ID")}</p>
-                </div>
-              </div>
-            ))}
-            
-            {galleryItems.length === 0 && (
-              <div className="col-span-full py-16 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-white">
-                <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <h3 className="text-lg font-bold text-[#0F172A]">Belum ada foto galeri</h3>
-                <p className="text-sm text-gray-500 mt-1">Klik tombol 'Tambah Foto Galeri' untuk mulai mengunggah.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Gallery Modal */}
-      {isGalleryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
-              <div>
-                <h3 className="font-black text-[#0F172A] text-xl">Tambah Foto Galeri</h3>
-                <p className="text-gray-400 text-xs mt-1">Unggah foto aktivitas dojang untuk landing page.</p>
-              </div>
-              <button onClick={() => setIsGalleryModalOpen(false)} className="text-gray-400 hover:text-[#0F172A] p-2 bg-white rounded-full shadow-sm">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="p-6 overflow-y-auto">
-              <form onSubmit={handleSaveGallery} className="flex flex-col gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Foto Aktivitas <span className="text-red-500">*</span></label>
-                  <div className="w-full aspect-[4/3] bg-slate-50 border-2 border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center relative overflow-hidden group">
-                    {currentGalleryItem.imageUrl ? (
-                      <div className="absolute inset-0">
-                        <img src={currentGalleryItem.imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button 
-                            type="button" 
-                            onClick={() => setCurrentGalleryItem({ ...currentGalleryItem, imageUrl: "" })}
-                            className="bg-white/90 text-red-600 rounded-full p-2 shadow-lg"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer p-4 hover:bg-slate-100 transition-colors">
-                        <Upload className="w-8 h-8 text-gray-300 mb-2" />
-                        <span className="text-xs font-bold text-gray-500">Klik untuk unggah foto</span>
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          className="hidden" 
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            const url = await uploadToServer(file, file.name);
-                            if (url) {
-                              setCurrentGalleryItem({ ...currentGalleryItem, imageUrl: url });
-                            } else {
-                              alert("Gagal unggah foto");
-                            }
-                          }} 
-                        />
-                      </label>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Kategori <span className="text-red-500">*</span></label>
-                  <select 
-                    value={currentGalleryItem.category} 
-                    onChange={e => setCurrentGalleryItem({ ...currentGalleryItem, category: e.target.value })} 
-                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] font-bold text-[#0F172A]"
-                    required
-                  >
-                    <option value="LATIHAN">Latihan</option>
-                    <option value="KEJUARAAN">Kejuaraan</option>
-                    <option value="UKT">Ujian Kenaikan Tingkat (UKT)</option>
-                    <option value="SEMINAR">Seminar / Diklat</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Judul / Caption <span className="text-gray-400 font-normal">(Opsional)</span></label>
-                  <input 
-                    type="text" 
-                    value={currentGalleryItem.title} 
-                    onChange={e => setCurrentGalleryItem({ ...currentGalleryItem, title: e.target.value })} 
-                    placeholder="e.g. Latihan Rutin Kelas Dewasa" 
-                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]" 
-                  />
-                </div>
-
-                <div className="flex gap-3 mt-4 pt-4 border-t border-slate-100">
-                  <button type="button" onClick={() => setIsGalleryModalOpen(false)} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl text-xs transition-all">Batal</button>
-                  <button type="submit" disabled={!currentGalleryItem.imageUrl} className="flex-1 bg-[#E10600] hover:bg-red-700 text-white font-bold py-3 rounded-xl text-xs transition-all disabled:opacity-50">Simpan Foto</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* hero_slides and gallery tabs are now inside the main content area above */}
       {/* Tournament Modal */}
       {showTournamentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">

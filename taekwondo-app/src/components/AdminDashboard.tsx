@@ -43,7 +43,8 @@ import {
   EyeOff,
   UploadCloud,
   RefreshCw,
-  Download
+  Download,
+  Menu
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import SppManagement from "./SppManagement";
@@ -174,6 +175,7 @@ export default function AdminDashboard({
   onBack: () => void 
 }) {
   const [activeTab, setActiveTab] = useState("payments"); // Default to financial menu
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile sidebar state
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   
@@ -1743,14 +1745,90 @@ export default function AdminDashboard({
     setSettings({ ...settings, uktRequirements: updated });
   };
 
+  const NAV_TABS = [
+    { id: "payments", label: "Administrasi Keuangan", icon: <CreditCard className="w-4 h-4" /> },
+    { id: "ukt_candidates", label: "Pendaftar Ujian UKT", icon: <UserCheck className="w-4 h-4" /> },
+    { id: "analytics", label: "Dashboard Analytics", icon: <TrendingUp className="w-4 h-4" /> },
+    { id: "curriculum", label: "Curriculum Builder", icon: <BookOpen className="w-4 h-4" /> },
+    { id: "exercises", label: "Daily Quests", icon: <Edit className="w-4 h-4" /> },
+    { id: "belt_requirements", label: "Syarat Ujian (Belt Req)", icon: <Check className="w-4 h-4" /> },
+    { id: "schedules", label: "Pengaturan Jadwal", icon: <Calendar className="w-4 h-4" /> },
+    { id: "spp", label: "Manajemen SPP", icon: <DollarSign className="w-4 h-4" /> },
+    { id: "users", label: "Manajemen User", icon: <Users className="w-4 h-4" /> },
+    { id: "events", label: "Agenda Kegiatan (Event)", icon: <FileText className="w-4 h-4" /> },
+    { id: "coaches", label: "Manajemen Pelatih", icon: <Shield className="w-4 h-4" /> },
+    { id: "achievements", label: "Prestasi Member", icon: <Award className="w-4 h-4" /> },
+    { id: "announcements", label: "Pengumuman", icon: <Megaphone className="w-4 h-4" /> },
+    { id: "hero_slides", label: "Slider Hero (Juara)", icon: <Sparkles className="w-4 h-4" /> },
+    { id: "gallery", label: "Galeri Foto", icon: <FileText className="w-4 h-4" /> },
+    { id: "settings", label: "Pengaturan Aplikasi", icon: <SettingsIcon className="w-4 h-4" /> },
+  ];
+  const activeTabLabel = NAV_TABS.find(t => t.id === activeTab)?.label || "Admin";
+  const activeTabIcon = NAV_TABS.find(t => t.id === activeTab)?.icon;
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
-      <div className="flex-grow flex flex-col md:flex-row">
-        {/* Sidebar */}
-        <aside className="w-full md:w-64 bg-white border-r border-[#0F172A]/5 p-6 flex flex-col justify-between shrink-0">
-          <div className="flex flex-col gap-8">
-            {/* Admin Profile */}
-            <div className="flex items-center gap-3">
+
+      {/* ── MOBILE TOP BAR ── */}
+      <header className="md:hidden sticky top-0 z-40 flex items-center gap-3 bg-white border-b border-slate-100 px-4 py-3 shadow-sm">
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#F8FAFC] hover:bg-slate-100 transition-colors"
+          aria-label="Buka menu"
+        >
+          <Menu className="w-5 h-5 text-[#0F172A]" />
+        </button>
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <span className="flex-shrink-0 text-[#E10600]">{activeTabIcon}</span>
+          <span className="font-extrabold text-sm text-[#0F172A] truncate">{activeTabLabel}</span>
+        </div>
+        <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center border-2 border-[#E10600] text-[#E10600] font-bold text-xs flex-shrink-0">
+          AD
+        </div>
+      </header>
+
+      {/* ── MOBILE OVERLAY ── */}
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div className="flex-grow flex flex-row">
+        {/* ── SIDEBAR ── */}
+        <aside className={`
+          fixed md:static top-0 left-0 h-full md:h-auto z-50 md:z-auto
+          w-72 md:w-64
+          bg-white border-r border-[#0F172A]/5
+          flex flex-col justify-between
+          transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
+          overflow-y-auto
+        `}>
+          {/* Sidebar header */}
+          <div className="flex flex-col gap-6 p-6">
+            {/* Close button (mobile only) */}
+            <div className="flex items-center justify-between md:hidden">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#E10600] flex items-center justify-center bg-red-50 text-[#E10600] font-bold text-sm">
+                  AD
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-sm text-[#0F172A] leading-none">Admin Panel</h3>
+                  <span className="text-[10px] text-gray-400 font-bold block mt-0.5 uppercase tracking-wider">Super Administrator</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Admin Profile (desktop only) */}
+            <div className="hidden md:flex items-center gap-3">
               <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#E10600] flex items-center justify-center bg-red-50 text-[#E10600] font-bold text-lg">
                 AD
               </div>
@@ -1761,30 +1839,14 @@ export default function AdminDashboard({
             </div>
 
             {/* Nav Menu */}
-            <div className="flex flex-col gap-1.5">
-              {[
-                { id: "payments", label: "Administrasi Keuangan", icon: <CreditCard className="w-4 h-4" /> }, 
-                { id: "ukt_candidates", label: "Pendaftar Ujian UKT", icon: <UserCheck className="w-4 h-4" /> },
-                { id: "analytics", label: "Dashboard Analytics", icon: <TrendingUp className="w-4 h-4" /> },
-                { id: "curriculum", label: "Curriculum Builder", icon: <BookOpen className="w-4 h-4" /> },
-                { id: "exercises", label: "Daily Quests", icon: <Edit className="w-4 h-4" /> },
-                { id: "belt_requirements", label: "Syarat Ujian (Belt Req)", icon: <Check className="w-4 h-4" /> },
-                { id: "schedules", label: "Pengaturan Jadwal", icon: <Calendar className="w-4 h-4" /> },
-                { id: "spp", label: "Manajemen SPP", icon: <DollarSign className="w-4 h-4" /> },
-                { id: "users", label: "Manajemen User", icon: <Users className="w-4 h-4" /> },
-                { id: "events", label: "Agenda Kegiatan (Event)", icon: <FileText className="w-4 h-4" /> },
-                { id: "coaches", label: "Manajemen Pelatih", icon: <Shield className="w-4 h-4" /> },
-                { id: "achievements", label: "Prestasi Member", icon: <Award className="w-4 h-4" /> },
-                { id: "announcements", label: "Pengumuman", icon: <Megaphone className="w-4 h-4" /> },
-                { id: "hero_slides", label: "Slider Hero (Juara)", icon: <Sparkles className="w-4 h-4" /> },
-                { id: "gallery", label: "Galeri Foto", icon: <FileText className="w-4 h-4" /> }
-              ].map((tab) => (
+            <div className="flex flex-col gap-1">
+              {NAV_TABS.filter(t => t.id !== 'settings').map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl font-bold text-xs text-left transition-all ${
-                    activeTab === tab.id 
-                      ? "bg-[#E10600] text-white shadow-md shadow-[#E10600]/15" 
+                  onClick={() => { setActiveTab(tab.id); setSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-xs text-left transition-all ${
+                    activeTab === tab.id
+                      ? "bg-[#E10600] text-white shadow-md shadow-[#E10600]/15"
                       : "text-gray-500 hover:bg-[#0F172A]/5 hover:text-[#0F172A]"
                   }`}
                 >
@@ -1795,13 +1857,12 @@ export default function AdminDashboard({
             </div>
           </div>
 
-          <div className="flex flex-col gap-1 pt-6 border-t border-slate-100 mt-6">
-            <button 
-              onClick={() => setActiveTab("settings")}
+          {/* Bottom actions */}
+          <div className="flex flex-col gap-1 px-6 pb-6 pt-4 border-t border-slate-100">
+            <button
+              onClick={() => { setActiveTab("settings"); setSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-xs text-left transition-all ${
-                activeTab === "settings"
-                  ? "bg-[#0F172A] text-white"
-                  : "text-gray-500 hover:text-[#0F172A]"
+                activeTab === "settings" ? "bg-[#0F172A] text-white" : "text-gray-500 hover:text-[#0F172A]"
               }`}
             >
               <SettingsIcon className="w-4 h-4" /> Pengaturan Aplikasi
@@ -1812,8 +1873,9 @@ export default function AdminDashboard({
           </div>
         </aside>
 
-        {/* Main Content Area */}
-        <main className="flex-grow p-8 sm:p-12 w-full max-w-7xl">
+        {/* ── MAIN CONTENT ── */}
+        <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8 lg:p-10 overflow-x-hidden">
+
           {activeTab === "payments" && (
             <div className="flex flex-col gap-8">
               <div className="flex justify-between items-center gap-4 flex-wrap">

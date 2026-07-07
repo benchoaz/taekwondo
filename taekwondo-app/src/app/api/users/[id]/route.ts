@@ -50,6 +50,13 @@ export async function PUT(
       }
     } else if (updatedUser.role === "MEMBER") {
       if (existingUser.member) {
+        const isBeltChanging = currentBelt !== undefined && currentBelt !== existingUser.member.currentBelt;
+        const newCertDocUrl = certDocUrl !== undefined ? certDocUrl : existingUser.member.certDocUrl;
+
+        if (isBeltChanging && !newCertDocUrl) {
+          return NextResponse.json({ error: "Sertifikat UKT wajib diunggah untuk mengubah tingkatan sabuk." }, { status: 400 });
+        }
+
         await prisma.member.update({
           where: { id: existingUser.member.id },
           data: { 

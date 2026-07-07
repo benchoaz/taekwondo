@@ -17,12 +17,14 @@ export async function GET() {
             memberNumber: true,
             currentBelt: true,
             progress: true,
+            certDocUrl: true,
           }
         },
         coach: {
           select: {
             id: true,
             fullName: true,
+            certDocUrl: true,
           }
         }
       },
@@ -46,6 +48,7 @@ export async function GET() {
       memberNumber: u.member?.memberNumber || null,
       currentBelt: u.member?.currentBelt || null,
       progress: u.member?.progress || 0,
+      certDocUrl: u.role === "COACH" ? u.coach?.certDocUrl : u.member?.certDocUrl || null,
     }));
 
     return NextResponse.json(formattedUsers);

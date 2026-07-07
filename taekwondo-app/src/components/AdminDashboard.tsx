@@ -40,7 +40,8 @@ import {
   Activity,
   Star,
   Eye,
-  EyeOff
+  EyeOff,
+  UploadCloud
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import SppManagement from "./SppManagement";
@@ -81,6 +82,7 @@ interface UserData {
   status: string;
   currentBelt?: string | null;
   memberNumber?: string | null;
+  certDocUrl?: string | null;
 }
 
 interface ArticleData {
@@ -307,9 +309,10 @@ export default function AdminDashboard({
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [editUserName, setEditUserName] = useState("");
   const [editUserEmail, setEditUserEmail] = useState("");
-  const [editUserRole, setEditUserRole] = useState("");
-  const [editUserBelt, setEditUserBelt] = useState("");
+  const [editUserRole, setEditUserRole] = useState("MEMBER");
+  const [editUserBelt, setEditUserBelt] = useState("Sabuk Putih (10 Geup)");
   const [editUserPassword, setEditUserPassword] = useState("");
+  const [editCertDocUrl, setEditCertDocUrl] = useState<string | null>(null);
 
   // Events / News State
   const [articles, setArticles] = useState<ArticleData[]>([]);
@@ -922,6 +925,7 @@ export default function AdminDashboard({
     setEditUserEmail(user.email);
     setEditUserRole(user.role);
     setEditUserBelt(user.currentBelt || "Sabuk Putih (10 Geup)");
+    setEditCertDocUrl(user.certDocUrl || null);
     setEditUserPassword("");
     setShowEditUserModal(true);
   };
@@ -939,7 +943,8 @@ export default function AdminDashboard({
           email: editUserEmail,
           role: editUserRole,
           currentBelt: editUserRole === "MEMBER" ? editUserBelt : undefined,
-          password: editUserPassword || undefined,
+          certDocUrl: editCertDocUrl,
+          ...(editUserPassword && { password: editUserPassword }),
         }),
       });
       const data = await res.json();
@@ -949,7 +954,8 @@ export default function AdminDashboard({
           name: editUserName, 
           email: editUserEmail, 
           role: editUserRole,
-          currentBelt: editUserRole === "MEMBER" ? editUserBelt : null 
+          currentBelt: editUserRole === "MEMBER" ? editUserBelt : null,
+          certDocUrl: editCertDocUrl,
         } : u));
         setShowEditUserModal(false);
         setEditingUser(null);
@@ -2594,6 +2600,11 @@ export default function AdminDashboard({
                               <Edit className="w-3 h-3 text-[#E10600]" />
                               Sesuaikan Sabuk / Edit
                             </button>
+                            {u.certDocUrl && (
+                              <a href={u.certDocUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center p-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors mt-2" title="Lihat Sertifikat">
+                                <FileText className="w-4 h-4" />
+                              </a>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -3616,6 +3627,69 @@ export default function AdminDashboard({
                       <option value={editUserBelt}>{editUserBelt}</option>
                     )}
                   </select>
+                </div>
+              )}
+
+              {(editUserRole === "MEMBER" || editUserRole === "COACH") && (
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5 flex items-center justify-between">
+                    <span>Sertifikat (Opsional/UKT)</span>
+                    {editCertDocUrl && (
+                      <span className="text-[9px] text-green-500 font-bold bg-green-50 px-2 py-0.5 rounded-md">Terlampir</span>
+                    )}
+                  </label>
+                  
+                  {editCertDocUrl ? (
+                    <div className="relative group rounded-xl overflow-hidden border border-slate-200">
+                      {editCertDocUrl.startsWith("data:image") ? (
+                        <img 
+                          src={editCertDocUrl} 
+                          alt="Sertifikat" 
+                          className="w-full h-32 object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-32 bg-slate-50 flex flex-col items-center justify-center text-slate-400">
+                          <FileText className="w-8 h-8 mb-2" />
+                          <span className="text-xs font-bold">Dokumen PDF/Lainnya</span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                        <button
+                          type="button"
+                          onClick={() => setEditCertDocUrl(null)}
+                          className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg"
+                          title="Hapus Dokumen"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center w-full">
+                      <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer bg-slate-50 border-slate-300 hover:bg-slate-100 transition-colors">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <UploadCloud className="w-6 h-6 mb-2 text-slate-400" />
+                          <p className="mb-1 text-xs text-slate-500 font-bold"><span className="font-semibold">Klik untuk upload</span></p>
+                          <p className="text-[10px] text-slate-400">SVG, PNG, JPG or PDF</p>
+                        </div>
+                        <input 
+                          type="file" 
+                          className="hidden" 
+                          accept="image/*,.pdf"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                              const url = e.target?.result as string;
+                              if (url) setEditCertDocUrl(url);
+                            };
+                            reader.readAsDataURL(file);
+                          }}
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
               )}
 

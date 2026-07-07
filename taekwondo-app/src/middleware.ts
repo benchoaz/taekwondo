@@ -6,6 +6,7 @@ import { verifyJWT } from '@/lib/auth';
 const publicApiRoutes = [
   '/api/auth/login', // Mobile Flutter Login
   '/api/auth',       // NextAuth operations (uses its own security)
+  '/api/files',      // File serving (handles its own sensitive directory security)
 ];
 
 export async function middleware(request: NextRequest) {

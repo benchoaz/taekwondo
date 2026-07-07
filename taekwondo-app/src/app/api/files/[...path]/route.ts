@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { getToken } from "next-auth/jwt";
+import { verifyJWT } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
@@ -29,8 +29,21 @@ export async function GET(
   const isSensitive = sensitiveDirs.some(dir => relativePath.startsWith(dir));
   
   if (isSensitive) {
-    const token = await getToken({ req: request, secret: process.env.JWT_SECRET });
-    if (!token) {
+    let tokenStr = request.cookies.get('auth_token')?.value;
+    if (!tokenStr) {
+      const authHeader = request.headers.get('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        tokenStr = authHeader.substring(7);
+      }
+    }
+    
+    if (!tokenStr) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    try {
+      await verifyJWT(tokenStr);
+    } catch (e) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
   }

@@ -159,7 +159,8 @@ const getWahaSession = () => process.env.WAHA_SESSION || "default";
 export async function getWahaStatus() {
   try {
     const res = await fetch(`${getWahaUrl()}/api/sessions/${getWahaSession()}`, {
-      headers: getWahaHeaders()
+      headers: getWahaHeaders(),
+      cache: 'no-store'
     });
     if (!res.ok) {
       if (res.status === 404) return { status: "STOPPED" };
@@ -201,7 +202,8 @@ export async function stopWahaSession() {
 export async function getWahaAuthQr() {
   try {
     const res = await fetch(`${getWahaUrl()}/api/${getWahaSession()}/auth/qr`, {
-      headers: getWahaHeaders()
+      headers: getWahaHeaders(),
+      cache: 'no-store'
     });
     if (!res.ok) return null;
     

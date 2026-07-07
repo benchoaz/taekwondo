@@ -204,6 +204,25 @@ export default function SppManagement() {
     }
   };
 
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    if (!confirm("⚠️ PERINGATAN: Menghapus tagihan ini juga akan menghapus data history transaksi pembayaran terkait. Lanjutkan hapus?")) return;
+    try {
+      const res = await fetch(`/api/spp?id=${invoiceId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("✅ Tagihan berhasil dihapus dari sistem.");
+        fetchInvoices();
+      } else {
+        alert(data.error || "Gagal menghapus tagihan");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan.");
+    }
+  };
+
   // ─── Filter Logic ───────────────────────────────────────────────────
   const filteredInvoices = invoices.filter(inv => {
     const statusMatch = filterStatus === "ALL" || inv.status === filterStatus;
@@ -473,16 +492,25 @@ export default function SppManagement() {
                       )}
                     </td>
                     <td className="p-4 text-center">
-                      {inv.status !== "PAID" ? (
+                      <div className="flex items-center justify-center gap-1.5">
+                        {inv.status !== "PAID" ? (
+                          <button
+                            onClick={() => { setSelectedInvoice(inv); setCatatanAdmin(""); }}
+                            className="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors"
+                          >
+                            <Banknote className="w-3.5 h-3.5" /> Tandai Lunas
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-green-500 font-bold">✓ Sudah Lunas</span>
+                        )}
                         <button
-                          onClick={() => { setSelectedInvoice(inv); setCatatanAdmin(""); }}
-                          className="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors"
+                          onClick={() => handleDeleteInvoice(inv.id)}
+                          className="p-1.5 bg-red-50 hover:bg-red-100 text-[#E10600] rounded-lg transition-colors"
+                          title="Hapus Tagihan"
                         >
-                          <Banknote className="w-3.5 h-3.5" /> Tandai Lunas
+                          <X className="w-3.5 h-3.5" />
                         </button>
-                      ) : (
-                        <span className="text-[10px] text-green-500 font-bold">✓ Sudah Lunas</span>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))}

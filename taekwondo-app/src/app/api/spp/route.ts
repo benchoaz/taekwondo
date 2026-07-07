@@ -124,3 +124,40 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+// DELETE /api/spp — Delete a specific SPP invoice (useful for testing/resetting trial data)
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Invoice ID is required" }, { status: 400 });
+    }
+
+    const invoice = await prisma.sppInvoice.findUnique({
+      where: { id },
+    });
+
+    if (!invoice) {
+      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+    }
+
+    // Delete associated payment if exists
+    if (invoice.paymentId) {
+      await prisma.payment.delete({
+        where: { id: invoice.paymentId },
+      });
+    } else {
+      // Just delete the invoice
+      await prisma.sppInvoice.delete({
+        where: { id },
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("Error deleting SPP Invoice:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}

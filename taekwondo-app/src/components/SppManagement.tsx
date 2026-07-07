@@ -428,7 +428,7 @@ export default function SppManagement() {
           <div className="p-12 text-center text-gray-500 text-sm">Belum ada tagihan SPP yang sesuai filter.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className="bg-[#F8FAFC] border-b border-[#0F172A]/5">
                   <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Member</th>

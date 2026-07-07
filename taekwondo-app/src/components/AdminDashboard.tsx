@@ -2597,8 +2597,8 @@ export default function AdminDashboard({
               </div>
 
               {/* Candidates Ledger Table */}
-              <div className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm">
-                <table className="w-full text-left text-xs border-collapse">
+              <div className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse min-w-[700px]">
                   <thead>
                     <tr className="bg-slate-50 text-gray-500 font-bold uppercase border-b border-[#0F172A]/5">
                       <th className="p-4">Anggota</th>
@@ -2766,8 +2766,8 @@ export default function AdminDashboard({
               </div>
 
               {/* Users Table */}
-              <div className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm">
-                <table className="w-full text-left text-xs border-collapse">
+              <div className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse min-w-[700px]">
                   <thead>
                     <tr className="bg-slate-50 text-gray-500 font-bold uppercase border-b border-[#0F172A]/5">
                       <th className="p-4">ID</th>

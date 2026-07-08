@@ -67,7 +67,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     // Redirect guard: arahkan ke /login jika belum terautentikasi
     redirect: (context, state) {
       final authState = ref.read(authProvider);
-      final isLoggedIn = authState.value != null;
+      final isLoggedIn = authState.valueOrNull != null;
       final isGoingToLogin = state.matchedLocation == '/login';
 
       if (!isLoggedIn && !isGoingToLogin) return '/login';

@@ -931,9 +931,7 @@ export default function AdminDashboard({
     if (newUserPassword.length < 8 || newUserPassword.length > 50) {
       return setNewUserError("Password minimal 8 dan maksimal 50 karakter.");
     }
-    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newUserPassword) || /\s/.test(newUserPassword)) {
-      return setNewUserError("Password minimal harus mengandung 1 huruf besar, 1 huruf kecil, 1 angka, dan tanpa spasi.");
-    }
+
 
     const today = new Date();
     const dob = new Date(newUserBirthDate);
@@ -1433,6 +1431,25 @@ export default function AdminDashboard({
       console.error(err);
     }
   };
+
+  const handleDeletePayment = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus catatan transaksi keuangan ini? Tindakan ini permanen.")) return;
+    try {
+      const res = await fetch(`/api/payments?id=${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setPayments(payments.filter(p => p.id !== id));
+      } else {
+        const data = await res.json();
+        alert(data.error || "Gagal menghapus catatan transaksi");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan.");
+    }
+  };
+
 
   const handleCreateManualPayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -2555,26 +2572,35 @@ export default function AdminDashboard({
                                   Lihat Bukti
                                 </a>
                               )}
-                              {p.status === "PENDING" ? (
-                                <div className="flex justify-end gap-1.5">
-                                  <button 
-                                    onClick={() => handleVerifyPayment(p.id, true)}
-                                    className="p-1.5 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition-all"
-                                    title="Approve"
-                                  >
-                                    <Check className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button 
-                                    onClick={() => handleVerifyPayment(p.id, false)}
-                                    className="p-1.5 bg-red-50 hover:bg-red-100 text-[#E10600] rounded-lg transition-all"
-                                    title="Reject"
-                                  >
-                                    <X className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              ) : (
-                                <span className="text-gray-400 text-[10px] font-bold">Terverifikasi</span>
-                              )}
+                              <div className="flex items-center gap-1.5 justify-end">
+                                {p.status === "PENDING" ? (
+                                  <div className="flex justify-end gap-1.5">
+                                    <button 
+                                      onClick={() => handleVerifyPayment(p.id, true)}
+                                      className="p-1.5 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition-all"
+                                      title="Approve"
+                                    >
+                                      <Check className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button 
+                                      onClick={() => handleVerifyPayment(p.id, false)}
+                                      className="p-1.5 bg-red-50 hover:bg-red-100 text-[#E10600] rounded-lg transition-all"
+                                      title="Reject"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-400 text-[10px] font-bold">Terverifikasi</span>
+                                )}
+                                <button 
+                                  onClick={() => handleDeletePayment(p.id)}
+                                  className="p-1.5 bg-red-50 hover:bg-red-100 text-[#E10600] rounded-lg transition-all"
+                                  title="Hapus Transaksi"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
                           </td>
                         </tr>

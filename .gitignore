@@ -5,3 +5,5 @@ screen.png
 *.png:Zone.Identifier
 *.html:Zone.Identifier
 *.md:Zone.Identifier
+*.tar
+*.tar.gz

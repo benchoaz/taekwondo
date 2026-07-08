@@ -51,11 +51,7 @@ export async function PUT(
     } else if (updatedUser.role === "MEMBER") {
       if (existingUser.member) {
         const isBeltChanging = currentBelt !== undefined && currentBelt !== existingUser.member.currentBelt;
-        const newCertDocUrl = certDocUrl !== undefined ? certDocUrl : existingUser.member.certDocUrl;
 
-        if (isBeltChanging && !newCertDocUrl) {
-          return NextResponse.json({ error: "Sertifikat UKT wajib diunggah untuk mengubah tingkatan sabuk." }, { status: 400 });
-        }
 
         const memberId = existingUser.member.id;
 
@@ -65,10 +61,6 @@ export async function PUT(
             fullName: name,
             currentBelt: currentBelt !== undefined ? currentBelt : existingUser.member.currentBelt,
             ...(selfieUrl !== undefined && { selfieUrl }),
-            ...(certDocUrl !== undefined && { certDocUrl }),
-            ...(weight !== undefined && { weight: weight ? parseFloat(weight) : null }),
-            ...(height !== undefined && { height: height ? parseFloat(height) : null }),
-            ...(waistCircum !== undefined && { waistCircum: waistCircum ? parseFloat(waistCircum) : null }),
             ...(prepaidMonthsRemaining !== undefined && { prepaidMonthsRemaining: parseInt(prepaidMonthsRemaining) }),
             ...(phone !== undefined && { phone }),
             ...(status !== undefined && { status }),
@@ -82,36 +74,10 @@ export async function PUT(
               memberId,
               fromBelt: existingUser.member.currentBelt,
               toBelt: currentBelt,
-              certUrl: newCertDocUrl || null,
+              certUrl: certDocUrl || null,
               promotedAt: new Date()
             }
           });
-        } else if (certDocUrl !== undefined && certDocUrl !== existingUser.member.certDocUrl) {
-          // If the certificate for the current belt is updated/replaced
-          const currentRankHistory = await prisma.beltHistory.findFirst({
-            where: {
-              memberId,
-              toBelt: existingUser.member.currentBelt
-            }
-          });
-
-          if (currentRankHistory) {
-            await prisma.beltHistory.update({
-              where: { id: currentRankHistory.id },
-              data: { certUrl: certDocUrl }
-            });
-          } else {
-            // Create a history item for the current belt if none exists
-            await prisma.beltHistory.create({
-              data: {
-                memberId,
-                fromBelt: "Sabuk Putih (10 Geup)",
-                toBelt: existingUser.member.currentBelt,
-                certUrl: certDocUrl || null,
-                promotedAt: new Date()
-              }
-            });
-          }
         }
 
         // 2. Handle specific updates to other items in the belt history list (if passed)
@@ -139,7 +105,6 @@ export async function PUT(
             memberNumber: `TKD-2026-00${Math.floor(10 + Math.random() * 90)}`,
             currentBelt: currentBelt !== undefined ? currentBelt : "Sabuk Putih (10 Geup)",
             ...(selfieUrl !== undefined && { selfieUrl }),
-            ...(certDocUrl !== undefined && { certDocUrl }),
             ...(phone !== undefined && { phone }),
           },
         });

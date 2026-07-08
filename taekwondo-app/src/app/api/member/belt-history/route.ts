@@ -76,11 +76,7 @@ export async function POST(request: Request) {
       data: { certUrl }
     });
 
-    // We can also opportunistically set the Member's certDocUrl to this newest one
-    await prisma.member.update({
-      where: { id: historyItem.memberId },
-      data: { certDocUrl: certUrl }
-    });
+
 
     return NextResponse.json(updatedHistory);
   } catch (error: any) {

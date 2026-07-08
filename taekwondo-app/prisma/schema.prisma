@@ -76,7 +76,6 @@ model Member {
   selfieUrl      String?       @map("selfie_url")         // Foto profil member
   kkUrl          String?       @map("kk_url")             // Kartu Keluarga
   paymentProofUrl String?      @map("payment_proof_url")  // Bukti bayar registrasi
-  certDocUrl     String?       @map("cert_doc_url")       // Sertifikat sabuk / UKT
   phone          String?       @map("phone")              // Nomor WhatsApp
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
@@ -105,6 +104,7 @@ model Member {
   xpLogs         XpLog[]
   shopPurchases  ShopPurchase[]
   coinLogs       DojangCoinLog[]
+  physicalLogs   PhysicalMeasurementLog[]
 }
 
 model Coach {
@@ -608,4 +608,16 @@ model Media {
   uploadedBy   String?  @map("uploaded_by") // User ID
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
+}
+
+model PhysicalMeasurementLog {
+  id          String   @id @default(uuid())
+  memberId    String   @map("member_id")
+  member      Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  weight      Float?   // in kg
+  height      Float?   // in cm
+  waistCircum Float?   // in cm
+  recordedAt  DateTime @default(now()) @map("recorded_at")
+  recordedBy  String?  @map("recorded_by") // ID user/admin yang mencatat
+  notes       String?  @db.Text
 }

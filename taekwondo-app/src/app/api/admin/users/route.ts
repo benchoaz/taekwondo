@@ -57,9 +57,7 @@ export async function POST(request: NextRequest) {
     if (password.length < 8 || password.length > 50) {
       return NextResponse.json({ error: "Password minimal 8 dan maksimal 50 karakter." }, { status: 400 });
     }
-    if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password) || /\s/.test(password)) {
-      return NextResponse.json({ error: "Password minimal harus mengandung 1 huruf besar, 1 huruf kecil, 1 angka, dan tanpa spasi." }, { status: 400 });
-    }
+
 
     const today = new Date();
     const dob = new Date(birthDate);

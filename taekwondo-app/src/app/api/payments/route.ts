@@ -153,3 +153,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+    
+    if (!id) {
+      return NextResponse.json({ error: "Missing payment ID" }, { status: 400 });
+    }
+
+    // Dissociate any linked SPP invoice before deleting the payment
+    const sppInvoice = await prisma.sppInvoice.findFirst({
+      where: { paymentId: id }
+    });
+    if (sppInvoice) {
+      await prisma.sppInvoice.update({
+        where: { id: sppInvoice.id },
+        data: {
+          status: "PENDING",
+          paymentId: null
+        }
+      });
+    }
+
+    await prisma.payment.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true, message: "Payment transaction deleted successfully." });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+

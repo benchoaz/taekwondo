@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "../_components/BottomNav";
-import { Star, ChevronRight, ChevronDown, HelpCircle, X, Check } from "lucide-react";
+import { Star, ChevronRight, ChevronDown, HelpCircle, X, Check, Package, Shield, Scroll, Disc, Medal, Store, Coins, Box } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface ShopItem {
@@ -20,18 +20,18 @@ const RARITY = {
   EPIC:      { label: "Epik",    color: "#c084fc", bg: "#2e1065", border: "#7c3aed", stars: 3 },
   LEGENDARY: { label: "Legenda", color: "#fbbf24", bg: "#451a03", border: "#d97706", stars: 4 },
 };
-const TYPE = {
-  PROFILE_FRAME: { label: "Bingkai", icon: "🖼️", desc: "Tampil di sekeliling foto profilmu" },
-  TITLE:         { label: "Gelar",   icon: "👑", desc: "Teks berwarna di bawah namamu" },
-  THEME:         { label: "Tema",    icon: "🎨", desc: "Warna kartu profilmu" },
-  EMBLEM:        { label: "Emblem",  icon: "🏅", desc: "Lencana unik di halaman profil" },
+const TYPE: Record<string, any> = {
+  PROFILE_FRAME: { label: "Bingkai", icon: Shield, desc: "Tampil di sekeliling foto profilmu" },
+  TITLE:         { label: "Gelar",   icon: Scroll, desc: "Teks berwarna di bawah namamu" },
+  THEME:         { label: "Tema",    icon: Disc, desc: "Warna kartu profilmu" },
+  EMBLEM:        { label: "Emblem",  icon: Medal, desc: "Lencana unik di halaman profil" },
 };
 const TABS = [
-  { label: "Semua", icon: "🛒", filter: null },
-  { label: "Bingkai", icon: "🖼️", filter: "PROFILE_FRAME" },
-  { label: "Gelar", icon: "👑", filter: "TITLE" },
-  { label: "Tema", icon: "🎨", filter: "THEME" },
-  { label: "Emblem", icon: "🏅", filter: "EMBLEM" },
+  { label: "Semua", icon: Package, filter: null },
+  { label: "Bingkai", icon: Shield, filter: "PROFILE_FRAME" },
+  { label: "Gelar", icon: Scroll, filter: "TITLE" },
+  { label: "Tema", icon: Disc, filter: "THEME" },
+  { label: "Emblem", icon: Medal, filter: "EMBLEM" },
 ];
 const HOW_TO_EARN = [
   { icon: "✅", label: "Selesaikan Misi Harian", reward: "+5 DC", color: "#4ade80" },
@@ -130,9 +130,11 @@ export default function ShopPage() {
         <div className="relative z-10 flex items-center justify-between mb-3">
           <div>
             <h1 className="text-2xl font-black flex items-center gap-2">
-              <span className="text-2xl">🛒</span>
-              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">
-                Toko Dojang
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                <Store className="w-5 h-5" />
+              </span>
+              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent drop-shadow-md tracking-tight">
+                Dojang Shop
               </span>
             </h1>
             <p className="text-slate-400 text-xs mt-0.5">Belanjakan koin untuk item eksklusif!</p>
@@ -140,11 +142,11 @@ export default function ShopPage() {
 
           {/* Wallet + Help */}
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowGuide(true)} className="p-2 rounded-xl bg-slate-800/60 border border-slate-700">
+            <button onClick={() => setShowGuide(true)} className="p-2 rounded-xl bg-slate-800/60 border border-slate-700 hover:bg-slate-700 transition">
               <HelpCircle className="w-4 h-4 text-slate-400" />
             </button>
-            <div className="flex items-center gap-2 bg-yellow-400/10 border border-yellow-500/40 rounded-2xl px-3 py-2">
-              <span className="text-lg">🪙</span>
+            <div className="flex items-center gap-2 bg-yellow-400/10 border border-yellow-500/40 rounded-2xl px-3 py-2 shadow-[0_0_10px_rgba(250,204,21,0.2)]">
+              <Coins className="w-5 h-5 text-yellow-400" />
               <div>
                 <p className="text-[9px] text-yellow-400/70 font-black uppercase tracking-widest">Koinmu</p>
                 <p className="text-yellow-300 font-black text-base leading-none">{wallet.toLocaleString()}</p>
@@ -154,8 +156,8 @@ export default function ShopPage() {
         </div>
 
         {/* How to earn coins — mini bar */}
-        <div className="relative z-10 bg-slate-800/50 border border-slate-700/40 rounded-2xl px-3 py-2.5 flex items-center gap-3 overflow-x-auto no-scrollbar">
-          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest shrink-0">Cara dapat koin:</p>
+        <div className="relative z-10 bg-[#1e293b] border-2 border-[#334155] shadow-[inset_0_-3px_6px_rgba(0,0,0,0.5),_0_5px_15px_rgba(0,0,0,0.3)] rounded-2xl px-4 py-3 flex items-center gap-4 overflow-x-auto no-scrollbar">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0 drop-shadow-md">💡 Cara Dapat Koin:</p>
           {HOW_TO_EARN.slice(0, 4).map((e, i) => (
             <div key={i} className="flex items-center gap-1 shrink-0">
               <span className="text-sm">{e.icon}</span>
@@ -169,17 +171,19 @@ export default function ShopPage() {
       </div>
 
       {/* ── Tabs ── */}
-      <div className="flex gap-2 px-4 pt-3 pb-2 overflow-x-auto no-scrollbar">
-        {TABS.map((tab, i) => (
+      <div className="flex flex-wrap justify-center gap-2 px-4 pt-3 pb-2">
+        {TABS.map((tab, i) => {
+          const Icon = tab.icon;
+          return (
           <button key={i} onClick={() => setActiveTab(i)}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-xs whitespace-nowrap transition-all border ${
               activeTab === i
                 ? "bg-purple-600 border-purple-400 text-white shadow-[0_0_14px_#a855f780]"
                 : "bg-slate-800/60 border-slate-700 text-slate-400 hover:border-slate-500"
             }`}>
-            <span>{tab.icon}</span><span>{tab.label}</span>
+            <span><Icon className="w-4 h-4" /></span><span>{tab.label}</span>
           </button>
-        ))}
+        )})}
       </div>
 
       {/* ── Stats Bar ── */}
@@ -195,7 +199,7 @@ export default function ShopPage() {
       {/* ── Empty State ── */}
       {filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-slate-500">
-          <p className="text-5xl mb-3">📦</p>
+          <Box className="w-12 h-12 mb-3 text-slate-600" />
           <p className="font-black text-base">Tidak ada item</p>
           <p className="text-xs mt-1">Belum ada item di kategori ini</p>
         </div>
@@ -229,9 +233,14 @@ export default function ShopPage() {
                   {item.imageUrl ? (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 relative z-10" />
-                  ) : (
-                    <div className="text-6xl text-center relative z-10 group-hover:scale-105 transition-transform duration-500">{t.icon}</div>
-                  )}
+                  ) : (() => {
+                    const Icon = t.icon;
+                    return (
+                      <div className="flex items-center justify-center relative z-10 group-hover:scale-105 transition-transform duration-500 text-slate-400">
+                        <Icon className="w-16 h-16 opacity-50" />
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Name */}
@@ -301,15 +310,18 @@ export default function ShopPage() {
             <div>
               <h4 className="font-black text-purple-400 mb-3 text-sm">🎁 Jenis Item</h4>
               <div className="space-y-2">
-                {Object.entries(TYPE).map(([key, val]) => (
+                {Object.entries(TYPE).map(([key, val]) => {
+                  const Icon = val.icon;
+                  return (
                   <div key={key} className="flex items-start gap-3 bg-slate-800/60 rounded-xl px-3 py-2.5">
-                    <span className="text-2xl mt-0.5">{val.icon}</span>
+                    <span className="mt-0.5"><Icon className="w-6 h-6 text-purple-400" /></span>
                     <div>
                       <p className="font-black text-sm text-white">{val.label}</p>
                       <p className="text-xs text-slate-400">{val.desc}</p>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -372,7 +384,12 @@ export default function ShopPage() {
 
             {/* Item header */}
             <div className="flex items-center gap-4">
-              <div className="text-5xl">{TYPE[selected.type].icon}</div>
+              <div className="flex items-center justify-center">
+                {(() => {
+                  const SelectedIcon = TYPE[selected.type].icon;
+                  return <SelectedIcon className="w-16 h-16 text-purple-400 opacity-80 drop-shadow-[0_0_15px_rgba(192,132,252,0.5)]" />;
+                })()}
+              </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-[10px] font-black px-2 py-0.5 rounded-full border"

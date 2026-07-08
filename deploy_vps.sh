@@ -21,14 +21,14 @@ sshpass -e ssh $SSH_OPTS $HOST "
   # Ekstrak file
   tar -xzf taekwondo_deploy.tar.gz
   
-  # Jalankan podman compose (build ulang)
-  podman-compose up -d --build
+  # Jalankan podman compose (build ulang) dengan sudo
+  sudo podman-compose up -d --build
   
   echo 'Menunggu container web siap (10 detik)...'
   sleep 10
   
-  # Eksekusi migrasi database di dalam container
-  podman exec taekwondo_web npx prisma migrate deploy
+  # Eksekusi migrasi database di dalam container dengan sudo
+  sudo podman exec taekwondo_web npx prisma migrate deploy
   
   # Eksekusi migrasi data fisik yang baru kita buat
 "

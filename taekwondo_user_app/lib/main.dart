@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
@@ -47,6 +48,14 @@ void main() async {
   );
 }
 
+class MyCustomScrollBehavior extends MaterialScrollBehavior {
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+      };
+}
+
 class TaekwondoUserApp extends ConsumerWidget {
   const TaekwondoUserApp({super.key});
 
@@ -55,6 +64,7 @@ class TaekwondoUserApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
+      scrollBehavior: MyCustomScrollBehavior(),
       title: 'Taekwondo Academy',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

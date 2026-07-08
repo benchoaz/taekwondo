@@ -39,15 +39,12 @@ final sppProvider = FutureProvider.autoDispose<SppInvoice?>((ref) async {
   final dio = ref.watch(dioProvider);
 
   try {
-    // Endpoint backend adalah /api/spp — baseUrl sudah berisi /api,
-    // sehingga path relative-nya cukup /spp.
     final response = await dio.get('/spp');
     if (response.statusCode == 200) {
       final List data = response.data;
       if (data.isNotEmpty) {
-        // Utamakan yang belum lunas, fallback ke yang paling baru
         final unpaid = data.firstWhere(
-          (s) => s['status'] == 'UNPAID' || s['status'] == 'OVERDUE',
+          (s) => s['status'] == 'UNPAID' || s['status'] == 'OVERDUE' || s['status'] == 'PENDING',
           orElse: () => data.first,
         );
         return SppInvoice.fromJson(unpaid);
@@ -57,5 +54,24 @@ final sppProvider = FutureProvider.autoDispose<SppInvoice?>((ref) async {
     debugPrint('[SppService] Error fetching SPP: $e');
   }
   return null;
+});
+
+final sppListProvider = FutureProvider.autoDispose<List<SppInvoice>>((ref) async {
+  final authState = ref.watch(authProvider);
+  final user = authState.value;
+  if (user == null) return [];
+
+  final dio = ref.watch(dioProvider);
+
+  try {
+    final response = await dio.get('/spp');
+    if (response.statusCode == 200) {
+      final List data = response.data;
+      return data.map((json) => SppInvoice.fromJson(json)).toList();
+    }
+  } catch (e) {
+    debugPrint('[SppService] Error fetching SPP list: $e');
+  }
+  return [];
 });
 

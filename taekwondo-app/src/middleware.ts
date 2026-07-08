@@ -17,6 +17,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // 0. Handle CORS preflight (allow all OPTIONS requests to pass)
+  if (request.method === 'OPTIONS') {
+    return NextResponse.next();
+  }
+
   // 1. Allow Vercel Crons
   if (pathname.startsWith('/api/cron')) {
     return NextResponse.next();

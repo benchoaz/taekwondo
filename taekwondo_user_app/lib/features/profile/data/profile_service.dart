@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import '../../../core/network/dio_client.dart';
 
 class ProfileAchievement {
@@ -110,11 +111,25 @@ final profileServiceProvider = Provider<ProfileService>((ref) {
 final profileProvider = FutureProvider.autoDispose<ProfileData?>((ref) async {
   final dio = ref.watch(dioProvider);
 
-  final response = await dio.get('/profile');
-  if (response.statusCode == 200 && response.data['success'] == true) {
-    return ProfileData.fromJson(response.data['data']);
-  } else {
-    throw Exception('Gagal memuat profil');
+  try {
+    final response = await dio.get('/profile');
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      return ProfileData.fromJson(response.data['data']);
+    } else if (response.statusCode == 404) {
+      throw Exception('404');
+    } else if (response.statusCode == 401) {
+      throw Exception('401');
+    } else {
+      throw Exception('500');
+    }
+  } catch (e) {
+    if (e is DioException) {
+      final status = e.response?.statusCode;
+      if (status == 404) throw Exception('404');
+      if (status == 401) throw Exception('401');
+      throw Exception('500');
+    }
+    rethrow;
   }
 });
 

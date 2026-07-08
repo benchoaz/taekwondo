@@ -29,7 +29,7 @@ class ShopItem {
       description: json['description'] ?? '',
       price: json['price'] ?? 0,
       type: json['type'] ?? 'FRAME',
-      itemUrl: json['itemUrl'],
+      itemUrl: json['imageUrl'] ?? json['itemUrl'],
       owned: json['owned'] ?? false,
       equipped: json['equipped'] ?? false,
     );

@@ -9,7 +9,7 @@ final notificationProvider = FutureProvider.autoDispose<List<NotificationModel>>
 
   final dio = ref.watch(dioProvider);
   try {
-    final response = await dio.get('/api/notifications', queryParameters: {
+    final response = await dio.get('/notifications', queryParameters: {
       'userId': user.id,
     });
     

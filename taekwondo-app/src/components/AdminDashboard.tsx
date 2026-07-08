@@ -44,7 +44,8 @@ import {
   UploadCloud,
   RefreshCw,
   Download,
-  Menu
+  Menu,
+  Gamepad
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import SppManagement from "./SppManagement";
@@ -52,6 +53,7 @@ import CurriculumBuilder from "./CurriculumBuilder";
 import ExerciseBuilder from "./ExerciseBuilder";
 import BeltRequirementBuilder from "./BeltRequirementBuilder";
 import AnnouncementPanel from "./AnnouncementPanel";
+import GamificationManagement from "./GamificationManagement";
 
 interface SettingData {
   logoUrl: string | null;
@@ -1768,6 +1770,7 @@ export default function AdminDashboard({
     { id: "analytics", label: "Dashboard Analytics", icon: <TrendingUp className="w-4 h-4" /> },
     { id: "curriculum", label: "Curriculum Builder", icon: <BookOpen className="w-4 h-4" /> },
     { id: "exercises", label: "Daily Quests", icon: <Edit className="w-4 h-4" /> },
+    { id: "gamification", label: "Toko Gamifikasi", icon: <Gamepad className="w-4 h-4" /> },
     { id: "belt_requirements", label: "Syarat Ujian (Belt Req)", icon: <Check className="w-4 h-4" /> },
     { id: "schedules", label: "Pengaturan Jadwal", icon: <Calendar className="w-4 h-4" /> },
     { id: "spp", label: "Manajemen SPP", icon: <DollarSign className="w-4 h-4" /> },
@@ -3088,6 +3091,12 @@ export default function AdminDashboard({
                 </div>
               </div>
               <CurriculumBuilder />
+            </div>
+          )}
+
+          {activeTab === "gamification" && (
+            <div className="w-full h-full p-4 md:p-6 overflow-hidden flex flex-col animate-fade-in">
+              <GamificationManagement />
             </div>
           )}
 

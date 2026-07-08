@@ -10,6 +10,7 @@ const prisma = new PrismaClient({ adapter } as any);
 
 async function main() {
   console.log("🛒 Seeding Gamification Shop items...");
+  await prisma.shopItem.deleteMany({});
 
   const items = [
     // ========================================
@@ -21,7 +22,7 @@ async function main() {
       type: "PROFILE_FRAME" as const,
       rarity: "COMMON" as const,
       price: 50,
-      imageUrl: "/shop/badge_white_biasa.png",
+      imageUrl: "https://whitetigerkraksaan.com/shop/frame_white.png",
       cssValue: "2px solid #F8FAFC",
       sortOrder: 1,
     },
@@ -31,7 +32,7 @@ async function main() {
       type: "PROFILE_FRAME" as const,
       rarity: "COMMON" as const,
       price: 100,
-      imageUrl: "/shop/badge_white_biasa.png",
+      imageUrl: "https://whitetigerkraksaan.com/shop/frame_yellow.png",
       cssValue: "3px solid #FFD700",
       sortOrder: 2,
     },
@@ -41,7 +42,7 @@ async function main() {
       type: "PROFILE_FRAME" as const,
       rarity: "RARE" as const,
       price: 350,
-      imageUrl: "/shop/badge_green_langka.jpg",
+      imageUrl: "https://whitetigerkraksaan.com/shop/frame_red.png",
       cssValue: "3px solid transparent; background: linear-gradient(#1e293b, #1e293b) padding-box, linear-gradient(135deg, #E10600, #FF6B35) border-box",
       sortOrder: 3,
     },
@@ -51,7 +52,7 @@ async function main() {
       type: "PROFILE_FRAME" as const,
       rarity: "RARE" as const,
       price: 450,
-      imageUrl: "/shop/badge_green_langka.jpg",
+      imageUrl: "https://whitetigerkraksaan.com/shop/frame_blue.png",
       cssValue: "3px solid #3b82f6; box-shadow: 0 0 12px #3b82f6",
       sortOrder: 4,
     },
@@ -71,7 +72,7 @@ async function main() {
       type: "PROFILE_FRAME" as const,
       rarity: "LEGENDARY" as const,
       price: 5000,
-      imageUrl: "/shop/badge_black_legenda.jpg",
+      imageUrl: "https://lh3.googleusercontent.com/aida/AP1WRLujvOfKh6ew5jLThPsKVvq_gqiGDPbQwllHh8DscJuJtCcpXJ4vf7Uq4b7X6Y9WLWzsrAKl7djVBg77TZ0lsXV1vcWMr7B1DxY8sO_dcf3kHgJ0UjVEQaw676jQ29CALGvwGtykOj9MRxfsGAr0dE9QPqkLi1m5ASCfhxdM5bsJt4aqyLRliVpk24FPHjqlD7EesyIdMY-n00aJwYYUWT1abQJj1lAY5BAZqz286TlQZ-CoY4Si6jpFFMVe",
       cssValue: "3px solid transparent; background: linear-gradient(#1e293b, #1e293b) padding-box, linear-gradient(135deg, #f59e0b, #fbbf24) border-box",
       sortOrder: 6,
     },
@@ -165,7 +166,7 @@ async function main() {
       type: "EMBLEM" as const,
       rarity: "RARE" as const,
       price: 350,
-      imageUrl: "/shop/badge_green_rare.jpg",
+      imageUrl: "https://lh3.googleusercontent.com/aida/AP1WRLvJJz9i5qVTgCruWWiQKZjFsVJZC6zOL5LP3c5WG7ttyt8ksAQDQwrzcz8Rm3ckNHWyNNDgkA5VhPKjGd6RCpfEtkaPRmJzxEsdbY9H93m9J37zNCfnBxAP907PYpr1JNntRgXlpJdnmXPU4XmjuvR3vZOceZdN7DKRBqtsmzN3bXfDCQs879TaoB94_HYSTyIb-ZJdO7Hfe2hOthUd8ZltR3r_2H5YQ37iJhqLScP1f3tIb3LV7VlLei0",
       sortOrder: 29,
     },
     {

@@ -13,6 +13,8 @@ final dioProvider = Provider<Dio>((ref) {
     headers: {
       'Content-Type': 'application/json',
     },
+    // ✅ Jangan lempar exception untuk status di bawah 500 (misalnya 401 atau 404)
+    validateStatus: (status) => status != null && status < 500,
   ));
 
   // ✅ Interceptor mengirim JWT token dari SecureStorage ke setiap request
@@ -26,11 +28,16 @@ final dioProvider = Provider<Dio>((ref) {
       return handler.next(options);
     },
     onError: (DioException e, handler) {
-      // Log error untuk debugging
-      // ignore: avoid_print
       debugPrint('[DioError] ${e.requestOptions.path}: ${e.message}');
       return handler.next(e);
     },
+  ));
+
+  // ✅ Tambahkan Log Interceptor untuk melihat detail request & response
+  dio.interceptors.add(LogInterceptor(
+    requestBody: true,
+    responseBody: true,
+    logPrint: (obj) => debugPrint('[DioLog] $obj'),
   ));
 
   return dio;

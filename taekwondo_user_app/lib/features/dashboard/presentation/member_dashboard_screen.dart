@@ -538,18 +538,24 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       const SizedBox(height: 8),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: item.owned ? Colors.green : brandRed,
+                          backgroundColor: item.equipped 
+                              ? Colors.grey 
+                              : (item.owned ? Colors.green : brandRed),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           minimumSize: const Size(double.infinity, 36),
                         ),
-                        onPressed: item.owned 
-                            ? null // Item owned, can be equipped in profile
-                            : () => _handleBuyItem(item.id),
+                        onPressed: item.equipped 
+                            ? null 
+                            : (item.owned 
+                                ? () => _handleEquipItem(item.id) 
+                                : () => _handleBuyItem(item.id)),
                         child: Text(
-                          item.owned ? 'Dimiliki' : 'Beli',
+                          item.equipped 
+                              ? 'Dipakai' 
+                              : (item.owned ? 'Pasang' : 'Beli'),
                           style: GoogleFonts.hankenGrotesk(fontSize: 12, fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -781,6 +787,22 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       }
     } catch (e) {
       scaffoldMessenger.showSnackBar(SnackBar(content: Text('Gagal membeli item: $e')));
+    }
+  }
+
+  void _handleEquipItem(String itemId) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    try {
+      final success = await ref.read(shopServiceProvider).equipItem(itemId);
+      if (success) {
+        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Item berhasil dipasang! ✨')));
+        ref.invalidate(shopDataProvider);
+        ref.invalidate(profileProvider);
+      } else {
+        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Gagal memasang item.')));
+      }
+    } catch (e) {
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Gagal memasang item: $e')));
     }
   }
 

@@ -82,6 +82,12 @@ class ShopService {
     final response = await dio.post('/shop/buy', data: {'itemId': itemId});
     return response.statusCode == 200 && response.data['success'] == true;
   }
+
+  Future<bool> equipItem(String itemId) async {
+    final dio = _ref.read(dioProvider);
+    final response = await dio.post('/shop/equip', data: {'itemId': itemId});
+    return response.statusCode == 200 && response.data['success'] == true;
+  }
 }
 
 final shopServiceProvider = Provider<ShopService>((ref) => ShopService(ref));

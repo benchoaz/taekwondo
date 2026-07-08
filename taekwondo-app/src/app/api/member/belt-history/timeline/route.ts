@@ -31,7 +31,7 @@ export async function GET(request: Request) {
         fromBelt: history.fromBelt,
         toBelt: history.toBelt,
         promotedAt: history.promotedAt,
-        certUrl: matchingCert ? matchingCert.qrCodeUrl : history.certUrl, 
+        certUrl: matchingCert ? matchingCert.qrCodeUrl : null, 
         certificateDetails: matchingCert || null,
       };
     });

@@ -88,33 +88,37 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       backgroundColor: darkBg,
       body: Stack(
         children: [
-          // Background Glowing Orb
-          Positioned(
-            top: -150,
-            left: -50,
-            right: -50,
-            child: Container(
-              height: 350,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: brandRed.withOpacity(0.08),
-              ),
+          // Tiger Background
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/white_tiger_login_bg.png',
+              fit: BoxFit.cover,
             ),
           ),
+          // Dark overlay gradient to maintain readability
           Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-              child: const SizedBox(),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    darkBg.withOpacity(0.4),
+                    darkBg.withOpacity(0.85),
+                  ],
+                ),
+              ),
             ),
           ),
 
           SafeArea(
-            child: Center(
+            child: Align(
+              alignment: Alignment.bottomCenter,
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                padding: const EdgeInsets.only(left: 24.0, right: 24.0, top: 16.0, bottom: 60.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Header Title
@@ -161,47 +165,49 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     // Gamified Form Card
                     Container(
                       decoration: BoxDecoration(
-                        color: cardBg,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.08),
-                          width: 1.5,
-                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 20,
+                            color: Colors.black.withOpacity(0.5),
+                            blurRadius: 30,
                             offset: const Offset(0, 10),
                           )
                         ],
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
+                        child: BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: cardBg.withOpacity(0.35),
+                              borderRadius: BorderRadius.circular(24),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.2),
+                                width: 1.5,
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                       child: Form(
                         key: _formKey,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            // Card Title with Belt/Martial Arts Icon
-                            Row(
-                              children: [
-                                const Icon(Icons.sports_martial_arts, color: brandRed, size: 24),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    'MEMULAI PETUALANGAN',
-                                    style: GoogleFonts.spaceGrotesk(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                      color: textWhite,
-                                      letterSpacing: 1.0,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            // Card Title
+                            Text(
+                              'MEMULAI PETUALANGAN',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                                color: textWhite,
+                                letterSpacing: 1.0,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             Text(
                               'Masuk dengan email & password terdaftar Anda',
+                              textAlign: TextAlign.center,
                               style: GoogleFonts.hankenGrotesk(
                                 fontSize: 12,
                                 color: textGray,
@@ -382,34 +388,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                     ),
+                  ),
+                ),
+                    ),
                     const SizedBox(height: 36),
 
-                    // Footer KEMBALI link
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Ingin beralih ke portal utama? ',
-                          style: GoogleFonts.hankenGrotesk(
-                            color: textGray,
-                            fontSize: 13,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            // Back to main info website
-                          },
-                          child: Text(
-                            'KEMBALI',
-                            style: GoogleFonts.spaceGrotesk(
-                              color: brandRed,
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),

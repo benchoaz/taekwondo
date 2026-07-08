@@ -701,9 +701,46 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         children: [
           _buildNavItem(Icons.home_outlined, Icons.home, 'Lobby', 0),
           _buildNavItem(Icons.shopping_bag_outlined, Icons.shopping_bag, 'Toko', 1),
-          _buildNavItem(Icons.bolt_outlined, Icons.bolt, 'Misi', 2),
+          _buildMisiNavItem(2),
           _buildNavItem(Icons.credit_card_outlined, Icons.credit_card, 'SPP', 3),
           _buildNavItem(Icons.person_outline, Icons.person, 'Atlet', 4),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMisiNavItem(int index) {
+    final isActive = _currentTab == index;
+    return GestureDetector(
+      onTap: () => setState(() => _currentTab = index),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: isActive ? brandRed.withOpacity(0.15) : Colors.transparent,
+              shape: BoxShape.circle,
+              border: isActive ? Border.all(color: brandRed, width: 1.5) : null,
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/daily_quest_tiger_transparent.png',
+                width: 24,
+                height: 24,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Misi',
+            style: GoogleFonts.spaceGrotesk(
+              fontSize: 10,
+              fontWeight: isActive ? FontWeight.w900 : FontWeight.bold,
+              color: isActive ? brandRed : textGray,
+            ),
+          )
         ],
       ),
     );

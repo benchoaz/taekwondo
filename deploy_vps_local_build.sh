@@ -9,7 +9,7 @@ podman build -f Containerfile -t taekwondo_web_local:latest .
 
 echo "2. Menyimpan image ke file tar..."
 cd /home/beni/taekwondo
-podman save taekwondo_web_local:latest -o taekwondo_web.tar
+rm -f taekwondo_web.tar && podman save taekwondo_web_local:latest -o taekwondo_web.tar
 
 echo "3. Mengirim image tar dan konfigurasi ke VPS..."
 sshpass -e scp $SSH_OPTS taekwondo_web.tar docker-compose.yml $HOST:/home/ubuntu/
@@ -30,13 +30,12 @@ sshpass -e ssh $SSH_OPTS $HOST "
   
   # Jalankan podman compose tanpa build
   echo 'Menjalankan ulang layanan web...'
-  podman-compose up -d
+  podman-compose down && podman-compose up -d
   
   echo 'Menunggu container siap (10 detik)...'
   sleep 10
   
   # Eksekusi migrasi
   podman exec taekwondo_web npx prisma migrate deploy
-  podman exec taekwondo_web npx tsx scripts/migrate_physical_data.ts
 "
 echo "Deployment Selesai!"

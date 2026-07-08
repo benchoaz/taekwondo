@@ -56,6 +56,9 @@ export default function MemberDashboard({
     weight?: number | null;
     height?: number | null;
     waistCircum?: number | null;
+    physicalLogs?: any[];
+    beltHistory?: any[];
+    certificates?: any[];
   } | null>(null);
 
   // Profile Edit States
@@ -938,6 +941,34 @@ export default function MemberDashboard({
     }
   };
 
+
+  const handleSavePhysical = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingPhysical(true);
+    try {
+      const res = await fetch("/api/profile/biometrics", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          weight: inputWeight || null,
+          height: inputHeight || null,
+          waistCircum: inputWaist || null
+        })
+      });
+
+      if (!res.ok) throw new Error("Gagal menyimpan data fisik");
+
+      const resData = await res.json();
+      if (resData.success) {
+        alert("Data fisik berhasil diperbarui!");
+        window.location.reload();
+      }
+    } catch (error) {
+      alert("Terjadi kesalahan, silakan coba lagi.");
+    } finally {
+      setIsSavingPhysical(false);
+    }
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -31,6 +31,5 @@ sshpass -e ssh $SSH_OPTS $HOST "
   podman exec taekwondo_web npx prisma migrate deploy
   
   # Eksekusi migrasi data fisik yang baru kita buat
-  podman exec taekwondo_web npx tsx scripts/migrate_physical_data.ts
 "
 echo "Deployment Selesai!"

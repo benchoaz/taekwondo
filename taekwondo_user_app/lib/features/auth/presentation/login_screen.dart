@@ -1,12 +1,20 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../settings/data/settings_provider.dart';
 import '../data/auth_provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/network/firebase_messaging_service.dart';
+
+// Color palette matching Next.js portal
+const Color darkBg = Color(0xFF0F172A); 
+const Color cardBg = Color(0xFF1E293B); 
+const Color brandRed = Color(0xFFE10600); 
+const Color textWhite = Colors.white;
+const Color textGray = Color(0xFF94A3B8);
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -22,9 +30,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  // Local Asset paths
-  static const String _bgImagePath = 'assets/images/bg_taekwondo_2.png';
-
   void _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -35,7 +40,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _isLoading = true;
     });
     
-    // Auth provider uses email as primary identifier in backend mapping
     final success = await ref.read(authProvider.notifier).login(username, password);
     
     if (!mounted) return;
@@ -51,25 +55,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           final fcmService = FirebaseMessagingService(ref.read(dioProvider));
           fcmService.initNotifications(userState.value!);
         } catch (e) {
-          debugPrint("FCM Init failed during login (Safe to ignore if Firebase is not fully configured): $e");
+          debugPrint("FCM Init failed during login: $e");
         }
       }
-
       context.go('/');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          backgroundColor: Colors.redAccent.shade700,
+          backgroundColor: brandRed,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: const Row(
+          content: Row(
             children: [
-              Icon(Icons.error_outline, color: Colors.white),
-              SizedBox(width: 12),
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Login gagal. Periksa kembali username & password Anda.',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ),
             ],
@@ -79,377 +82,335 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  Future<void> _launchGoogleForm() async {
-    final Uri url = Uri.parse('https://docs.google.com/forms/d/e/1FAIpQLSduDpy1w85Jd1VfT0ZcshF3W2K4c4K5XyT27U_8l9u-5wW7rA/viewform?usp=sf_link');
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tidak dapat membuka link pendaftaran')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final settingsAsyncValue = ref.watch(settingsProvider);
-
     return Scaffold(
+      backgroundColor: darkBg,
       body: Stack(
         children: [
-          // 1. Full-screen background image (Taekwondo Fighter)
-          Positioned.fill(
-            child: Image.asset(
-              _bgImagePath,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(color: Colors.black),
-            ),
-          ),
-
-          // 3. Dark gradient overlay to ensure text readability
-          Positioned.fill(
+          // Background Glowing Orb
+          Positioned(
+            top: -150,
+            left: -50,
+            right: -50,
             child: Container(
+              height: 350,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withValues(alpha: 0.55),
-                    Colors.black.withValues(alpha: 0.35),
-                    Colors.black.withValues(alpha: 0.85),
-                  ],
-                ),
+                shape: BoxShape.circle,
+                color: brandRed.withOpacity(0.08),
               ),
             ),
           ),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+              child: const SizedBox(),
+            ),
+          ),
 
-          // 4. Main content with scroll & Glassmorphism card
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                child: TweenAnimationBuilder<double>(
-                  tween: Tween<double>(begin: 0.0, end: 1.0),
-                  duration: const Duration(milliseconds: 1000),
-                  curve: Curves.easeOutCubic,
-                  builder: (context, value, child) {
-                    return Opacity(
-                      opacity: value,
-                      child: Transform.translate(
-                        offset: Offset(0, 40 * (1 - value)),
-                        child: child,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Header Title
+                    Text(
+                      'WHITE TIGER',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: textWhite,
+                        letterSpacing: 2,
                       ),
-                    );
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Dojang Branding & Logo
-                      settingsAsyncValue.when(
-                        data: (setting) => Column(
+                    ),
+                    Text(
+                      'TAEKWONDO CLUB',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                        color: brandRed,
+                        letterSpacing: 2,
+                        shadows: [
+                          Shadow(
+                            color: brandRed.withOpacity(0.4),
+                            offset: const Offset(0, 0),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '— PORTAL MEMBER —',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: textGray,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                    const SizedBox(height: 36),
+
+                    // Gamified Form Card
+                    Container(
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.08),
+                          width: 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          )
+                        ],
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            // Logo Container (Transparent background, white tinted logo)
-                            Container(
-                              width: 140,
-                              height: 140,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                              ),
-                              padding: const EdgeInsets.all(16),
-                              child: setting.logoUrl != null && setting.logoUrl!.isNotEmpty
-                                  ? Image.network(
-                                      setting.logoUrl!,
-                                      fit: BoxFit.contain,
-                                      color: Colors.white,
-                                      errorBuilder: (context, error, stackTrace) => Image.asset(
-                                        'assets/images/logo.png', 
-                                        fit: BoxFit.contain,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : Image.asset(
-                                      'assets/images/logo.png',
-                                      fit: BoxFit.contain,
-                                      color: Colors.white,
+                            // Card Title with Belt/Martial Arts Icon
+                            Row(
+                              children: [
+                                const Icon(Icons.sports_martial_arts, color: brandRed, size: 24),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'MEMULAI PETUALANGAN',
+                                    style: GoogleFonts.spaceGrotesk(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w900,
+                                      color: textWhite,
+                                      letterSpacing: 1.0,
                                     ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 16),
-                            // Dojang Name
+                            const SizedBox(height: 6),
                             Text(
-                              setting.dojangName.toUpperCase(),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 1.5,
-                                color: Colors.white,
-                                shadows: [Shadow(color: Colors.black54, offset: Offset(0, 2), blurRadius: 4)],
+                              'Masuk dengan email & password terdaftar Anda',
+                              style: GoogleFonts.hankenGrotesk(
+                                fontSize: 12,
+                                color: textGray,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            // Motto
+                            const SizedBox(height: 28),
+
+                            // EMAIL ATLET Label
                             Text(
-                              setting.motto.toUpperCase(),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 10,
-                                letterSpacing: 3,
+                              'EMAIL ATLET',
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white.withValues(alpha: 0.7),
-                                shadows: const [Shadow(color: Colors.black54, offset: Offset(0, 1), blurRadius: 2)],
+                                color: textWhite,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            // Username / Email Field
+                            TextFormField(
+                              controller: _usernameController,
+                              style: const TextStyle(color: textWhite),
+                              decoration: InputDecoration(
+                                hintText: 'member.beni@taekwondo.com',
+                                hintStyle: TextStyle(color: textWhite.withOpacity(0.2), fontSize: 14),
+                                prefixIcon: Icon(Icons.email_outlined, color: textWhite.withOpacity(0.5)),
+                                filled: true,
+                                fillColor: darkBg,
+                                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: brandRed, width: 2),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: brandRed, width: 1),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: brandRed, width: 2),
+                                ),
+                              ),
+                              validator: (val) {
+                                if (val == null || val.trim().isEmpty) {
+                                  return 'Email tidak boleh kosong';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 20),
+
+                            // PASSWORD Label & Lupa password link
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'PASSWORD',
+                                  style: GoogleFonts.spaceGrotesk(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: textWhite,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(content: Text('Silakan hubungi Administrator Sabom untuk mereset kata sandi Anda.')),
+                                    );
+                                  },
+                                  child: Text(
+                                    'LUPA PIN/PASSWORD?',
+                                    style: GoogleFonts.spaceGrotesk(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: brandRed,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            // Password Field
+                            TextFormField(
+                              controller: _passwordController,
+                              obscureText: _obscurePassword,
+                              style: const TextStyle(color: textWhite),
+                              decoration: InputDecoration(
+                                hintText: '••••••••',
+                                hintStyle: TextStyle(color: textWhite.withOpacity(0.2), fontSize: 14),
+                                prefixIcon: Icon(Icons.lock_outline, color: textWhite.withOpacity(0.5)),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                                    color: textWhite.withOpacity(0.5),
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
+                                filled: true,
+                                fillColor: darkBg,
+                                contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: brandRed, width: 2),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: brandRed, width: 1),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: const BorderSide(color: brandRed, width: 2),
+                                ),
+                              ),
+                              validator: (val) {
+                                if (val == null || val.isEmpty) {
+                                  return 'Password tidak boleh kosong';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 28),
+
+                            //MULAI BATTLE (LOGIN) Button
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: textWhite.withOpacity(0.5), width: 1.5),
+                              ),
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _handleLogin,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: brandRed,
+                                  foregroundColor: textWhite,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 3,
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        ),
+                                      )
+                                    : Text(
+                                        'MULAI BATTLE (LOGIN)',
+                                        style: GoogleFonts.spaceGrotesk(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1.0),
+                                      ),
                               ),
                             ),
                           ],
                         ),
-                        loading: () => const Center(
-                          child: CircularProgressIndicator(color: Colors.white),
-                        ),
-                        error: (error, stack) => const Text(
-                          'WHITE TIGER TAEKWONDO',
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        ),
                       ),
-                      
-                      const SizedBox(height: 32),
+                    ),
+                    const SizedBox(height: 36),
 
-                      // 5. Glassmorphism Form Card
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(28),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(28),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                width: 1.5,
-                              ),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  // Form Title
-                                  const Text(
-                                    'Selamat Datang',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 26,
-                                      fontWeight: FontWeight.w900,
-                                      color: Colors.white,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    'White Tiger Club Taekwondo',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.white.withValues(alpha: 0.7),
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 28),
-
-                                  // Username Field
-                                  TextFormField(
-                                    controller: _usernameController,
-                                    style: const TextStyle(color: Colors.white),
-                                    decoration: InputDecoration(
-                                      hintText: 'Masukkan Username',
-                                      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 14),
-                                      prefixIcon: Icon(Icons.person, color: Colors.white.withValues(alpha: 0.7)),
-                                      filled: true,
-                                      fillColor: Colors.white.withValues(alpha: 0.05),
-                                      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: const BorderSide(color: Colors.redAccent, width: 2),
-                                      ),
-                                      errorBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: const BorderSide(color: Colors.redAccent, width: 1),
-                                      ),
-                                      focusedErrorBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: const BorderSide(color: Colors.redAccent, width: 2),
-                                      ),
-                                    ),
-                                    validator: (val) {
-                                      if (val == null || val.trim().isEmpty) {
-                                        return 'Username tidak boleh kosong';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  const SizedBox(height: 20),
-
-                                  // Password Field
-                                  TextFormField(
-                                    controller: _passwordController,
-                                    obscureText: _obscurePassword,
-                                    style: const TextStyle(color: Colors.white),
-                                    decoration: InputDecoration(
-                                      hintText: 'Masukkan Password',
-                                      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 14),
-                                      prefixIcon: Icon(Icons.lock, color: Colors.white.withValues(alpha: 0.7)),
-                                      suffixIcon: IconButton(
-                                        icon: Icon(
-                                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                                          color: Colors.white.withValues(alpha: 0.7),
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            _obscurePassword = !_obscurePassword;
-                                          });
-                                        },
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.white.withValues(alpha: 0.05),
-                                      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: const BorderSide(color: Colors.redAccent, width: 2),
-                                      ),
-                                      errorBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: const BorderSide(color: Colors.redAccent, width: 1),
-                                      ),
-                                      focusedErrorBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        borderSide: const BorderSide(color: Colors.redAccent, width: 2),
-                                      ),
-                                    ),
-                                    validator: (val) {
-                                      if (val == null || val.isEmpty) {
-                                        return 'Password tidak boleh kosong';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-
-                                  // Forgot Password
-                                  const SizedBox(height: 8),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: TextButton(
-                                      onPressed: () {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Silakan hubungi Administrator Sabom untuk mereset kata sandi Anda.')),
-                                        );
-                                      },
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: Colors.white.withValues(alpha: 0.8),
-                                        padding: EdgeInsets.zero,
-                                        minimumSize: const Size(0, 0),
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                      ),
-                                      child: const Text(
-                                        'Lupa Password?',
-                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 28),
-
-                                  // Primary Login Button (Merah Khas Taekwondo)
-                                  ElevatedButton(
-                                    onPressed: _isLoading ? null : _handleLogin,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFFE10600), // Red
-                                      foregroundColor: Colors.white,
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      elevation: 8,
-                                      shadowColor: const Color(0xFFE10600).withValues(alpha: 0.4),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                    ),
-                                    child: _isLoading
-                                        ? const SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 3,
-                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                            ),
-                                          )
-                                        : const Text(
-                                            'MASUK',
-                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 2),
-                                          ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                    // Footer KEMBALI link
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Ingin beralih ke portal utama? ',
+                          style: GoogleFonts.hankenGrotesk(
+                            color: textGray,
+                            fontSize: 13,
                           ),
                         ),
-                      ),
-                      
-                      const SizedBox(height: 36),
-
-                      // 6. Footer section (Registration outline button with Google Icon)
-                      Column(
-                        children: [
-                          Text(
-                            'Belum menjadi anggota White Tiger Club?',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.7),
+                        GestureDetector(
+                          onTap: () {
+                            // Back to main info website
+                          },
+                          child: Text(
+                            'KEMBALI',
+                            style: GoogleFonts.spaceGrotesk(
+                              color: brandRed,
                               fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          OutlinedButton(
-                            onPressed: _launchGoogleForm,
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              side: const BorderSide(color: Colors.white54, width: 1.5),
-                              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 24),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.app_registration, color: Colors.white, size: 20),
-                                SizedBox(width: 12),
-                                Text(
-                                  'Daftar Online',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, letterSpacing: 1),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),

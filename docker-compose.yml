@@ -31,7 +31,7 @@ services:
     volumes:
       - /home/ubuntu/taekwondo_storage:/app/storage:Z
     environment:
-      - DATABASE_URL=postgresql://taekwondo_user:taekwondo_password@postgres:5432/taekwondo_academy?schema=public
+      - DATABASE_URL=postgresql://taekwondo_user:taekwondo_password@taekwondo_db:5432/taekwondo_academy?schema=public
       - JWT_SECRET=taekwondo_secret_key_2026_super_secure
       - NODE_ENV=production
       - STORAGE_PATH=/app/storage

@@ -74,10 +74,22 @@ export async function PUT(
               memberId,
               fromBelt: existingUser.member.currentBelt,
               toBelt: currentBelt,
-              certUrl: certDocUrl || null,
               promotedAt: new Date()
             }
           });
+          
+          if (certDocUrl) {
+             await prisma.certificate.create({
+               data: {
+                 memberId,
+                 certNumber: `CERT-${Date.now()}`,
+                 oldBelt: existingUser.member.currentBelt,
+                 newBelt: currentBelt,
+                 qrCodeUrl: certDocUrl,
+                 issueDate: new Date()
+               }
+             });
+          }
         }
 
         // 2. Handle specific updates to other items in the belt history list (if passed)
@@ -88,7 +100,6 @@ export async function PUT(
               await prisma.beltHistory.update({
                 where: { id: bh.id },
                 data: {
-                  certUrl: bh.certUrl !== undefined ? bh.certUrl : undefined,
                   ...(bh.promotedAt && { promotedAt: new Date(bh.promotedAt) }),
                 }
               });
@@ -115,10 +126,22 @@ export async function PUT(
             memberId,
             fromBelt: "Sabuk Putih (10 Geup)",
             toBelt: currentBelt !== undefined ? currentBelt : "Sabuk Putih (10 Geup)",
-            certUrl: certDocUrl || null,
             promotedAt: new Date()
           }
         });
+        
+        if (certDocUrl) {
+           await prisma.certificate.create({
+             data: {
+               memberId,
+               certNumber: `CERT-${Date.now()}`,
+               oldBelt: "Sabuk Putih (10 Geup)",
+               newBelt: currentBelt !== undefined ? currentBelt : "Sabuk Putih (10 Geup)",
+               qrCodeUrl: certDocUrl,
+               issueDate: new Date()
+             }
+           });
+        }
       }
     }
 

@@ -80,9 +80,6 @@ model Member {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   dateOfBirth    DateTime?     @map("date_of_birth")
-  weight         Float?        @map("weight")             // Berat Badan (kg)
-  height         Float?        @map("height")             // Tinggi Badan (cm)
-  waistCircum    Float?        @map("waist_circum")       // Lingkar Perut (cm)
   prepaidMonthsRemaining Int        @default(0) @map("prepaid_months_remaining")
   // Gamification Shop
   dojangCoins    Int           @default(0) @map("dojang_coins")
@@ -145,7 +142,6 @@ model BeltHistory {
   fromBelt     String   @map("from_belt")
   toBelt       String   @map("to_belt")
   promotedAt   DateTime @default(now()) @map("promoted_at")
-  certUrl      String?  @map("cert_url") // Link ke sertifikat fisik/digital UKT
 }
 
 model UktExam {

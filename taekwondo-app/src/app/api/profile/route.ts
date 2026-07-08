@@ -20,6 +20,15 @@ export async function GET(req: NextRequest) {
           include: {
             achievements: {
               orderBy: { date: 'desc' }
+            },
+            physicalLogs: {
+              orderBy: { recordedAt: 'asc' }
+            },
+            beltHistory: {
+              orderBy: { promotedAt: 'desc' }
+            },
+            certificates: {
+              orderBy: { issueDate: 'desc' }
             }
           }
         }
@@ -73,6 +82,10 @@ export async function GET(req: NextRequest) {
       ] as any[];
     }
 
+    const latestPhysicalLog = user.member.physicalLogs?.length > 0 
+      ? user.member.physicalLogs[user.member.physicalLogs.length - 1] 
+      : null;
+
     const profileData = {
       name: user.member.fullName || user.name,
       email: user.email,
@@ -80,11 +93,14 @@ export async function GET(req: NextRequest) {
       currentBelt: user.member.currentBelt,
       progress: user.member.progress,
       dateOfBirth: user.member.dateOfBirth,
-      weight: user.member.weight,
-      height: user.member.height,
-      waistCircum: user.member.waistCircum,
+      weight: latestPhysicalLog?.weight || null,
+      height: latestPhysicalLog?.height || null,
+      waistCircum: latestPhysicalLog?.waistCircum || null,
       age: age > 0 ? age : 18, // Fallback otomatis 18 tahun jika belum diisi
-      achievements: achievements
+      achievements: achievements,
+      physicalLogs: user.member.physicalLogs || [],
+      beltHistory: user.member.beltHistory || [],
+      certificates: user.member.certificates || []
     };
 
     return NextResponse.json({

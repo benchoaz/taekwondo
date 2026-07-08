@@ -26,7 +26,6 @@ export async function GET() {
                 fromBelt: true,
                 toBelt: true,
                 promotedAt: true,
-                certUrl: true,
               },
               orderBy: { promotedAt: "desc" }
             }
@@ -102,17 +101,26 @@ export async function POST(request: Request) {
         },
       });
     } else if (role === "MEMBER") {
-      await prisma.member.create({
+      const newMember = await prisma.member.create({
         data: {
           userId: newUser.id,
           fullName: name || "New Member",
           memberNumber: `TKD-2026-00${Math.floor(10 + Math.random() * 90)}`,
           dateOfBirth: new Date(birthDate),
-          weight: weight ? parseFloat(weight) : null,
-          height: height ? parseFloat(height) : null,
-          waistCircum: waistCircum ? parseFloat(waistCircum) : null,
         },
       });
+
+      if (weight || height || waistCircum) {
+        await prisma.physicalMeasurementLog.create({
+          data: {
+            memberId: newMember.id,
+            weight: weight ? parseFloat(weight) : null,
+            height: height ? parseFloat(height) : null,
+            waistCircum: waistCircum ? parseFloat(waistCircum) : null,
+            notes: "Initial admin creation"
+          }
+        });
+      }
     }
 
     return NextResponse.json({

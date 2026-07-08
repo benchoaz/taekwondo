@@ -70,15 +70,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Update the record
-    const updatedHistory = await prisma.beltHistory.update({
-      where: { id: historyId },
-      data: { certUrl }
+    // Create Certificate record
+    const newCertificate = await prisma.certificate.create({
+      data: {
+        memberId: historyItem.memberId,
+        certNumber: `CERT-UPL-${Date.now()}`,
+        oldBelt: historyItem.fromBelt,
+        newBelt: historyItem.toBelt,
+        qrCodeUrl: certUrl,
+        issueDate: new Date()
+      }
     });
 
 
 
-    return NextResponse.json(updatedHistory);
+    return NextResponse.json(newCertificate);
   } catch (error: any) {
     console.error("POST /api/member/belt-history error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -47,15 +47,7 @@ export async function POST(request: Request) {
       },
     });
 
-    // 2. Update the cache on Member
-    await prisma.member.update({
-      where: { id: memberId },
-      data: {
-        weight,
-        height,
-        waistCircum,
-      },
-    });
+    // 2. (Removed cache update on Member since fields were deleted)
 
     return NextResponse.json({ success: true, data: newLog });
   } catch (error) {

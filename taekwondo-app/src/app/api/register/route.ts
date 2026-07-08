@@ -46,13 +46,24 @@ export async function POST(request: Request) {
         memberNumber: `PENDING-${Math.floor(1000 + Math.random() * 9000)}`,
         status: "PENDING_VERIFICATION",
         dateOfBirth: new Date(birthDate),
-        weight: weight ? parseFloat(weight) : null,
-        height: height ? parseFloat(height) : null,
-        waistCircum: waistCircum ? parseFloat(waistCircum) : null,
         selfieUrl: selfie,
         kkUrl: kk,
       },
     });
+
+    // Create Physical Measurement Log if data is provided
+    if (weight || height || waistCircum) {
+      await prisma.physicalMeasurementLog.create({
+        data: {
+          memberId: newMember.id,
+          weight: weight ? parseFloat(weight) : null,
+          height: height ? parseFloat(height) : null,
+          waistCircum: waistCircum ? parseFloat(waistCircum) : null,
+          recordedAt: new Date(),
+          notes: "Initial registration data",
+        }
+      });
+    }
 
     // 3. Generate Payment for Registration Fee
     const regFee = 150000;

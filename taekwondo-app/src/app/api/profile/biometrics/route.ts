@@ -20,13 +20,14 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Profil tidak ditemukan" }, { status: 404 });
     }
 
-    // Update data biometrik
-    const updatedMember = await prisma.member.update({
-      where: { id: user.member.id },
+    // Update data biometrik (insert log)
+    const newLog = await prisma.physicalMeasurementLog.create({
       data: {
+        memberId: user.member.id,
         weight: weight != null && weight !== "" ? parseFloat(weight) : null,
         height: height != null && height !== "" ? parseFloat(height) : null,
         waistCircum: waistCircum != null && waistCircum !== "" ? parseFloat(waistCircum) : null,
+        notes: "Updated via biometrics API"
       }
     });
 
@@ -34,9 +35,9 @@ export async function PUT(req: NextRequest) {
       success: true,
       message: "Data fisik berhasil diperbarui",
       data: {
-        weight: updatedMember.weight,
-        height: updatedMember.height,
-        waistCircum: updatedMember.waistCircum,
+        weight: newLog.weight,
+        height: newLog.height,
+        waistCircum: newLog.waistCircum,
       }
     });
 

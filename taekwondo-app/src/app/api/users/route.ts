@@ -17,7 +17,6 @@ export async function GET() {
             memberNumber: true,
             currentBelt: true,
             progress: true,
-            certDocUrl: true,
             prepaidMonthsRemaining: true,
             phone: true,
             beltHistory: {
@@ -59,7 +58,7 @@ export async function GET() {
       memberNumber: u.member?.memberNumber || null,
       currentBelt: u.member?.currentBelt || null,
       progress: u.member?.progress || 0,
-      certDocUrl: u.role === "COACH" ? u.coach?.certDocUrl : u.member?.certDocUrl || null,
+      certDocUrl: u.role === "COACH" ? u.coach?.certDocUrl : null,
       prepaidMonthsRemaining: u.member?.prepaidMonthsRemaining || 0,
       phone: u.member?.phone || null,
       beltHistory: u.member?.beltHistory || [],

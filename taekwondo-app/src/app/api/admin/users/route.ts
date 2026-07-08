@@ -50,8 +50,8 @@ export async function POST(request: NextRequest) {
     if (username.length < 4 || username.length > 30) {
       return NextResponse.json({ error: "Username minimal 4 dan maksimal 30 karakter." }, { status: 400 });
     }
-    if (!/^[a-z0-9_.]+$/.test(username)) {
-      return NextResponse.json({ error: "Username hanya boleh mengandung huruf kecil, angka, underscore, dan titik tanpa spasi." }, { status: 400 });
+    if (!/^[a-zA-Z0-9_.@-]*$/.test(username)) {
+      return NextResponse.json({ error: "Username hanya boleh mengandung huruf, angka, underscore, titik, strip, dan @ tanpa spasi." }, { status: 400 });
     }
 
     if (password.length < 8 || password.length > 50) {

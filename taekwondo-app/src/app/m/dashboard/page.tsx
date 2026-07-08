@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Bell, ChevronRight, Zap, CreditCard, Trophy, Calendar,
   CheckCircle, Clock, TrendingUp, Star, LogOut, Loader2, Award,
-  Newspaper, MapPin, Map, Flame
+  Newspaper, MapPin, Map, Flame, Coins, ShoppingCart
 } from "lucide-react";
 import BottomNav from "../_components/BottomNav";
 import NotificationBell from "../_components/NotificationBell";
@@ -196,12 +196,14 @@ export default function MobileDashboard() {
 
           <div className="flex items-center gap-2">
             {/* Dojang Coin quick balance */}
-            <Link href="/m/shop" className="flex items-center gap-1.5 bg-yellow-400/10 border border-yellow-500/30 rounded-xl px-2.5 py-1.5 hover:bg-yellow-400/20 transition">
-              <span className="text-sm">🪙</span>
-              <span className="text-yellow-300 font-black text-xs">{dojangCoins.toLocaleString()}</span>
+            <Link href="/m/shop" className="flex items-center gap-1.5 bg-gradient-to-r from-yellow-500/20 to-amber-500/10 border border-yellow-500/40 rounded-full px-3 py-1.5 hover:from-yellow-500/30 hover:to-amber-500/20 shadow-[0_0_10px_rgba(234,179,8,0.2)] transition-all transform active:scale-95">
+              <Coins className="w-4 h-4 text-yellow-400 animate-pulse" />
+              <span className="text-yellow-400 font-black text-xs tracking-wide">{dojangCoins.toLocaleString()}</span>
             </Link>
-            <NotificationBell userId={userId} />
-            <button onClick={handleLogout} className="w-10 h-10 bg-slate-800/80 border-2 border-slate-700 rounded-xl flex items-center justify-center hover:bg-red-950 transition-colors">
+            <div className="relative z-10 flex items-center justify-center p-1">
+              <NotificationBell userId={userId} />
+            </div>
+            <button onClick={handleLogout} className="w-9 h-9 bg-slate-800/80 border border-slate-700 rounded-full flex items-center justify-center hover:bg-red-950 transition-colors shadow-md">
               <LogOut className="w-4 h-4 text-red-400" />
             </button>
           </div>
@@ -212,8 +214,11 @@ export default function MobileDashboard() {
           const levelInfo = getLevelInfo(profile.progress);
           const hasXp = profile.progress > 0;
           return (
-            <div className="mt-5 bg-gradient-to-br from-slate-950 to-slate-900 border-2 border-slate-800 rounded-2xl p-4 shadow-xl">
-              <div className="flex justify-between items-center mb-2.5">
+            <div className="mt-6 relative group cursor-default">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-red-600/20 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition duration-500"></div>
+              <div className="relative bg-gradient-to-br from-slate-900/90 to-slate-950/90 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-4 shadow-2xl overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+              <div className="flex justify-between items-center mb-3 relative z-10">
                 <div className="flex items-center gap-2">
                   <div className={`text-slate-950 font-black text-xs px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-[0_0_12px_rgba(255,215,0,0.4)] ${hasXp ? 'bg-[#FFD700]' : 'bg-slate-700'}`}>
                     <Award className="w-3.5 h-3.5" />
@@ -248,10 +253,11 @@ export default function MobileDashboard() {
                 </div>
               </div>
               {!hasXp && (
-                <p className="text-[9px] text-slate-500 text-center mt-2 font-semibold">
-                  🏆 Selesaikan misi harian untuk mulai naik level!
+                <p className="text-[10px] text-slate-500 mt-2 text-center relative z-10">
+                  Ikuti latihan untuk mulai mendapatkan XP!
                 </p>
               )}
+            </div>
             </div>
           );
         })()}

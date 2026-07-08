@@ -924,8 +924,8 @@ export default function AdminDashboard({
     if (newUserUsername.length < 4 || newUserUsername.length > 30) {
       return setNewUserError("Username minimal 4 dan maksimal 30 karakter.");
     }
-    if (!/^[a-z0-9_.]+$/.test(newUserUsername)) {
-      return setNewUserError("Username hanya boleh mengandung huruf kecil, angka, underscore, dan titik tanpa spasi.");
+    if (!/^[a-zA-Z0-9_.@-]*$/.test(newUserUsername)) {
+      return setNewUserError("Username hanya boleh mengandung huruf, angka, underscore, titik, strip, dan @ tanpa spasi.");
     }
 
     if (newUserPassword.length < 8 || newUserPassword.length > 50) {

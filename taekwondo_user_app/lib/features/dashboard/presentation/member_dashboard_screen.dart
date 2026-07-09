@@ -1358,11 +1358,16 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     required String message,
     required bool isSuccess,
     String? coinsReward,
+    IconData? customIcon,
+    Color? customIconColor,
   }) {
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (BuildContext context) {
+        final displayIcon = customIcon ?? (isSuccess ? Icons.workspace_premium : Icons.explore_off);
+        final displayColor = customIconColor ?? (isSuccess ? Colors.green : Colors.red);
+        
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
           backgroundColor: const Color(0xFF1E293B), // cardBg
@@ -1376,23 +1381,23 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: isSuccess ? Colors.green.withOpacity(0.15) : Colors.red.withOpacity(0.15),
+                    color: displayColor.withOpacity(0.15),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: isSuccess ? Colors.green : Colors.red,
+                      color: displayColor,
                       width: 2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: isSuccess ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
+                        color: displayColor.withOpacity(0.2),
                         blurRadius: 16,
                         spreadRadius: 2,
                       )
                     ]
                   ),
                   child: Icon(
-                    isSuccess ? Icons.workspace_premium : Icons.explore_off,
-                    color: isSuccess ? Colors.green : Colors.red,
+                    displayIcon,
+                    color: displayColor,
                     size: 40,
                   ),
                 ),
@@ -1530,50 +1535,90 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
   }
 
   void _handleBuyItem(String itemId) async {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
       final success = await ref.read(shopServiceProvider).buyItem(itemId);
       if (success) {
-        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Item berhasil dibeli!')));
         ref.invalidate(shopDataProvider);
         ref.invalidate(profileProvider);
+        _showGamifiedDialog(
+          title: 'Pembelian Sukses! 🛍️',
+          message: 'Item berhasil dibeli dan sekarang terdaftar di koleksi Anda.',
+          isSuccess: true,
+          customIcon: Icons.shopping_bag,
+          customIconColor: const Color(0xFFFFD700), // Gold
+        );
       } else {
-        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Koin tidak cukup atau item tidak tersedia.')));
+        _showGamifiedDialog(
+          title: 'Koin Kurang! 🪙',
+          message: 'Koin Dojang Anda tidak mencukupi untuk membeli item ini. Latih terus misimu!',
+          isSuccess: false,
+          customIcon: Icons.money_off,
+        );
       }
     } catch (e) {
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Gagal membeli item: $e')));
+      _showGamifiedDialog(
+        title: 'Pembelian Gagal ❌',
+        message: 'Gagal membeli item: $e',
+        isSuccess: false,
+      );
     }
   }
 
   void _handleEquipItem(String itemId) async {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
       final success = await ref.read(shopServiceProvider).equipItem(itemId);
       if (success) {
-        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Item berhasil dipasang! ✨')));
         ref.invalidate(shopDataProvider);
         ref.invalidate(profileProvider);
+        _showGamifiedDialog(
+          title: 'Item Dipasang! ✨',
+          message: 'Avatar profil Anda telah diperbarui dengan tampilan baru!',
+          isSuccess: true,
+          customIcon: Icons.brush,
+          customIconColor: Colors.blue,
+        );
       } else {
-        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Gagal memasang item.')));
+        _showGamifiedDialog(
+          title: 'Gagal Memasang ❌',
+          message: 'Item gagal dipasang. Silakan coba kembali.',
+          isSuccess: false,
+        );
       }
     } catch (e) {
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Gagal memasang item: $e')));
+      _showGamifiedDialog(
+        title: 'Error ❌',
+        message: 'Gagal memasang item: $e',
+        isSuccess: false,
+      );
     }
   }
 
   void _handleUnequipItem(String itemId) async {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
       final success = await ref.read(shopServiceProvider).unequipItem(itemId);
       if (success) {
-        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Item berhasil dilepas!')));
         ref.invalidate(shopDataProvider);
         ref.invalidate(profileProvider);
+        _showGamifiedDialog(
+          title: 'Item Dilepas! 🧹',
+          message: 'Item berhasil dilepas dari profil Anda.',
+          isSuccess: true,
+          customIcon: Icons.layers_clear,
+          customIconColor: Colors.grey,
+        );
       } else {
-        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Gagal melepas item.')));
+        _showGamifiedDialog(
+          title: 'Gagal Melepas ❌',
+          message: 'Item gagal dilepas. Silakan coba kembali.',
+          isSuccess: false,
+        );
       }
     } catch (e) {
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Gagal melepas item: $e')));
+      _showGamifiedDialog(
+        title: 'Error ❌',
+        message: 'Gagal melepas item: $e',
+        isSuccess: false,
+      );
     }
   }
 

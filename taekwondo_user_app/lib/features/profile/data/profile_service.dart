@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../../../core/network/dio_client.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http_parser/http_parser.dart';
 
 class ProfileAchievement {
   final String title;
@@ -35,6 +37,7 @@ class ProfileData {
   final double? weight;
   final double? height;
   final double? waistCircum;
+  final String? profilePicture;
   final List<ProfileAchievement> achievements;
 
   ProfileData({
@@ -46,6 +49,7 @@ class ProfileData {
     this.weight,
     this.height,
     this.waistCircum,
+    this.profilePicture,
     required this.achievements,
   });
 
@@ -66,6 +70,7 @@ class ProfileData {
       waistCircum: json['waistCircum'] != null
           ? (json['waistCircum'] as num).toDouble()
           : null,
+      profilePicture: json['profilePicture'],
       achievements: achievementsList,
     );
   }
@@ -98,6 +103,32 @@ class ProfileService {
       debugPrint('[ProfileService] Update biometrics error: $e');
       return false;
     }
+  }
+
+  Future<bool> uploadProfilePicture(XFile file) async {
+    final dio = _ref.read(dioProvider);
+    
+    String filename = file.name;
+    if (filename.isEmpty) {
+      filename = 'profile_picture.png';
+    }
+
+    // Determine content type
+    String ext = filename.split('.').last.toLowerCase();
+    String mimeType = 'image/jpeg';
+    if (ext == 'png') mimeType = 'image/png';
+    else if (ext == 'webp') mimeType = 'image/webp';
+
+    FormData formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(
+        file.path,
+        filename: filename,
+        contentType: MediaType.parse(mimeType),
+      ),
+    });
+
+    final response = await dio.post('/profile/upload', data: formData);
+    return response.statusCode == 200 && response.data['success'] == true;
   }
 }
 

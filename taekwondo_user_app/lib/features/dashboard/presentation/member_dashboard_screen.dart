@@ -40,9 +40,29 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Watch shop data to get coin balance & shop items dynamically
     final shopDataAsync = ref.watch(shopDataProvider);
     final profileAsync = ref.watch(profileProvider);
+    
+    Color themeColor = brandRed;
+    String? emblemUrl;
+    
+    if (shopDataAsync.value != null) {
+      final shopData = shopDataAsync.value!;
+      final equippedThemeId = shopData.active['themeId'];
+      if (equippedThemeId != null) {
+        if (equippedThemeId == 'theme-gold') themeColor = const Color(0xFFEAB308);
+        else if (equippedThemeId == 'theme-diamond') themeColor = const Color(0xFF38BDF8);
+        else if (equippedThemeId == 'theme-ruby') themeColor = const Color(0xFFEF4444);
+        else if (equippedThemeId == 'theme-emerald') themeColor = const Color(0xFF10B981);
+        else if (equippedThemeId == 'theme-amethyst') themeColor = const Color(0xFF8B5CF6);
+      }
+      
+      final emblemId = shopData.active['emblemId'];
+      if (emblemId != null) {
+        final emblemItem = shopData.items.where((i) => i.id == emblemId).firstOrNull;
+        emblemUrl = emblemItem?.itemUrl;
+      }
+    }
 
     // ✅ UI Fallback Error Handling
     if (profileAsync.hasError) {
@@ -67,7 +87,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, color: brandRed, size: 80),
+                Icon(Icons.error_outline, color: themeColor, size: 80),
                 const SizedBox(height: 24),
                 Text(
                   message,
@@ -100,7 +120,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       icon: const Icon(Icons.refresh),
                       label: const Text('Coba Lagi'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: brandRed,
+                        backgroundColor: themeColor,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -200,14 +220,14 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
           SafeArea(
             child: Column(
               children: [
-                _buildTopAppBar(coins, belt),
+                _buildTopAppBar(coins, belt, shopDataAsync, themeColor, emblemUrl, profileAsync.valueOrNull),
                 Expanded(
                   child: IndexedStack(
                     index: _currentTab,
                     children: [
-                      _buildLobbyTab(progress, belt),
-                      _buildTokoTab(shopDataAsync),
-                      _buildMisiTab(),
+                      _buildLobbyTab(progress, belt, themeColor),
+                      _buildTokoTab(shopDataAsync, themeColor),
+                      _buildMisiTab(themeColor),
                       _buildSppTab(),
                       _buildAtletTab(),
                     ],
@@ -229,7 +249,26 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     );
   }
 
-  Widget _buildTopAppBar(int coins, String belt) {
+  Widget _buildTopAppBar(int coins, String belt, AsyncValue<ShopData> shopDataAsync, Color themeColor, String? emblemUrl, ProfileData? profile) {
+    final shopData = shopDataAsync.valueOrNull;
+    
+    String? frameUrl;
+    String? titleName;
+    
+    if (shopData != null) {
+      final frameId = shopData.active['frameId'];
+      if (frameId != null) {
+        final frameItem = shopData.items.where((i) => i.id == frameId).firstOrNull;
+        frameUrl = frameItem?.itemUrl;
+      }
+      
+      final titleId = shopData.active['titleId'];
+      if (titleId != null) {
+        final titleItem = shopData.items.where((i) => i.id == titleId).firstOrNull;
+        titleName = titleItem?.name;
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
@@ -242,25 +281,39 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
           Row(
             children: [
               Stack(
+                alignment: Alignment.center,
                 children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF3B82F6), width: 2), // Electric blue border
-                      color: const Color(0xFF1E293B),
-                    ),
-                    padding: const EdgeInsets.all(2),
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundColor: const Color(0xFF1E293B),
-                      child: Text(
-                        (widget.user.name ?? 'B').substring(0, 1).toUpperCase(),
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  // 1. Base Profile Picture
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: const Color(0xFF1E293B),
+                    backgroundImage: profile?.profilePicture != null
+                        ? NetworkImage(profile!.profilePicture!)
+                        : const NetworkImage('https://api.dicebear.com/7.x/avataaars/png?seed=Taekwondo') as ImageProvider,
+                  ),
+                  // 2. Frame Overlay
+                  if (frameUrl != null && frameUrl.isNotEmpty)
+                    Container(
+                      width: 54, // Frame is slightly larger than the avatar
+                      height: 54,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: NetworkImage(frameUrl),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                  ),
+                  // 3. Default border if no frame
+                  if (frameUrl == null || frameUrl.isEmpty)
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFF3B82F6), width: 2),
+                      ),
+                    ),
                   Positioned(
                     bottom: 1,
                     right: 1,
@@ -280,14 +333,22 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'ATLET MUDA',
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
-                      color: brandRed,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        (titleName ?? 'ATLET MUDA').toUpperCase(),
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.5,
+                          color: titleName != null ? const Color(0xFFFFD700) : themeColor,
+                        ),
+                      ),
+                      if (emblemUrl != null && emblemUrl.isNotEmpty) ...[
+                        const SizedBox(width: 4),
+                        Image.network(emblemUrl, width: 14, height: 14, fit: BoxFit.contain),
+                      ]
+                    ],
                   ),
                   Text(
                     widget.user.name ?? 'Beni Setiawan',
@@ -376,7 +437,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     );
   }
 
-  Widget _buildLobbyTab(int progress, String belt) {
+  Widget _buildLobbyTab(int progress, String belt, Color themeColor) {
     final questsAsync = ref.watch(questProvider);
     int completedQuests = 0;
     int totalQuests = 0;
@@ -617,7 +678,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       style: GoogleFonts.spaceGrotesk(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
-                        color: brandRed,
+                        color: themeColor,
                       ),
                     ),
                   ),
@@ -722,7 +783,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                               style: GoogleFonts.spaceGrotesk(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w900,
-                                color: brandRed,
+                                color: themeColor,
                               ),
                             ),
                           ),
@@ -769,7 +830,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 )).toList(),
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator(color: brandRed)),
+            loading: () => const Center(child: CircularProgressIndicator(color: Colors.red)),
             error: (e, s) => Text('Gagal memuat event: $e', style: const TextStyle(color: Colors.red)),
           ),
           const SizedBox(height: 24),
@@ -808,7 +869,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 )).toList(),
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator(color: brandRed)),
+            loading: () => const Center(child: CircularProgressIndicator(color: Colors.red)),
             error: (e, s) => Text('Gagal memuat berita: $e', style: const TextStyle(color: Colors.red)),
           ),
         ],
@@ -937,9 +998,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     );
   }
 
-  Widget _buildTokoTab(AsyncValue<ShopData> shopDataAsync) {
+  Widget _buildTokoTab(AsyncValue<ShopData> shopDataAsync, Color themeColor) {
     return shopDataAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator(color: brandRed)),
+      loading: () => const Center(child: CircularProgressIndicator(color: Colors.red)),
       error: (err, stack) => Center(child: Text('Gagal memuat Toko: $err', style: const TextStyle(color: Colors.white))),
       data: (shopData) {
         if (shopData.items.isEmpty) {
@@ -1027,8 +1088,8 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: item.equipped 
-                              ? Colors.grey 
-                              : (item.owned ? Colors.green : brandRed),
+                              ? Colors.red.withValues(alpha: 0.8) // Red for unequip
+                              : (item.owned ? Colors.green : themeColor),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -1036,13 +1097,13 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                           minimumSize: const Size(double.infinity, 36),
                         ),
                         onPressed: item.equipped 
-                            ? null 
+                            ? () => _handleUnequipItem(item.id) 
                             : (item.owned 
                                 ? () => _handleEquipItem(item.id) 
                                 : () => _handleBuyItem(item.id)),
                         child: Text(
                           item.equipped 
-                              ? 'Dipakai' 
+                              ? 'Lepas' 
                               : (item.owned ? 'Pasang' : 'Beli'),
                           style: GoogleFonts.hankenGrotesk(fontSize: 12, fontWeight: FontWeight.bold),
                         ),
@@ -1058,8 +1119,8 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     );
   }
 
-  Widget _buildMisiTab() {
-    return _buildDailyQuests();
+  Widget _buildMisiTab(Color themeColor) {
+    return _buildDailyQuests(themeColor);
   }
 
   Widget _buildSppTab() {
@@ -1070,7 +1131,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     return const ProfileScreen();
   }
 
-  Widget _buildDailyQuests() {
+  Widget _buildDailyQuests(Color themeColor) {
     final questsAsync = ref.watch(questProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1146,11 +1207,11 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                         ),
                         if (!log.completed)
                           GestureDetector(
-                            onTap: () => _showCompleteQuestSheet(context, ref, log),
+                            onTap: () => _showCompleteQuestSheet(context, ref, log, themeColor),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
-                                color: brandRed,
+                                color: themeColor,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -1169,7 +1230,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 },
               );
             },
-            loading: () => const Center(child: CircularProgressIndicator(color: brandRed)),
+            loading: () => const Center(child: CircularProgressIndicator(color: Colors.red)),
             error: (e, s) => Center(child: Text('Gagal memuat misi: $e', style: const TextStyle(color: Colors.white))),
           ),
         ),
@@ -1343,7 +1404,23 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     }
   }
 
-  void _showCompleteQuestSheet(BuildContext context, WidgetRef ref, dynamic log) {
+  void _handleUnequipItem(String itemId) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    try {
+      final success = await ref.read(shopServiceProvider).unequipItem(itemId);
+      if (success) {
+        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Item berhasil dilepas!')));
+        ref.invalidate(shopDataProvider);
+        ref.invalidate(profileProvider);
+      } else {
+        scaffoldMessenger.showSnackBar(const SnackBar(content: Text('Gagal melepas item.')));
+      }
+    } catch (e) {
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text('Gagal melepas item: $e')));
+    }
+  }
+
+  void _showCompleteQuestSheet(BuildContext context, WidgetRef ref, dynamic log, Color themeColor) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1380,7 +1457,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: brandRed, borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(color: themeColor, borderRadius: BorderRadius.circular(16)),
                   alignment: Alignment.center,
                   child: Text(
                     'Selesaikan & Klaim XP', 

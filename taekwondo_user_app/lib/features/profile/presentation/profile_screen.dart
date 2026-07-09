@@ -2,31 +2,65 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import '../../auth/data/auth_provider.dart';
 import '../data/profile_service.dart';
+import '../../dashboard/data/shop_service.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  bool _isUploading = false;
+
+  @override
+  Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
+    final shopAsync = ref.watch(shopDataProvider);
+    final shopData = shopAsync.valueOrNull;
+
+    Color themeColor = const Color(0xFFE2241F);
+    String? emblemUrl;
+
+    if (shopData != null) {
+      final themeId = shopData.active['themeId'];
+      if (themeId != null) {
+        final themeItem = shopData.items.where((i) => i.id == themeId).firstOrNull;
+        if (themeItem?.name.toLowerCase().contains('biru') == true) {
+          themeColor = const Color(0xFF3B82F6);
+        } else if (themeItem?.name.toLowerCase().contains('galaxy') == true) {
+          themeColor = const Color(0xFF8B5CF6);
+        }
+      }
+
+      final emblemId = shopData.active['emblemId'];
+      if (emblemId != null) {
+        final emblemItem = shopData.items.where((i) => i.id == emblemId).firstOrNull;
+        emblemUrl = emblemItem?.itemUrl;
+      }
+    }
+
+    final Color themeColorLight = HSLColor.fromColor(themeColor).withLightness(0.65).toColor();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1115), // Deep dark premium background
+      backgroundColor: const Color(0xFF0F1115),
       body: Stack(
         children: [
-          // Background Glowing Orbs
           Positioned(
             top: -100,
             right: -100,
             child: Container(
               width: 300,
               height: 300,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0xFFE2241F),
+                color: themeColor,
               ),
             ),
           ),
@@ -48,31 +82,23 @@ class ProfileScreen extends ConsumerWidget {
               child: const SizedBox(),
             ),
           ),
-
-          // Main Content
           SafeArea(
             child: profileAsync.when(
-              loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFFE2241F))),
+              loading: () => Center(child: CircularProgressIndicator(color: themeColor)),
               error: (err, stack) => Center(
-                child: Text('Gagal memuat profil: $err',
-                    style: const TextStyle(color: Colors.white)),
+                child: Text('Gagal memuat profil: $err', style: const TextStyle(color: Colors.white)),
               ),
               data: (profile) => RefreshIndicator(
-                color: const Color(0xFFE2241F),
+                color: themeColor,
                 onRefresh: () async => ref.refresh(profileProvider.future),
                 child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(
-                      parent: BouncingScrollPhysics()),
+                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header: VIP ID CARD
-                      _buildVIPCard(profile!),
+                      _buildVIPCard(profile!, ref, themeColor, themeColorLight, emblemUrl),
                       const SizedBox(height: 32),
-
-                      // Section: Level & XP Glow Bar
                       Text(
                         'TAEKWONDO JOURNEY',
                         style: GoogleFonts.spaceGrotesk(
@@ -83,10 +109,8 @@ class ProfileScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      _buildLevelBar(profile),
+                      _buildLevelBar(profile, themeColor, themeColorLight),
                       const SizedBox(height: 32),
-
-                      // Section: Biometrics
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -100,24 +124,24 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                           ),
                           GestureDetector(
-                            onTap: () => _showEditBiometricsModal(context, ref, profile),
+                            onTap: () => _showEditBiometricsModal(context, ref, profile, themeColor),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFE10600).withValues(alpha: 0.1),
+                                color: themeColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: const Color(0xFFE10600).withValues(alpha: 0.3)),
+                                border: Border.all(color: themeColor.withValues(alpha: 0.3)),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.edit, color: Color(0xFFE10600), size: 12),
+                                  Icon(Icons.edit, color: themeColor, size: 12),
                                   const SizedBox(width: 4),
                                   Text(
                                     'Perbarui',
                                     style: GoogleFonts.hankenGrotesk(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: const Color(0xFFE10600),
+                                      color: themeColor,
                                     ),
                                   ),
                                 ],
@@ -129,8 +153,6 @@ class ProfileScreen extends ConsumerWidget {
                       const SizedBox(height: 16),
                       _buildBiometricsPanel(profile),
                       const SizedBox(height: 32),
-
-                      // Section: Hall of Fame (Medals)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -153,16 +175,14 @@ class ProfileScreen extends ConsumerWidget {
                           child: Padding(
                             padding: const EdgeInsets.all(20),
                             child: Text(
-                              "Belum ada medali.\\nBerlatihlah lebih keras!",
+                              "Belum ada medali.\nBerlatihlah lebih keras!",
                               textAlign: TextAlign.center,
                               style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
                             ),
                           ),
                         ),
-
                       const SizedBox(height: 40),
-                      // Logout Button
-                      _buildLogoutButton(context, ref),
+                      _buildLogoutButton(context, ref, themeColor),
                     ],
                   ),
                 ),
@@ -171,11 +191,31 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNav(context),
+      bottomNavigationBar: _buildBottomNav(context, themeColor),
     );
   }
 
-  Widget _buildVIPCard(ProfileData profile) {
+  Widget _buildVIPCard(ProfileData profile, WidgetRef ref, Color themeColor, Color themeColorLight, String? emblemUrl) {
+    final shopAsync = ref.watch(shopDataProvider);
+    final shopData = shopAsync.valueOrNull;
+    
+    String? frameUrl;
+    String? titleName;
+    
+    if (shopData != null) {
+      final frameId = shopData.active['frameId'];
+      if (frameId != null) {
+        final frameItem = shopData.items.where((i) => i.id == frameId).firstOrNull;
+        frameUrl = frameItem?.itemUrl;
+      }
+      
+      final titleId = shopData.active['titleId'];
+      if (titleId != null) {
+        final titleItem = shopData.items.where((i) => i.id == titleId).firstOrNull;
+        titleName = titleItem?.name;
+      }
+    }
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -193,55 +233,134 @@ class ProfileScreen extends ConsumerWidget {
       ),
       child: Column(
         children: [
-          // Avatar with glowing border
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [Color(0xFFE2241F), Color(0xFFFF4B4B)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              // Base Gradient border if no frame is equipped
+              if (frameUrl == null || frameUrl.isEmpty)
+                Container(
+                  width: 110,
+                  height: 110,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [themeColor, themeColorLight],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: themeColor.withValues(alpha: 0.5),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      )
+                    ],
+                  ),
+                ),
+              // Profile Picture
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                    GestureDetector(
+                      onTap: _isUploading ? null : () => _pickAndUploadImage(),
+                      child: CircleAvatar(
+                        radius: 45,
+                        backgroundColor: const Color(0xFF1E222D),
+                        backgroundImage: profile.profilePicture != null 
+                            ? NetworkImage(profile.profilePicture!)
+                            : const NetworkImage('https://api.dicebear.com/7.x/avataaars/png?seed=Taekwondo') as ImageProvider,
+                      ),
+                    ),
+                    if (_isUploading)
+                      const CircularProgressIndicator(color: Colors.white),
+                    if (!_isUploading)
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap: () => _pickAndUploadImage(),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.blueAccent,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.camera_alt, color: Colors.white, size: 14),
+                          ),
+                        ),
+                      ),
+                  ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFE2241F).withValues(alpha: 0.5),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                )
-              ],
-            ),
-            child: const CircleAvatar(
-              radius: 45,
-              backgroundColor: Color(0xFF1E222D),
-              backgroundImage: NetworkImage(
-                  'https://api.dicebear.com/7.x/avataaars/png?seed=Taekwondo'),
-            ),
+              // Frame Overlay on top
+              if (frameUrl != null && frameUrl.isNotEmpty)
+                IgnorePointer(
+                  child: Container(
+                    width: 130, // Frame is larger than avatar
+                    height: 130,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: NetworkImage(frameUrl),
+                        fit: BoxFit.cover,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          blurRadius: 15,
+                          spreadRadius: 2,
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 16),
-          Text(
-            profile.name.toUpperCase(),
-            style: GoogleFonts.spaceGrotesk(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              letterSpacing: 1,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                profile.name.toUpperCase(),
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 1,
+                ),
+              ),
+              if (emblemUrl != null) ...[
+                const SizedBox(width: 8),
+                Image.network(emblemUrl, width: 24, height: 24, fit: BoxFit.contain),
+              ]
+            ],
           ),
+          if (titleName != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 4),
+              child: Text(
+                titleName.toUpperCase(),
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFFFFD700),
+                  letterSpacing: 2,
+                ),
+              ),
+            ),
           const SizedBox(height: 4),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFFE2241F).withValues(alpha: 0.2),
+              color: themeColor.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: const Color(0xFFE2241F).withValues(alpha: 0.5)),
+              border: Border.all(color: themeColor.withValues(alpha: 0.5)),
             ),
             child: Text(
               profile.memberNumber,
               style: GoogleFonts.spaceGrotesk(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFFFFB4B2),
+                color: themeColorLight,
               ),
             ),
           ),
@@ -284,7 +403,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLevelBar(ProfileData profile) {
+  Widget _buildLevelBar(ProfileData profile, Color themeColor, Color themeColorLight) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -311,13 +430,12 @@ class ProfileScreen extends ConsumerWidget {
                 style: GoogleFonts.spaceGrotesk(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFFE2241F),
+                  color: themeColor,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          // Glow Progress Bar
           Stack(
             children: [
               Container(
@@ -329,15 +447,15 @@ class ProfileScreen extends ConsumerWidget {
               ),
               Container(
                 height: 12,
-                width: profile.progress.toDouble() * 3, // Simplistic percentage width
+                width: profile.progress.toDouble() * 3,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFE2241F), Color(0xFFFF6B6B)],
+                  gradient: LinearGradient(
+                    colors: [themeColor, themeColorLight],
                   ),
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFE2241F).withValues(alpha: 0.6),
+                      color: themeColor.withValues(alpha: 0.6),
                       blurRadius: 10,
                       spreadRadius: 1,
                     )
@@ -360,7 +478,6 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   Widget _buildBiometricsPanel(ProfileData profile) {
-    // Kalkulasi BMI
     double? bmi;
     String bmiCategory = "-";
     Color bmiColor = const Color(0xFF8A93A6);
@@ -469,9 +586,8 @@ class ProfileScreen extends ConsumerWidget {
         ? const Color(0xFFFFD700)
         : isSilver
             ? const Color(0xFFC0C0C0)
-            : const Color(0xFFCD7F32); // Bronze
+            : const Color(0xFFCD7F32);
     
-    // Massive XP logic
     final xpBonus = isGold ? "+1000 XP" : isSilver ? "+750 XP" : "+500 XP";
 
     return Container(
@@ -484,7 +600,6 @@ class ProfileScreen extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          // Medal Icon with Glow
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -560,7 +675,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context, WidgetRef ref) {
+  Widget _buildLogoutButton(BuildContext context, WidgetRef ref, Color themeColor) {
     return SizedBox(
       width: double.infinity,
       child: TextButton.icon(
@@ -573,12 +688,12 @@ class ProfileScreen extends ConsumerWidget {
           backgroundColor: Colors.white.withValues(alpha: 0.05),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
-        icon: const Icon(Icons.logout, color: Color(0xFFE2241F)),
+        icon: Icon(Icons.logout, color: themeColor),
         label: Text(
           'KELUAR DARI AKUN',
           style: GoogleFonts.spaceGrotesk(
             fontWeight: FontWeight.bold,
-            color: const Color(0xFFE2241F),
+            color: themeColor,
             letterSpacing: 1,
           ),
         ),
@@ -586,7 +701,31 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  void _showEditBiometricsModal(BuildContext context, WidgetRef ref, ProfileData profile) {
+  Future<void> _pickAndUploadImage() async {
+    final ImagePicker picker = ImagePicker();
+    try {
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 800, maxHeight: 800);
+      if (image == null) return;
+      
+      setState(() => _isUploading = true);
+      final success = await ref.read(profileServiceProvider).uploadProfilePicture(image);
+      
+      if (success && mounted) {
+        ref.invalidate(profileProvider);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto profil berhasil diperbarui!')));
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal mengunggah foto')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
+    }
+  }
+
+  void _showEditBiometricsModal(BuildContext context, WidgetRef ref, ProfileData profile, Color themeColor) {
     double? weight = profile.weight;
     double? height = profile.height;
     double? waist = profile.waistCircum;
@@ -637,7 +776,7 @@ class ProfileScreen extends ConsumerWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE10600),
+                    backgroundColor: themeColor,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -709,7 +848,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildBottomNav(BuildContext context) {
+  Widget _buildBottomNav(BuildContext context, Color themeColor) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1E222D),
@@ -718,10 +857,10 @@ class ProfileScreen extends ConsumerWidget {
       child: BottomNavigationBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        selectedItemColor: const Color(0xFFE2241F),
+        selectedItemColor: themeColor,
         unselectedItemColor: const Color(0xFF8A93A6),
         type: BottomNavigationBarType.fixed,
-        currentIndex: 3, // PROFIL is at index 3
+        currentIndex: 3,
         onTap: (index) {
           if (index == 0) context.go('/');
           if (index == 1) context.go('/spp');

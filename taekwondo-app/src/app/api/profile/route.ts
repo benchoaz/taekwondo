@@ -97,6 +97,7 @@ export async function GET(req: NextRequest) {
       height: latestPhysicalLog?.height || null,
       waistCircum: latestPhysicalLog?.waistCircum || null,
       age: age > 0 ? age : 18, // Fallback otomatis 18 tahun jika belum diisi
+      profilePicture: user.image || null,
       achievements: achievements,
       physicalLogs: user.member.physicalLogs || [],
       beltHistory: user.member.beltHistory || [],

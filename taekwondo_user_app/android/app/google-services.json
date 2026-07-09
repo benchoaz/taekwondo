@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "802308685481",
+    "project_id": "whitetigerkraksaan-e1f14",
+    "storage_bucket": "whitetigerkraksaan-e1f14.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:802308685481:android:6e365ea74dfc38524073b8",
+        "android_client_info": {
+          "package_name": "com.example.taekwondo_user_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJ7_7zQm_ThSleGui6VK4fAjiqscCYFxo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

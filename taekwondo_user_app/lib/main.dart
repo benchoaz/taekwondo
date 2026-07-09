@@ -7,6 +7,7 @@ import 'core/router/app_router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'core/network/firebase_messaging_service.dart';
+import 'firebase_options.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
@@ -33,11 +34,11 @@ void main() async {
 
   try {
     await Firebase.initializeApp(
-      // options: DefaultFirebaseOptions.currentPlatform, // Uncomment ini setelah menjalankan `flutterfire configure`
+      options: DefaultFirebaseOptions.currentPlatform, // ✅ Aktif setelah flutterfire configure
     );
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   } catch (e) {
-    debugPrint("Firebase init failed (Please run flutterfire configure): $e");
+    debugPrint("Firebase init error: $e");
   }
 
   debugPrint("FLUTTER APP MAIN STARTED");

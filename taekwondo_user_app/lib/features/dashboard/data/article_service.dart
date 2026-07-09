@@ -40,6 +40,6 @@ final articleProvider = FutureProvider.autoDispose<List<ArticleModel>>((ref) asy
     }
     return [];
   } catch (e) {
-    throw Exception('Gagal memuat artikel');
+    throw Exception('Gagal memuat artikel: $e');
   }
 });

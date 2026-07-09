@@ -111,6 +111,17 @@ export async function POST(req: NextRequest) {
               paymentId: newPayment.id
             });
           }
+
+          // Simpan ke database Notification agar muncul di list Notifikasi aplikasi HP
+          await prisma.notification.create({
+            data: {
+              title: "Tagihan SPP Baru 📝",
+              message: `Halo ${member.fullName}, tagihan SPP bulan ${monthName} ${year} sebesar Rp${sppFee.toLocaleString("id-ID")} telah diterbitkan.`,
+              userId: member.userId,
+              type: "SPP",
+              link: "/spp"
+            }
+          });
         }
       }
     }

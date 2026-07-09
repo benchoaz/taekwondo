@@ -29,7 +29,7 @@ export async function GET(request: Request) {
 
       const monthName = monthNames[(invoice.month ?? 1) - 1];
       await notifyUser({
-        userId: invoice.memberId,
+        userId: invoice.member.userId,
         title: '⚠️ SPP Terlambat!',
         message: `Tagihan SPP ${monthName} ${invoice.year} sebesar Rp${invoice.amount.toLocaleString('id-ID')} belum dibayar. Segera lakukan pembayaran!`,
         type: 'SPP',

@@ -1353,6 +1353,134 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     );
   }
 
+  void _showGamifiedDialog({
+    required String title,
+    required String message,
+    required bool isSuccess,
+    String? coinsReward,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+          backgroundColor: const Color(0xFF1E293B), // cardBg
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Glowing Icon / Illustration
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: isSuccess ? Colors.green.withOpacity(0.15) : Colors.red.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSuccess ? Colors.green : Colors.red,
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isSuccess ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
+                        blurRadius: 16,
+                        spreadRadius: 2,
+                      )
+                    ]
+                  ),
+                  child: Icon(
+                    isSuccess ? Icons.workspace_premium : Icons.explore_off,
+                    color: isSuccess ? Colors.green : Colors.red,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Title
+                Text(
+                  title,
+                  style: GoogleFonts.spaceGrotesk(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                // Message
+                Text(
+                  message,
+                  style: GoogleFonts.hankenGrotesk(
+                    color: const Color(0xFF94A3B8), // textGray
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                if (isSuccess && coinsReward != null) ...[
+                  const SizedBox(height: 16),
+                  // Coins reward badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFD700).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: const Color(0xFFFFD700), width: 1.5),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.monetization_on, color: Color(0xFFFFD700), size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          '+$coinsReward Koin Dojang!',
+                          style: GoogleFonts.spaceGrotesk(
+                            color: const Color(0xFFFFD700),
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 24),
+                // Action Button
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      color: isSuccess ? Colors.green : const Color(0xFFE10600), // brandRed
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isSuccess ? Colors.green.withOpacity(0.2) : const Color(0xFFE10600).withOpacity(0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        )
+                      ]
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      isSuccess ? 'Mantap!' : 'Mengerti',
+                      style: GoogleFonts.spaceGrotesk(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _handleSelfAttendance() async {
     if (_isAbsenLoading || _isAbsenSuccess) return;
 
@@ -1366,6 +1494,14 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
           _isAbsenSuccess = true;
         });
         ref.invalidate(profileProvider); // Refresh to get updated coins / XP
+        
+        _showGamifiedDialog(
+          title: 'Hadir Latihan! 🎉',
+          message: 'Absensi Anda berhasil dicatat hari ini. Tetap semangat berlatih!',
+          isSuccess: true,
+          coinsReward: '10',
+        );
+
         Future.delayed(const Duration(seconds: 3), () {
           if (mounted) {
             setState(() { _isAbsenSuccess = false; });
@@ -1373,15 +1509,23 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         });
       } else {
         setState(() { _isAbsenLoading = false; });
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gagal mencatat absen.')));
-        }
+        _showGamifiedDialog(
+          title: 'Gagal Absen ❌',
+          message: 'Gagal mencatat absensi. Silakan coba kembali.',
+          isSuccess: false,
+        );
       }
     } catch (e) {
       setState(() { _isAbsenLoading = false; });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Kesalahan: $e')));
+      String errMsg = e.toString();
+      if (errMsg.startsWith('Exception: ')) {
+        errMsg = errMsg.substring(11);
       }
+      _showGamifiedDialog(
+        title: 'Batas Jangkauan! 📍',
+        message: errMsg,
+        isSuccess: false,
+      );
     }
   }
 

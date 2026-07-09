@@ -39,7 +39,7 @@ class AttendanceService {
     // Send to backend
     try {
       final response = await _dio.post('/attendances/check-in', data: {
-        'memberId': user.id, // Let's fix backend to handle userId or we send it as memberId if they are the same.
+        'memberId': user.id,
         'latitude': position.latitude,
         'longitude': position.longitude,
       });
@@ -47,9 +47,17 @@ class AttendanceService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         return true;
       }
-      return false;
+      
+      final errorMsg = response.data != null ? response.data['error'] : 'Gagal mencatat absen.';
+      throw Exception(errorMsg);
     } catch (e) {
-      throw Exception('Gagal menyimpan absensi ke server: $e');
+      if (e is DioException) {
+        final errorMsg = e.response?.data != null && e.response?.data is Map
+            ? e.response?.data['error']
+            : e.message;
+        throw Exception(errorMsg ?? 'Gagal terhubung ke server.');
+      }
+      rethrow;
     }
   }
 }

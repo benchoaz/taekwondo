@@ -88,37 +88,50 @@ export async function POST(request: NextRequest) {
           email: dummyEmail,
           username: username,
           password: hashedPassword,
-          role: "MEMBER",
+          role: role || "MEMBER",
           name: name,
         },
       });
 
-      // Create Member Profile
-      const newMember = await tx.member.create({
-        data: {
-          userId: newUser.id,
-          fullName: name,
-          memberNumber: `WT-${Math.floor(1000 + Math.random() * 9000)}`,
-          dateOfBirth: dob,
-          status: "ACTIVE",
-          // Removed weight, height, waistCircum per user request
-        },
-      });
+      let newMember = null;
+      let newCoach = null;
+
+      if (newUser.role === "MEMBER") {
+        // Create Member Profile
+        newMember = await tx.member.create({
+          data: {
+            userId: newUser.id,
+            fullName: name,
+            memberNumber: `WT-${Math.floor(1000 + Math.random() * 9000)}`,
+            dateOfBirth: dob,
+            status: "ACTIVE",
+          },
+        });
+      } else if (newUser.role === "COACH") {
+        // Create Coach Profile
+        newCoach = await tx.coach.create({
+          data: {
+            userId: newUser.id,
+            fullName: name,
+            danRank: "Dan 1 Black Belt",
+          },
+        });
+      }
 
       // Log Activity
       await tx.activityLog.create({
         data: {
           adminId: adminPayload.userId,
-          action: "CREATE_MEMBER",
+          action: newUser.role === "COACH" ? "CREATE_COACH" : newUser.role === "ADMIN" ? "CREATE_ADMIN" : "CREATE_MEMBER",
           target: username,
-          details: `Created new member: ${name} (${username})`,
+          details: `Created new ${newUser.role.toLowerCase()}: ${name} (${username})`,
           ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "Unknown",
           browser: request.headers.get("user-agent") || "Unknown",
           status: "SUCCESS"
         }
       });
 
-      return { newUser, newMember };
+      return { newUser, newMember, newCoach };
     });
 
     // 7. Return friendly response (no password leaked)
@@ -127,14 +140,14 @@ export async function POST(request: NextRequest) {
       message: "User berhasil didaftarkan.",
       user: {
         id: result.newUser.id,
-        memberId: result.newMember.id,
-        name: result.newMember.fullName,
+        memberId: result.newMember?.id || null,
+        name: result.newMember?.fullName || result.newCoach?.fullName || result.newUser.name,
         username: result.newUser.username,
         role: result.newUser.role,
         status: "AKTIF",
-        memberNumber: result.newMember.memberNumber,
-        currentBelt: result.newMember.currentBelt,
-        progress: result.newMember.progress,
+        memberNumber: result.newMember?.memberNumber || "-",
+        currentBelt: result.newMember?.currentBelt || "-",
+        progress: result.newMember?.progress || 0,
         createdAt: result.newUser.createdAt,
       }
     });

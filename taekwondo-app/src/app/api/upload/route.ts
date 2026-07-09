@@ -25,8 +25,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No file received.' }, { status: 400 });
     }
 
+    console.log("UPLOAD API - Received file details:", {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      constructor: file.constructor ? file.constructor.name : 'Unknown'
+    });
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    console.log("UPLOAD API - Buffer length:", buffer.length);
 
     // Get original extension and check validity
     const originalExt = file.name.split('.').pop()?.toLowerCase();

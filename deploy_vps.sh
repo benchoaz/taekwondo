@@ -21,6 +21,10 @@ sshpass -e ssh $SSH_OPTS $HOST "
   # Ekstrak file
   tar -xzf taekwondo_deploy.tar.gz
   
+  # Hentikan dan hapus kontainer lama untuk menghindari konflik nama di Podman
+  sudo podman stop taekwondo_web || true
+  sudo podman rm taekwondo_web || true
+
   # Jalankan podman compose (build ulang) dengan sudo
   sudo podman-compose up -d --build
   

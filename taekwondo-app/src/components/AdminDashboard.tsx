@@ -354,6 +354,7 @@ export default function AdminDashboard({
   const [newUserPassword, setNewUserPassword] = useState("");
   const [showNewUserPassword, setShowNewUserPassword] = useState(false);
   const [newUserBirthDate, setNewUserBirthDate] = useState("");
+  const [newUserRole, setNewUserRole] = useState("MEMBER");
   const [isSubmittingNewUser, setIsSubmittingNewUser] = useState(false);
   const [newUserError, setNewUserError] = useState("");
 
@@ -950,7 +951,7 @@ export default function AdminDashboard({
           name: newUserName,
           username: newUserUsername,
           password: newUserPassword,
-          role: "MEMBER",
+          role: newUserRole,
           birthDate: newUserBirthDate,
         }),
       });
@@ -1097,6 +1098,28 @@ export default function AdminDashboard({
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus user ini secara permanen dari sistem dojang? Semua data terkait (member/pelatih) juga akan terhapus.")) return;
+    try {
+      const res = await fetch(`/api/users/${userId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setShowEditUserModal(false);
+        setEditingUser(null);
+        fetchUsers();
+        fetchCoaches();
+        alert("User berhasil dihapus.");
+      } else {
+        const data = await res.json();
+        alert(data.error || "Gagal menghapus user");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan koneksi saat menghapus user.");
     }
   };
 
@@ -3013,16 +3036,34 @@ export default function AdminDashboard({
 
           {activeTab === "coaches" && (
             <div className="flex flex-col gap-6">
-              <div>
-                <h2 className="text-3xl font-black text-[#0F172A] font-display">Manajemen Profil Pelatih</h2>
-                <p className="text-gray-400 text-xs mt-1">Lengkapi informasi tingkatan Dan rank, spesialisasi, dan jam terbang pelatih dojang.</p>
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-3xl font-black text-[#0F172A] font-display">Manajemen Profil Pelatih</h2>
+                  <p className="text-gray-400 text-xs mt-1">Lengkapi informasi tingkatan Dan rank, spesialisasi, dan jam terbang pelatih dojang.</p>
+                </div>
+                <button 
+                  onClick={() => setShowAddModal(true)}
+                  className="bg-[#0F172A] hover:bg-[#1E293B] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                >
+                  <Plus className="w-4 h-4" /> Daftarkan Pelatih Baru
+                </button>
               </div>
 
               {isLoadingCoaches ? (
                 <div className="text-center py-12 text-gray-400 text-xs">Memuat data pelatih...</div>
               ) : coaches.length === 0 ? (
-                <div className="bg-white border border-slate-100 rounded-2xl p-12 text-center text-gray-400 text-xs">
-                  Belum ada pelatih yang terdaftar dalam sistem (Tambahkan user dengan peran COACH terlebih dahulu).
+                <div className="bg-white border-2 border-dashed border-slate-200 rounded-2xl p-16 text-center flex flex-col items-center justify-center gap-4">
+                  <User className="w-12 h-12 text-slate-300" />
+                  <div>
+                    <h3 className="text-base font-black text-[#0F172A]">Belum ada pelatih yang terdaftar</h3>
+                    <p className="text-xs text-gray-400 mt-1 max-w-sm mx-auto">Untuk melengkapi profil pelatih, Anda harus mendaftarkan user dengan peran (role) COACH terlebih dahulu.</p>
+                  </div>
+                  <button 
+                    onClick={() => setShowAddModal(true)}
+                    className="bg-[#E10600] hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-md transition-all active:scale-95"
+                  >
+                    Daftarkan User Coach Sekarang
+                  </button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -3963,6 +4004,19 @@ export default function AdminDashboard({
                 />
               </div>
 
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Peran Sistem (Role) <span className="text-[#E10600]">*</span></label>
+                <select 
+                  value={newUserRole}
+                  onChange={(e) => setNewUserRole(e.target.value)}
+                  className="w-full bg-white border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] font-semibold text-[#0F172A]"
+                >
+                  <option value="MEMBER">Anggota (Member)</option>
+                  <option value="COACH">Pelatih (Coach)</option>
+                  <option value="ADMIN">Super Admin (Administrator)</option>
+                </select>
+              </div>
+
               <div className="flex gap-3 mt-4">
                 <button 
                   type="button" 
@@ -4311,23 +4365,34 @@ export default function AdminDashboard({
               )}
 
               {/* Action Buttons */}
-              <div className="flex gap-3 mt-4 border-t border-slate-100 pt-4 sticky bottom-0 bg-white">
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    setShowEditUserModal(false);
-                    setEditingUser(null);
-                  }}
-                  className="w-full bg-slate-100 text-gray-500 py-3 rounded-xl font-bold text-xs"
-                >
-                  Batal
-                </button>
-                <button 
-                  type="submit" 
-                  className="w-full bg-[#E10600] text-white py-3 rounded-xl font-bold text-xs shadow-md active:scale-95 transition-all"
-                >
-                  Simpan Perubahan
-                </button>
+              <div className="flex flex-col gap-2 mt-4 border-t border-slate-100 pt-4 sticky bottom-0 bg-white">
+                <div className="flex gap-3">
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setShowEditUserModal(false);
+                      setEditingUser(null);
+                    }}
+                    className="w-full bg-slate-100 text-gray-500 py-3 rounded-xl font-bold text-xs"
+                  >
+                    Batal
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="w-full bg-[#E10600] text-white py-3 rounded-xl font-bold text-xs shadow-md active:scale-95 transition-all"
+                  >
+                    Simpan Perubahan
+                  </button>
+                </div>
+                {editingUser && (
+                  <button 
+                    type="button"
+                    onClick={() => handleDeleteUser(editingUser.id)}
+                    className="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2.5 rounded-xl font-bold text-[10px] transition-all flex items-center justify-center gap-1 mt-1 border border-red-200"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Hapus User Permanen
+                  </button>
+                )}
               </div>
             </form>
           </div>
@@ -4940,6 +5005,102 @@ export default function AdminDashboard({
               >
                 {isSavingAchievement ? "Menyimpan..." : "Simpan Prestasi"}
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Gallery Modal */}
+      {isGalleryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-2xl">
+              <div>
+                <h3 className="font-black text-[#0F172A] text-xl">Tambah Foto Galeri</h3>
+                <p className="text-gray-400 text-xs mt-1">Unggah foto dokumentasi kegiatan dojang.</p>
+              </div>
+              <button onClick={() => setIsGalleryModalOpen(false)} className="text-gray-400 hover:text-[#0F172A] p-2 bg-white rounded-full shadow-sm">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleSaveGallery} className="p-6 flex flex-col gap-5 overflow-y-auto">
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Judul / Deskripsi Foto</label>
+                <input 
+                  type="text" 
+                  value={currentGalleryItem.title} 
+                  onChange={e => setCurrentGalleryItem({ ...currentGalleryItem, title: e.target.value })} 
+                  required 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none focus:ring-2 focus:ring-[#E10600]/20 focus:border-[#E10600] transition-all" 
+                  placeholder="Contoh: Latihan Bersama Minggu Pagi" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Kategori Galeri</label>
+                <select 
+                  value={currentGalleryItem.category} 
+                  onChange={e => setCurrentGalleryItem({ ...currentGalleryItem, category: e.target.value })} 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none focus:ring-2 focus:ring-[#E10600]/20 focus:border-[#E10600]"
+                >
+                  <option value="LATIHAN">Latihan Rutin</option>
+                  <option value="KEJUARAAN">Pertandingan / Lomba</option>
+                  <option value="UKT">Ujian UKT</option>
+                  <option value="SOSIAL">Kegiatan Sosial / Lainnya</option>
+                </select>
+              </div>
+
+              {/* Upload Foto Galeri */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-[#0F172A] uppercase">Foto Galeri *</label>
+                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-5 bg-[#F8FAFC] flex flex-col items-center gap-3">
+                  {currentGalleryItem.imageUrl ? (
+                    <div className="flex flex-col items-center gap-2 w-full">
+                      <img src={currentGalleryItem.imageUrl} alt="Preview Galeri" className="max-h-48 rounded-xl object-contain border border-slate-100" />
+                      <button type="button" onClick={() => setCurrentGalleryItem({ ...currentGalleryItem, imageUrl: "" })} className="text-xs font-bold text-red-500 hover:text-red-700">
+                        Hapus Gambar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <Image className="w-8 h-8 text-slate-300" />
+                      <label className="bg-white hover:bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all inline-flex items-center gap-1.5">
+                        <Upload className="w-3.5 h-3.5 text-slate-500" />
+                        Pilih Foto
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const url = await uploadToServer(file, file.name);
+                            if (url) setCurrentGalleryItem({ ...currentGalleryItem, imageUrl: url });
+                          }}
+                        />
+                      </label>
+                      <span className="text-[9px] text-gray-400">JPG, PNG atau WEBP · Maks 4MB</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-4 pt-4 border-t border-slate-100">
+                <button 
+                  type="button" 
+                  onClick={() => setIsGalleryModalOpen(false)}
+                  className="w-full bg-slate-100 text-gray-500 py-3 rounded-xl font-bold text-xs"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="submit" 
+                  className="w-full bg-[#E10600] text-white py-3 rounded-xl font-bold text-xs shadow-md active:scale-95 transition-all"
+                >
+                  Simpan ke Galeri
+                </button>
+              </div>
             </form>
           </div>
         </div>

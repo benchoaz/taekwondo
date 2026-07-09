@@ -50,6 +50,20 @@ export default function CoachDashboard({
   const [searchTerm, setSearchTerm] = useState("");
   const [memberSearchTerm, setMemberSearchTerm] = useState("");
 
+  // States for Add Member form modal
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
+  const [newMemberName, setNewMemberName] = useState("");
+  const [newMemberUsername, setNewMemberUsername] = useState("");
+  const [newMemberPassword, setNewMemberPassword] = useState("password123");
+  const [newMemberBirthDate, setNewMemberBirthDate] = useState("");
+  const [isSubmittingMember, setIsSubmittingMember] = useState(false);
+
+  // States for Announcement form
+  const [announceTitle, setAnnounceTitle] = useState("");
+  const [announceMessage, setAnnounceMessage] = useState("");
+  const [announceSendWA, setAnnounceSendWA] = useState(false);
+  const [isSubmittingAnnounce, setIsSubmittingAnnounce] = useState(false);
+
   // Belt order for sorting
   const beltOrder = [
     "Sabuk Putih", "Sabuk Kuning", "Kuning Strip Hijau",
@@ -579,6 +593,7 @@ export default function CoachDashboard({
     { id: "history", label: "Progres Sabuk", icon: <Award className="w-4 h-4" /> },
     { id: "schedule", label: "Jadwal Latihan", icon: <Clock className="w-4 h-4" /> },
     { id: "certificates", label: "Sertifikat", icon: <FileText className="w-4 h-4" /> },
+    { id: "announcements", label: "Buat Pengumuman", icon: <Send className="w-4 h-4" /> },
   ];
 
   const dayOrder = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
@@ -848,15 +863,23 @@ export default function CoachDashboard({
                   <h2 className="text-3xl font-black text-[#0F172A]">Data Siswa</h2>
                   <p className="text-gray-400 text-xs mt-1">Pantau perkembangan, sabuk, dan administrasi seluruh siswa dojang.</p>
                 </div>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Cari nama atau nomor anggota..."
-                    value={memberSearchTerm}
-                    onChange={(e) => setMemberSearchTerm(e.target.value)}
-                    className="bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600] w-64"
-                  />
-                  <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-3" />
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Cari nama atau nomor anggota..."
+                      value={memberSearchTerm}
+                      onChange={(e) => setMemberSearchTerm(e.target.value)}
+                      className="bg-white border border-slate-200 rounded-xl pl-9 pr-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600] w-64"
+                    />
+                    <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-3" />
+                  </div>
+                  <button
+                    onClick={() => setIsAddMemberOpen(true)}
+                    className="bg-[#E10600] hover:bg-[#C00500] text-white py-2.5 px-4 rounded-xl font-bold text-xs shadow-md transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah Siswa
+                  </button>
                 </div>
               </div>
 
@@ -1347,8 +1370,213 @@ export default function CoachDashboard({
             </div>
           )}
 
+          {/* ══════════════ TAB: ANNOUNCEMENTS (BUAT PENGUMUMAN) ══════════════ */}
+          {activeTab === "announcements" && (
+            <div className="flex flex-col gap-8 max-w-2xl">
+              <div>
+                <h2 className="text-3xl font-black text-[#0F172A]">Buat Pengumuman</h2>
+                <p className="text-gray-400 text-xs mt-1">Kirim informasi penting secara serentak ke seluruh murid melalui Notifikasi Aplikasi dan WhatsApp.</p>
+              </div>
+
+              <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-6 shadow-sm flex flex-col gap-5">
+                <div className="flex flex-col gap-2">
+                  <label className="font-bold text-xs text-[#0F172A]">Judul Pengumuman</label>
+                  <input
+                    type="text"
+                    placeholder="Contoh: Ujian Kenaikan Tingkat (UKT) Periode Juli 2026"
+                    value={announceTitle}
+                    onChange={(e) => setAnnounceTitle(e.target.value)}
+                    className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] w-full"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="font-bold text-xs text-[#0F172A]">Isi Pengumuman / Pesan</label>
+                  <textarea
+                    rows={6}
+                    placeholder="Tulis pesan lengkap di sini..."
+                    value={announceMessage}
+                    onChange={(e) => setAnnounceMessage(e.target.value)}
+                    className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] w-full resize-none"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-xl p-4">
+                  <input
+                    type="checkbox"
+                    id="sendWhatsApp"
+                    checked={announceSendWA}
+                    onChange={(e) => setAnnounceSendWA(e.target.checked)}
+                    className="w-4 h-4 text-[#E10600] border-slate-300 rounded focus:ring-[#E10600]"
+                  />
+                  <label htmlFor="sendWhatsApp" className="flex flex-col cursor-pointer">
+                    <span className="font-bold text-xs text-[#0F172A] flex items-center gap-1.5">
+                      💬 Kirim juga via WhatsApp Broadcast
+                    </span>
+                    <span className="text-[10px] text-gray-400 mt-0.5">Mengirim pesan siaran otomatis ke seluruh nomor telepon murid terdaftar.</span>
+                  </label>
+                </div>
+
+                <button
+                  onClick={async () => {
+                    if (!announceTitle || !announceMessage) {
+                      alert("Judul dan pesan wajib diisi!");
+                      return;
+                    }
+                    setIsSubmittingAnnounce(true);
+                    try {
+                      const res = await fetch("/api/announcements", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          title: announceTitle,
+                          message: announceMessage,
+                          sendWhatsApp: announceSendWA
+                        })
+                      });
+                      if (res.ok) {
+                        alert("Pengumuman berhasil disebarkan!");
+                        setAnnounceTitle("");
+                        setAnnounceMessage("");
+                        setAnnounceSendWA(false);
+                      } else {
+                        const err = await res.json();
+                        alert(`Gagal mengirim pengumuman: ${err.message || "Kesalahan internal"}`);
+                      }
+                    } catch (e) {
+                      alert(`Gagal menghubungi server: ${e}`);
+                    } finally {
+                      setIsSubmittingAnnounce(false);
+                    }
+                  }}
+                  disabled={isSubmittingAnnounce}
+                  className="bg-[#E10600] hover:bg-[#C00500] text-white py-3 rounded-xl font-bold text-xs shadow-md transition-all active:scale-95 text-center flex items-center justify-center gap-2 cursor-pointer disabled:bg-gray-400"
+                >
+                  {isSubmittingAnnounce ? (
+                    <span>Mengirim...</span>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" /> Sebarkan Pengumuman
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
         </main>
       </div>
+
+      {/* Modal: Tambah Siswa Baru */}
+      {isAddMemberOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[28px] w-full max-w-md p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-black text-[#0F172A] mb-1">Tambah Siswa Baru</h3>
+            <p className="text-gray-400 text-[11px] mb-5">Pendaftaran langsung murid baru aktif ke database Dojang.</p>
+
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="font-bold text-[10px] uppercase text-gray-400">Nama Lengkap Siswa</label>
+                <input
+                  type="text"
+                  placeholder="Nama Lengkap"
+                  value={newMemberName}
+                  onChange={(e) => setNewMemberName(e.target.value)}
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600] w-full"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="font-bold text-[10px] uppercase text-gray-400">Username Akun (Untuk Login HP)</label>
+                <input
+                  type="text"
+                  placeholder="username (tanpa spasi)"
+                  value={newMemberUsername}
+                  onChange={(e) => setNewMemberUsername(e.target.value)}
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600] w-full"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="font-bold text-[10px] uppercase text-gray-400">Tanggal Lahir</label>
+                <input
+                  type="date"
+                  value={newMemberBirthDate}
+                  onChange={(e) => setNewMemberBirthDate(e.target.value)}
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600] w-full"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="font-bold text-[10px] uppercase text-gray-400">Password Akun</label>
+                <input
+                  type="text"
+                  value={newMemberPassword}
+                  onChange={(e) => setNewMemberPassword(e.target.value)}
+                  className="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600] w-full"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setIsAddMemberOpen(false);
+                  setNewMemberName("");
+                  setNewMemberUsername("");
+                  setNewMemberPassword("password123");
+                  setNewMemberBirthDate("");
+                }}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-gray-600 py-3 rounded-xl font-bold text-xs transition-all cursor-pointer text-center"
+              >
+                Batal
+              </button>
+              <button
+                onClick={async () => {
+                  if (!newMemberName || !newMemberUsername || !newMemberPassword || !newMemberBirthDate) {
+                    alert("Harap isi semua kolom pendaftaran siswa!");
+                    return;
+                  }
+                  setIsSubmittingMember(true);
+                  try {
+                    const res = await fetch("/api/admin/users", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        name: newMemberName,
+                        username: newMemberUsername,
+                        password: newMemberPassword,
+                        birthDate: newMemberBirthDate,
+                        role: "MEMBER"
+                      })
+                    });
+                    if (res.ok) {
+                      alert(`Siswa ${newMemberName} berhasil ditambahkan!`);
+                      setIsAddMemberOpen(false);
+                      setNewMemberName("");
+                      setNewMemberUsername("");
+                      setNewMemberPassword("password123");
+                      setNewMemberBirthDate("");
+                      fetchAllData();
+                    } else {
+                      const err = await res.json();
+                      alert(`Gagal menambahkan: ${err.error || "Kesalahan internal"}`);
+                    }
+                  } catch (e) {
+                    alert(`Gagal menghubungi server: ${e}`);
+                  } finally {
+                    setIsSubmittingMember(false);
+                  }
+                }}
+                disabled={isSubmittingMember}
+                className="flex-1 bg-[#E10600] hover:bg-[#C00500] text-white py-3 rounded-xl font-bold text-xs transition-all shadow-md cursor-pointer disabled:bg-gray-400"
+              >
+                {isSubmittingMember ? "Menyimpan..." : "Daftarkan Siswa"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

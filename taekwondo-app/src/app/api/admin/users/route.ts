@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    if (adminPayload.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden: Only admins can perform this action" }, { status: 403 });
+    if (adminPayload.role !== "ADMIN" && adminPayload.role !== "COACH") {
+      return NextResponse.json({ error: "Forbidden: Only admins or coaches can perform this action" }, { status: 403 });
     }
 
     // 2. Parse Body & Input Sanitization

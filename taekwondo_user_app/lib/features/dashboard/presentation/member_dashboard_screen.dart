@@ -1439,48 +1439,79 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (c) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: cardBg,
-            borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2)))),
-              const SizedBox(height: 24),
-              Text(
-                'Klaim Misi Harian', 
-                style: GoogleFonts.hankenGrotesk(fontSize: 20, fontWeight: FontWeight.bold, color: textWhite)
+        bool isSubmitting = false;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                color: cardBg,
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Apakah kamu ingin menyelesaikan dan mengklaim misi ini?',
-                style: GoogleFonts.hankenGrotesk(fontSize: 14, color: textGray),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              GestureDetector(
-                onTap: () async {
-                  // In a real implementation we update quest status via api /quests/claim or similar
-                  Navigator.pop(c);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Misi berhasil diselesaikan!')));
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: themeColor, borderRadius: BorderRadius.circular(16)),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Selesaikan & Klaim XP', 
-                    style: GoogleFonts.hankenGrotesk(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2)))),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Klaim Misi Harian', 
+                    style: GoogleFonts.hankenGrotesk(fontSize: 20, fontWeight: FontWeight.bold, color: textWhite)
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Apakah kamu ingin menyelesaikan dan mengklaim misi ini?',
+                    style: GoogleFonts.hankenGrotesk(fontSize: 14, color: textGray),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  GestureDetector(
+                    onTap: isSubmitting ? null : () async {
+                      setModalState(() => isSubmitting = true);
+                      try {
+                        await ref.read(questServiceProvider).completeQuest(log.id);
+                        ref.invalidate(questProvider);
+                        ref.invalidate(profileProvider); // Refresh dashboard XP/progress
+                        if (context.mounted) {
+                          Navigator.pop(c);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Misi berhasil diselesaikan!')),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Gagal menyelesaikan misi: $e')),
+                          );
+                        }
+                      } finally {
+                        setModalState(() => isSubmitting = false);
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isSubmitting ? Colors.grey : themeColor, 
+                        borderRadius: BorderRadius.circular(16)
+                      ),
+                      alignment: Alignment.center,
+                      child: isSubmitting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            )
+                          : Text(
+                              'Selesaikan & Klaim XP', 
+                              style: GoogleFonts.hankenGrotesk(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)
+                            ),
+                    ),
+                  ),
+                  SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 24),
+                ],
               ),
-              SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 24),
-            ],
-          ),
+            );
+          }
         );
       }
     );

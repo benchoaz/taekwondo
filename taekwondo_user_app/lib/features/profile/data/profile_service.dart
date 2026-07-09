@@ -127,7 +127,15 @@ class ProfileService {
       ),
     });
 
-    final response = await dio.post('/profile/upload', data: formData);
+    final response = await dio.post(
+      '/profile/upload',
+      data: formData,
+      options: Options(
+        headers: {
+          'Content-Type': null,
+        },
+      ),
+    );
     return response.statusCode == 200 && response.data['success'] == true;
   }
 }

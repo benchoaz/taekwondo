@@ -100,7 +100,15 @@ class QuestService {
       'file': MultipartFile.fromBytes(bytes, filename: filename),
     });
 
-    final response = await dio.post('/upload', data: formData);
+    final response = await dio.post(
+      '/upload',
+      data: formData,
+      options: Options(
+        headers: {
+          'Content-Type': null,
+        },
+      ),
+    );
     if (response.statusCode == 200 && response.data['success'] == true) {
       return response.data['url'];
     }

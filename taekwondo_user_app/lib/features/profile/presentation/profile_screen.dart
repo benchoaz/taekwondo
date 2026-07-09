@@ -531,17 +531,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Indeks Massa Tubuh (BMI)',
-                  style: GoogleFonts.hankenGrotesk(
-                    fontSize: 14,
-                    color: Colors.white,
+                Expanded(
+                  child: Text(
+                    'Indeks Massa Tubuh (BMI)',
+                    style: GoogleFonts.hankenGrotesk(
+                      fontSize: 12,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 Text(
                   bmi != null ? "${bmi.toStringAsFixed(1)} ($bmiCategory)" : "Belum ada data",
                   style: GoogleFonts.spaceGrotesk(
-                    fontSize: 14,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: bmiColor,
                   ),

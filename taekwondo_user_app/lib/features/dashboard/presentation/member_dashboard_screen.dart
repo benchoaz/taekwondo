@@ -593,23 +593,27 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   else
                     const Icon(Icons.fingerprint, color: Colors.white, size: 28),
                   
-                  const SizedBox(width: 14),
-                  Text(
-                    _isAbsenLoading 
-                        ? 'MEMPROSES ABSEN...' 
-                        : (_isAbsenSuccess ? 'ANDA SUDAH ABSEN HARI INI' : 'KLIK UNTUK ABSEN SEKARANG!'),
-                    style: GoogleFonts.outfit(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                      shadows: [
-                        const Shadow(
-                          color: Colors.black45,
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        _isAbsenLoading 
+                            ? 'MEMPROSES ABSEN...' 
+                            : (_isAbsenSuccess ? 'ANDA SUDAH ABSEN HARI INI' : 'KLIK UNTUK ABSEN SEKARANG!'),
+                        style: GoogleFonts.outfit(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.2,
+                          shadows: [
+                            const Shadow(
+                              color: Colors.black45,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
@@ -922,6 +926,8 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   ),
                   Text(
                     subLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.hankenGrotesk(
                       fontSize: 12,
                       fontWeight: FontWeight.w900,
@@ -1012,7 +1018,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
             crossAxisCount: 2,
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
-            childAspectRatio: 0.75,
+            childAspectRatio: 0.65,
           ),
           itemCount: shopData.items.length,
           itemBuilder: (context, index) {

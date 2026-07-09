@@ -93,13 +93,27 @@ export default function QuestLibraryPage() {
               {quests.map((q) => (
                 <div key={q.id} className="p-5 border border-gray-100 bg-gray-50/50 hover:bg-white rounded-2xl flex items-start justify-between gap-4 transition-all">
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <span className="text-[10px] font-black uppercase tracking-wider text-red-600 bg-red-100 px-2 py-0.5 rounded-md">
                         {q.category}
                       </span>
                       <span className="text-[10px] font-black uppercase tracking-wider text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-md">
                         {q.baseXp} XP
                       </span>
+                      {q.requirements && q.requirements.length > 0 && (
+                        <>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">
+                            USIA: {q.requirements[0].minAge}-{q.requirements[0].maxAge} TH
+                          </span>
+                          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md max-w-[200px] truncate" title={q.requirements[0].allowedBeltIds?.join(', ')}>
+                            {q.requirements[0].allowedBeltIds?.length > 0 
+                              ? (q.requirements[0].allowedBeltIds.length > 1 
+                                  ? `${q.requirements[0].allowedBeltIds[0].split('(')[0].trim()} ... (+${q.requirements[0].allowedBeltIds.length - 1})`
+                                  : q.requirements[0].allowedBeltIds[0].split('(')[0].trim())
+                              : 'SEMUA SABUK'}
+                          </span>
+                        </>
+                      )}
                     </div>
                     <h3 className="font-bold text-gray-800 text-lg leading-tight mb-1.5">{q.title}</h3>
                     <p className="text-sm text-gray-500 line-clamp-2 leading-snug">{q.description}</p>

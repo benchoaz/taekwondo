@@ -19,6 +19,13 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _isUploading = false;
 
+  String _getAbsoluteUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('http')) return path;
+    final cleanPath = path.startsWith('/') ? path : '/$path';
+    return 'https://www.whitetigerkraksaan.com$cleanPath';
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
@@ -267,7 +274,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         radius: 45,
                         backgroundColor: const Color(0xFF1E222D),
                         backgroundImage: profile.profilePicture != null 
-                            ? NetworkImage(profile.profilePicture!)
+                            ? NetworkImage(_getAbsoluteUrl(profile.profilePicture!))
                             : const NetworkImage('https://api.dicebear.com/7.x/avataaars/png?seed=Taekwondo') as ImageProvider,
                       ),
                     ),
@@ -300,7 +307,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       image: DecorationImage(
-                        image: NetworkImage(frameUrl),
+                        image: NetworkImage(_getAbsoluteUrl(frameUrl)),
                         fit: BoxFit.cover,
                       ),
                       boxShadow: [
@@ -330,7 +337,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               if (emblemUrl != null) ...[
                 const SizedBox(width: 8),
-                Image.network(emblemUrl, width: 24, height: 24, fit: BoxFit.contain),
+                Image.network(_getAbsoluteUrl(emblemUrl), width: 24, height: 24, fit: BoxFit.contain),
               ]
             ],
           ),

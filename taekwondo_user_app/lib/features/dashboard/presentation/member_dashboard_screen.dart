@@ -38,6 +38,13 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
   bool _isAbsenLoading = false;
   bool _isAbsenSuccess = false;
 
+  String _getAbsoluteUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('http')) return path;
+    final cleanPath = path.startsWith('/') ? path : '/$path';
+    return 'https://www.whitetigerkraksaan.com$cleanPath';
+  }
+
   @override
   Widget build(BuildContext context) {
     final shopDataAsync = ref.watch(shopDataProvider);
@@ -288,7 +295,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     radius: 22,
                     backgroundColor: const Color(0xFF1E293B),
                     backgroundImage: profile?.profilePicture != null
-                        ? NetworkImage(profile!.profilePicture!)
+                        ? NetworkImage(_getAbsoluteUrl(profile!.profilePicture!))
                         : const NetworkImage('https://api.dicebear.com/7.x/avataaars/png?seed=Taekwondo') as ImageProvider,
                   ),
                   // 2. Frame Overlay
@@ -299,7 +306,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         image: DecorationImage(
-                          image: NetworkImage(frameUrl),
+                          image: NetworkImage(_getAbsoluteUrl(frameUrl)),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -346,7 +353,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       ),
                       if (emblemUrl != null && emblemUrl.isNotEmpty) ...[
                         const SizedBox(width: 4),
-                        Image.network(emblemUrl, width: 14, height: 14, fit: BoxFit.contain),
+                        Image.network(_getAbsoluteUrl(emblemUrl), width: 14, height: 14, fit: BoxFit.contain),
                       ]
                     ],
                   ),
@@ -1046,7 +1053,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(16),
                                 child: Image.network(
-                                  item.itemUrl!,
+                                  _getAbsoluteUrl(item.itemUrl!),
                                   fit: BoxFit.cover,
                                   errorBuilder: (_, __, ___) => const Icon(Icons.redeem, color: goldAccent, size: 30),
                                 ),

@@ -33,10 +33,16 @@ jobs:
           cd taekwondo_user_app
           flutter pub get
 
+      - name: Clean Build Cache
+        run: |
+          cd taekwondo_user_app
+          flutter clean
+          flutter pub get
+
       - name: Build Release APK
         run: |
           cd taekwondo_user_app
-          flutter build apk --release
+          flutter build apk --release --no-tree-shake-icons
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4

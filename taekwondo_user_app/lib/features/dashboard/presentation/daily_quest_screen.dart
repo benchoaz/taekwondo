@@ -56,7 +56,7 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
   Future<void> _uploadAndCompleteQuest(QuestLog qLog) async {
     if (_isUploading) return;
     
-    fp.FilePickerResult? result = await fp.FilePicker.pickFiles(
+    fp.FilePickerResult? result = await fp.FilePicker.platform.pickFiles(
       type: fp.FileType.video,
       withData: true, // Needed for web
     );

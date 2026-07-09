@@ -22,3 +22,22 @@ final notificationProvider = FutureProvider.autoDispose<List<NotificationModel>>
     throw Exception('Gagal mengambil aktivitas terbaru: $e');
   }
 });
+
+final notificationServiceProvider = Provider.autoDispose((ref) => NotificationService(ref.watch(dioProvider)));
+
+class NotificationService {
+  final dio;
+
+  NotificationService(this.dio);
+
+  Future<void> markAsRead(String userId, {List<String>? notificationIds}) async {
+    final response = await dio.patch('/notifications', data: {
+      'userId': userId,
+      if (notificationIds != null) 'notificationIds': notificationIds,
+    });
+    
+    if (response.statusCode != 200) {
+      throw Exception('Gagal menandai notifikasi telah dibaca');
+    }
+  }
+}

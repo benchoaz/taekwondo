@@ -10,6 +10,7 @@ import '../../features/coach/presentation/coach_schedule_screen.dart';
 import '../../features/curriculum/presentation/curriculum_screen.dart';
 import '../../features/dashboard/presentation/daily_quest_screen.dart';
 import '../../features/dashboard/presentation/member_dashboard_screen.dart';
+import '../../features/dashboard/presentation/notification_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/schedule/presentation/schedule_screen.dart';
 import '../../features/spp/presentation/spp_screen.dart';
@@ -127,8 +128,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/notifications',
-        builder: (context, state) =>
-            const _ComingSoonScreen(title: 'Notifikasi'),
+        builder: (context, state) => const NotificationScreen(),
       ),
 
       // ── Coach Routes ───────────────────────────────────────────────────────

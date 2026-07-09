@@ -46,10 +46,16 @@ class _SppScreenState extends ConsumerState<SppScreen> {
           ).toList();
           final totalUnpaid = currentYearUnpaid.fold<double>(0, (sum, item) => sum + item.amount);
 
-          return SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
-            child: Column(
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(sppListProvider);
+            },
+            color: brandRed,
+            backgroundColor: cardBg,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 120),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Header Laporan SPP
@@ -482,8 +488,9 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                 ),
               ],
             ),
-          );
-        },
+          ),
+        );
+      },
       ),
     );
   }

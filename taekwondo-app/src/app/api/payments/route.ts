@@ -38,6 +38,11 @@ export async function GET() {
             memberNumber: true,
           },
         },
+        receiver: {
+          select: {
+            name: true,
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });

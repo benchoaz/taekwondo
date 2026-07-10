@@ -37,6 +37,8 @@ services:
       - STORAGE_PATH=/app/storage
       - WAHA_BASE_URL=http://waha:3000
       - WHATSAPP_API_KEY=taekwondo_waha_key_2026_super_secure
+    env_file:
+      - ./taekwondo-app/.env.secrets
     depends_on:
       postgres:
         condition: service_healthy

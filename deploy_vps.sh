@@ -11,6 +11,12 @@ tar --exclude='taekwondo-app/node_modules' --exclude='taekwondo-app/.next' --exc
 echo "2. Mengirim file ke VPS..."
 sshpass -e scp $SSH_OPTS taekwondo_deploy.tar.gz $HOST:/home/ubuntu/
 
+# Kirim file secrets (tidak masuk git) ke VPS
+if [ -f "taekwondo-app/.env.secrets" ]; then
+  echo "2b. Mengirim .env.secrets ke VPS..."
+  sshpass -e scp $SSH_OPTS taekwondo-app/.env.secrets $HOST:/home/ubuntu/taekwondo-app/.env.secrets
+fi
+
 echo "3. Mengeksekusi command di VPS..."
 sshpass -e ssh $SSH_OPTS $HOST "
   cd /home/ubuntu

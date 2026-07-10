@@ -270,14 +270,17 @@ model Expense {
 }
 
 model Attendance {
-  id        String   @id @default(uuid())
-  memberId  String   @map("member_id")
-  member    Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
-  date      DateTime
-  present   Boolean  @default(true)
-  latitude  Float?
-  longitude Float?
-  createdAt DateTime @default(now())
+  id           String    @id @default(uuid())
+  memberId     String    @map("member_id")
+  member       Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  scheduleId   String?   @map("schedule_id")  // Jadwal latihan yang dihadiri
+  schedule     Schedule? @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  date         DateTime
+  present      Boolean   @default(true)
+  checkInTime  DateTime? @map("check_in_time") // Waktu check-in aktual
+  latitude     Float?
+  longitude    Float?
+  createdAt    DateTime  @default(now())
 }
 
 model Notification {
@@ -327,16 +330,17 @@ model Setting {
 }
 
 model Schedule {
-  id          String   @id @default(uuid())
-  dayOfWeek   String   @map("day_of_week") // "Senin", "Selasa", dll
-  startTime   String   @map("start_time")  // "17:00"
-  endTime     String   @map("end_time")    // "19:00"
-  className   String   @map("class_name")  // "Kelas Pemula (Kids)"
+  id          String       @id @default(uuid())
+  dayOfWeek   String       @map("day_of_week") // "Senin", "Selasa", dll
+  startTime   String       @map("start_time")  // "17:00"
+  endTime     String       @map("end_time")    // "19:00"
+  className   String       @map("class_name")  // "Kelas Pemula (Kids)"
   location    String   
-  coachId     String   @map("coach_id")
-  coach       Coach    @relation(fields: [coachId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  coachId     String       @map("coach_id")
+  coach       Coach        @relation(fields: [coachId], references: [id])
+  attendances Attendance[] // Relasi balik: semua absen di sesi ini
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model HeroSlide {

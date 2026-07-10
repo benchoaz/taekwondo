@@ -45,8 +45,23 @@ export async function POST(request: Request) {
     }
 
     const isImage = ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(originalExt);
-    const isVideo = ['mp4', 'mov', 'webm'].includes(originalExt);
+    const isVideo = ['mp4', 'mov', 'webm', 'avi', 'mkv'].includes(originalExt);
     const isDocument = ['pdf'].includes(originalExt);
+
+    // --- BATAS UKURAN FILE ---
+    const MAX_IMAGE_SIZE = 10 * 1024 * 1024;  // 10MB untuk gambar
+    const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB untuk video quest
+    const MAX_DOC_SIZE   = 5 * 1024 * 1024;   // 5MB untuk dokumen
+
+    if (isImage && buffer.length > MAX_IMAGE_SIZE) {
+      return NextResponse.json({ error: 'Ukuran gambar maksimal 10MB.' }, { status: 400 });
+    }
+    if (isVideo && buffer.length > MAX_VIDEO_SIZE) {
+      return NextResponse.json({ error: 'Ukuran video maksimal 100MB.' }, { status: 400 });
+    }
+    if (isDocument && buffer.length > MAX_DOC_SIZE) {
+      return NextResponse.json({ error: 'Ukuran dokumen maksimal 5MB.' }, { status: 400 });
+    }
 
     let finalBuffer = buffer;
     let finalExt = originalExt;
@@ -61,20 +76,28 @@ export async function POST(request: Request) {
       mimeType = 'image/webp';
     }
 
-    // --- HYBRID LOGIC ---
-    // Public images go to Cloudinary (if configured)
+    // ================================================================
+    // HYBRID STORAGE LOGIC
+    // - Foto profil & galeri     → Cloudinary CDN (akses cepat global)
+    // - Video quest (insidentil) → Cloudinary CDN (hemat disk VPS)
+    // - Dokumen sensitif (KTP, bukti bayar) → VPS Lokal (privat)
+    // ================================================================
+
+    const useCloudinary = process.env.CLOUDINARY_CLOUD_NAME;
+
+    // --- CLOUDINARY: Foto publik (profil, galeri) ---
     const isPublicImage = isImage && (type === 'profile' || type === 'gallery');
-    
-    if (isPublicImage && process.env.CLOUDINARY_CLOUD_NAME) {
+
+    if (isPublicImage && useCloudinary) {
       const cloudinaryUrl = await new Promise<string>((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
-          { folder: `taekwondo_dojang/${type}` },
+          { folder: `taekwondo_dojang/${type}`, tags: [type] },
           (error, result) => {
             if (error) reject(error);
             else resolve(result?.secure_url || "");
           }
         );
-        uploadStream.end(buffer); // Send original buffer to Cloudinary, they optimize it
+        uploadStream.end(buffer);
       });
 
       const media = await prisma.media.create({
@@ -83,7 +106,7 @@ export async function POST(request: Request) {
           storedName: `cloudinary-${crypto.randomUUID()}`,
           mimeType: file.type,
           sizeBytes: buffer.length,
-          path: cloudinaryUrl, // Just store the URL in path
+          path: cloudinaryUrl,
           url: cloudinaryUrl,
         }
       });
@@ -91,7 +114,47 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, url: cloudinaryUrl, mediaId: media.id });
     }
 
-    // --- LOCAL VPS STORAGE (Sensitive files, Videos, or Cloudinary Fallback) ---
+    // --- CLOUDINARY: Video Quest (Insidentil) ---
+    // Video quest bersifat sementara → simpan di Cloudinary, hemat disk VPS
+    // Pelatih bisa review di dashboard, setelah verifikasi tidak perlu disimpan lama
+    const isQuestVideo = isVideo && (type === 'video' || type === 'quest');
+
+    if (isQuestVideo && useCloudinary) {
+      console.log("UPLOAD API - Uploading quest video to Cloudinary CDN...");
+      const cloudinaryUrl = await new Promise<string>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: 'taekwondo_dojang/quests',
+            resource_type: 'video',
+            // Auto-compress video: hemat bandwidth saat pelatih review
+            transformation: [{ quality: 'auto' }],
+            tags: ['quest_submission'], // Tag untuk manajemen/cleanup nanti
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result?.secure_url || "");
+          }
+        );
+        uploadStream.end(buffer);
+      });
+
+      const media = await prisma.media.create({
+        data: {
+          originalName: file.name,
+          storedName: `cloudinary-quest-${crypto.randomUUID()}`,
+          mimeType: file.type,
+          sizeBytes: buffer.length,
+          path: cloudinaryUrl,
+          url: cloudinaryUrl,
+        }
+      });
+
+      console.log("UPLOAD API - Quest video uploaded to Cloudinary:", cloudinaryUrl);
+      return NextResponse.json({ success: true, url: cloudinaryUrl, mediaId: media.id });
+    }
+
+    // --- VPS LOKAL: File Sensitif (KTP, Bukti Bayar, Dokumen, dll) ---
+    // File yang bersifat privat dan tidak perlu CDN tetap di VPS
     const secureFilename = `${crypto.randomUUID()}.${finalExt}`;
     
     // Determine path based on type

@@ -135,7 +135,7 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Rp ${totalUnpaid.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
+                                'Rp. ${totalUnpaid.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}',
                                 style: GoogleFonts.spaceGrotesk(
                                   fontSize: 24,
                                   fontWeight: FontWeight.w900,
@@ -209,7 +209,7 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                     String amountText = '-';
 
                     if (inv != null && inv.status != 'NOT_BILLED') {
-                      amountText = 'Rp ${inv.amount.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}';
+                      amountText = 'Rp. ${inv.amount.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}';
                       if (inv.status == 'PAID') {
                         cardBorderColor = Colors.white.withOpacity(0.08);
                         iconColor = Colors.green;
@@ -403,7 +403,29 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                                           ),
                                         ),
                                         Text(
-                                          inv.status == 'PAID' ? 'MANUAL/TRANSFER' : '-',
+                                          inv.status == 'PAID' ? (inv.paymentMethod ?? 'MANUAL/TUNAI') : '-',
+                                          style: GoogleFonts.spaceGrotesk(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w900,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'VALIDASI OLEH',
+                                          style: GoogleFonts.spaceGrotesk(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w900,
+                                            color: textGray,
+                                          ),
+                                        ),
+                                        Text(
+                                          inv.status == 'PAID' ? (inv.validatedBy ?? 'Sistem / Admin') : '-',
                                           style: GoogleFonts.spaceGrotesk(
                                             fontSize: 9,
                                             fontWeight: FontWeight.w900,

@@ -1,3 +1,4 @@
+import 'dart:math' as Math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -459,98 +460,130 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Level & XP Bar
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: cardBg,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.05), width: 1.5),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          // Level & XP Bar (RPG Exponential XP Curve)
+          Builder(
+            builder: (context) {
+              // totalXp adalah total akumulasi XP milik member
+              final int totalXp = progress; 
+              
+              // Fungsi RPG Leveling: hitung batas XP kumulatif untuk setiap level
+              // level 1 butuh 0 XP kumulatif.
+              // Batas naik ke level L+1 adalah: Max XP level L = 100 * L^1.5 (dibulatkan).
+              int level = 1;
+              int accumulatedXpForCurrentLevel = 0;
+              int nextLevelThreshold = 100; // batas naik ke level 2
+
+              while (true) {
+                // Formula Max XP level saat ini: 100 * (level)^1.5
+                final double multiplier = Math.pow(level, 1.5).toDouble();
+                final int currentLevelMaxXp = (100 * multiplier).round();
+                
+                if (totalXp >= accumulatedXpForCurrentLevel + currentLevelMaxXp) {
+                  accumulatedXpForCurrentLevel += currentLevelMaxXp;
+                  level++;
+                } else {
+                  // Berhenti jika totalXp berada di dalam rentang level ini
+                  nextLevelThreshold = currentLevelMaxXp;
+                  break;
+                }
+              }
+
+              final int currentLevelXp = totalXp - accumulatedXpForCurrentLevel;
+              final double widthFactor = (currentLevelXp / nextLevelThreshold).clamp(0.0, 1.0);
+
+              return Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withOpacity(0.05), width: 1.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: goldAccent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'LV.$level',
+                            style: GoogleFonts.spaceGrotesk(
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'CHUKJAE (NOVICE) • $belt',
+                            style: GoogleFonts.hankenGrotesk(
+                              color: textWhite,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '$currentLevelXp / $nextLevelThreshold XP',
+                          style: GoogleFonts.spaceGrotesk(
+                            color: textWhite,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      height: 14,
                       decoration: BoxDecoration(
-                        color: goldAccent,
-                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.black.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white.withOpacity(0.1)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.5),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        'LV.1',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black,
-                          fontSize: 12,
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: FractionallySizedBox(
+                          widthFactor: widthFactor,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 800),
+                            curve: Curves.easeOutQuart,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFEAB308), Color(0xFFF59E0B), Color(0xFFD97706)],
+                                stops: [0.0, 0.5, 1.0],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFEAB308).withOpacity(0.6),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 0),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'CHUKJAE (NOVICE) • $belt',
-                        style: GoogleFonts.hankenGrotesk(
-                          color: textWhite,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      '$progress / 100 XP',
-                      style: GoogleFonts.spaceGrotesk(
-                        color: textWhite,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Container(
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: FractionallySizedBox(
-                      widthFactor: (progress / 100).clamp(0.0, 1.0),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 800),
-                        curve: Curves.easeOutQuart,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFEAB308), Color(0xFFF59E0B), Color(0xFFD97706)],
-                            stops: [0.0, 0.5, 1.0],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFEAB308).withOpacity(0.6),
-                              blurRadius: 12,
-                              offset: const Offset(0, 0),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           ),
           const SizedBox(height: 16),
 
@@ -1025,7 +1058,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
             crossAxisCount: 2,
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
-            childAspectRatio: 0.65,
+            childAspectRatio: 0.76,
           ),
           itemCount: shopData.items.length,
           itemBuilder: (context, index) {
@@ -1286,31 +1319,32 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 60,
-            height: 24,
+            width: 96,
+            height: 38, // Tinggi dinaikkan sedikit untuk ruang
             child: Stack(
               clipBehavior: Clip.none,
+              alignment: Alignment.center,
               children: [
                 Positioned(
-                  top: isActive ? -42 : -26, // Float up above the bar
-                  left: -20,
-                  right: -20,
+                  top: -38, // Dinaikkan dari -26 agar melayang keluar dari garis bawah dojang
                   child: Image.asset(
                     'assets/images/daily_quest_tiger_transparent.png',
-                    width: isActive ? 102 : 78, // 3x larger!
-                    height: isActive ? 102 : 78,
+                    width: 96,
+                    height: 96,
                     fit: BoxFit.contain,
+                    color: isActive ? null : Colors.white.withOpacity(0.4),
+                    colorBlendMode: isActive ? null : BlendMode.modulate,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
             'Misi',
             style: GoogleFonts.spaceGrotesk(
               fontSize: 10,
-              fontWeight: isActive ? FontWeight.w900 : FontWeight.bold,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
               color: isActive ? brandRed : textGray,
             ),
           )
@@ -1326,25 +1360,17 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: isActive ? brandRed : Colors.transparent,
-              shape: BoxShape.circle,
-              border: isActive ? Border.all(color: Colors.white, width: 1.5) : null,
-            ),
-            child: Icon(
-              isActive ? selectedIcon : unselectedIcon,
-              color: isActive ? Colors.white : textGray,
-              size: 20,
-            ),
+          Icon(
+            isActive ? selectedIcon : unselectedIcon,
+            color: isActive ? brandRed : textGray,
+            size: 24,
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: GoogleFonts.spaceGrotesk(
               fontSize: 10,
-              fontWeight: isActive ? FontWeight.w900 : FontWeight.bold,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
               color: isActive ? brandRed : textGray,
             ),
           )

@@ -9,6 +9,8 @@ class SppInvoice {
   final int year;
   final double amount;
   final String status;
+  final String? paymentMethod;
+  final String? validatedBy;
 
   SppInvoice({
     required this.id,
@@ -16,15 +18,22 @@ class SppInvoice {
     required this.year,
     required this.amount,
     required this.status,
+    this.paymentMethod,
+    this.validatedBy,
   });
 
   factory SppInvoice.fromJson(Map<String, dynamic> json) {
+    final payment = json['payment'] as Map<String, dynamic>?;
+    final receiver = payment?['receiver'] as Map<String, dynamic>?;
+
     return SppInvoice(
       id: json['id'] ?? '',
       month: json['month'] ?? 1,
       year: json['year'] ?? 2026,
       amount: (json['amount'] as num?)?.toDouble() ?? 0,
       status: json['status'] ?? 'UNPAID',
+      paymentMethod: payment?['paymentMethod']?.toString(),
+      validatedBy: receiver?['name']?.toString(),
     );
   }
 }

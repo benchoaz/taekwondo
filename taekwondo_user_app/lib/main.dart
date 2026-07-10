@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'core/utils/security_defense.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -31,6 +32,9 @@ void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);
+  
+  // MASVS Runtime Defense Checklist (Root, Emulator, Re-signing validation)
+  await SecuritySelfDefense.performRuntimeVerification();
 
   try {
     await Firebase.initializeApp(

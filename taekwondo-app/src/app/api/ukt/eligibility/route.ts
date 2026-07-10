@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         fullName: true,
         currentBelt: true,
         memberNumber: true,
-        joinDate: true,
+        createdAt: true,
       }
     });
 

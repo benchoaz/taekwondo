@@ -42,12 +42,12 @@ jobs:
       - name: Generate Code Files
         run: |
           cd taekwondo_user_app
-          dart run build_runner build --delete-conflicting-outputs
+          dart run build_runner build --delete-conflicting-outputs --verbose
 
       - name: Build Release APK
         run: |
           cd taekwondo_user_app
-          flutter build apk --release --no-tree-shake-icons
+          flutter build apk --release --no-tree-shake-icons --verbose
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4

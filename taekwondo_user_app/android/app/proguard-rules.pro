@@ -19,3 +19,8 @@
 -keep class io.flutter.view.** { *; }
 -keep class io.flutter.embedding.** { *; }
 -keep class io.flutter.plugins.** { *; }
+
+# Keep Play Core classes & suppress warnings for missing dependencies
+-dontwarn com.google.android.play.core.**
+-keep class com.google.android.play.core.** { *; }
+-keep interface com.google.android.play.core.** { *; }

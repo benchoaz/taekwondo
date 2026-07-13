@@ -81,19 +81,51 @@ export default function ProfilePage() {
           <ArrowLeft className="w-4 h-4" /> Kembali
         </button>
         <div className="flex items-center gap-4 relative z-10">
-          {/* Avatar with active frame */}
           {(() => {
             const frame = shopActive.items?.find(i => i.id === shopActive.frameId);
             const frameCss = frame?.cssValue || null;
+            const frameUrl = frame?.imageUrl || null;
+
+            // Helper to parse raw CSS string to React style object safely
+            const parseCssString = (css: string | null): React.CSSProperties => {
+              if (!css) return {};
+              const styleObj: any = {};
+              const declarations = css.split(';');
+              declarations.forEach(decl => {
+                const parts = decl.split(':');
+                if (parts.length >= 2) {
+                  const prop = parts[0].trim();
+                  const val = parts.slice(1).join(':').trim();
+                  if (prop && val) {
+                    const key = prop.replace(/-./g, x => x[1].toUpperCase());
+                    styleObj[key] = val;
+                  }
+                }
+              });
+              return styleObj;
+            };
+
+            const customStyle = parseCssString(frameCss);
+
             return (
-              <div
-                className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center shadow-xl shrink-0"
-                style={{
-                  border: frameCss || `2px solid rgba(255,255,255,0.2)`,
-                  boxShadow: frameCss?.includes('glow') ? undefined : `0 0 16px ${beltColor}40`,
-                }}
-              >
-                <User className="w-8 h-8 text-white drop-shadow" />
+              <div className="relative w-16 h-16 shrink-0">
+                <div
+                  className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center shadow-xl overflow-hidden"
+                  style={{
+                    border: `2px solid rgba(255,255,255,0.2)`,
+                    boxShadow: `0 0 16px ${beltColor}40`,
+                    ...customStyle
+                  }}
+                >
+                  <User className="w-8 h-8 text-white drop-shadow" />
+                </div>
+                {frameUrl && (
+                  <img
+                    src={frameUrl}
+                    alt="Frame"
+                    className="absolute inset-0 w-full h-full object-contain pointer-events-none scale-125 z-10" 
+                  />
+                )}
               </div>
             );
           })()}

@@ -32,6 +32,36 @@ export default function GamificationManagement() {
     price: 0, imageUrl: "", cssValue: "", sortOrder: 0
   });
 
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const uploadData = new FormData();
+    uploadData.append("file", file);
+    uploadData.append("type", "gallery"); // Uses gallery type for public CDN/VPS storage
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: uploadData,
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setFormData(prev => ({ ...prev, imageUrl: data.url }));
+      } else {
+        alert(data.error || "Gagal mengupload gambar");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Terjadi kesalahan saat mengupload gambar");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // Coin State
   const [memberId, setMemberId] = useState("");
   const [coinAmount, setCoinAmount] = useState<number>(0);
@@ -400,9 +430,46 @@ export default function GamificationManagement() {
                     <input type="number" value={formData.sortOrder} onChange={e => setFormData({...formData, sortOrder: parseInt(e.target.value)})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
                   </div>
 
-                  <div className="col-span-2 space-y-1.5">
-                    <label className="text-sm font-bold text-slate-700">Thumbnail URL (Path Fisik)</label>
-                    <input type="text" placeholder="/shop/frame_white.png" value={formData.imageUrl} onChange={e => setFormData({...formData, imageUrl: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                  <div className="col-span-2 space-y-2">
+                    <label className="text-sm font-bold text-slate-700">File Gambar / Bingkai (PNG Transparan)</label>
+                    <div className="flex gap-4 items-center">
+                      <div className="relative w-20 h-20 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
+                        {formData.imageUrl ? (
+                          <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-contain" />
+                        ) : (
+                          <Award className="w-8 h-8 text-slate-300" />
+                        )}
+                        {isUploading && (
+                          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center">
+                            <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex-grow space-y-2">
+                        <input 
+                          type="file" 
+                          accept="image/png, image/jpeg, image/webp"
+                          onChange={handleImageUpload} 
+                          className="hidden" 
+                          id="item-image-file" 
+                        />
+                        <label 
+                          htmlFor="item-image-file" 
+                          className="inline-flex items-center px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl font-bold text-sm transition-colors cursor-pointer"
+                        >
+                          Pilih Gambar
+                        </label>
+                        <input 
+                          type="text" 
+                          placeholder="Atau masukkan URL manual: /shop/frame.png" 
+                          value={formData.imageUrl} 
+                          onChange={e => setFormData({...formData, imageUrl: e.target.value})} 
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-medium focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" 
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-400">Penting: Jika mengupload Bingkai, gunakan format **PNG dengan latar belakang transparan (bolong tengahnya)** agar menyatu dengan foto profil member.</p>
                   </div>
 
                   <div className="col-span-2 space-y-1.5">

@@ -2808,7 +2808,7 @@ export default function AdminDashboard({
                 <div className="relative flex-grow">
                   <input 
                     type="text" 
-                    placeholder="Cari berdasarkan nama atau email..." 
+                    placeholder="Cari berdasarkan nama atau username..." 
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full bg-[#F8FAFC] border border-[#0F172A]/5 rounded-lg pl-9 pr-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
@@ -2824,7 +2824,7 @@ export default function AdminDashboard({
                     <tr className="bg-slate-50 text-gray-500 font-bold uppercase border-b border-[#0F172A]/5">
                       <th className="p-4">ID</th>
                       <th className="p-4">Nama</th>
-                      <th className="p-4">Email</th>
+                      <th className="p-4">Username</th>
                       <th className="p-4">Peran (Role)</th>
                       <th className="p-4">Sabuk (Belt)</th>
                       <th className="p-4">Aksi</th>
@@ -2841,14 +2841,14 @@ export default function AdminDashboard({
                       </tr>
                     ) : users
                       .filter(u => 
-                        u.email.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                        (u.username || u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
                         u.name.toLowerCase().includes(searchTerm.toLowerCase())
                       )
                       .map((u, idx) => (
                         <tr key={idx} className="border-b border-[#0F172A]/5 hover:bg-slate-50/50">
                           <td className="p-4 font-mono font-bold text-gray-400">{u.id}</td>
                           <td className="p-4 font-bold text-[#0F172A]">{u.name}</td>
-                          <td className="p-4 text-gray-600">{u.email}</td>
+                          <td className="p-4 font-mono text-gray-600">{u.username || (u.email ? u.email.split('@')[0] : '-')}</td>
                           <td className="p-4">
                             <span className={`px-2.5 py-1 rounded-full font-black text-[9px] uppercase tracking-wider ${
                               u.role === "ADMIN" 

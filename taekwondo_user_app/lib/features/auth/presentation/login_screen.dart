@@ -2,8 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../settings/data/settings_provider.dart';
 import '../data/auth_provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/network/dio_client.dart';
@@ -103,8 +101,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    darkBg.withOpacity(0.4),
-                    darkBg.withOpacity(0.85),
+                    darkBg.withValues(alpha: 0.4),
+                    darkBg.withValues(alpha: 0.85),
                   ],
                 ),
               ),
@@ -142,7 +140,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         letterSpacing: 2,
                         shadows: [
                           Shadow(
-                            color: brandRed.withOpacity(0.4),
+                            color: brandRed.withValues(alpha: 0.4),
                             offset: const Offset(0, 0),
                             blurRadius: 10,
                           ),
@@ -168,7 +166,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.5),
+                            color: Colors.black.withValues(alpha: 0.5),
                             blurRadius: 30,
                             offset: const Offset(0, 10),
                           )
@@ -180,10 +178,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           filter: ImageFilter.blur(sigmaX: 12.0, sigmaY: 12.0),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: cardBg.withOpacity(0.35),
+                              color: cardBg.withValues(alpha: 0.35),
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 width: 1.5,
                               ),
                             ),
@@ -233,18 +231,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               style: const TextStyle(color: textWhite),
                               decoration: InputDecoration(
                                 hintText: 'member.beni@taekwondo.com',
-                                hintStyle: TextStyle(color: textWhite.withOpacity(0.2), fontSize: 14),
-                                prefixIcon: Icon(Icons.email_outlined, color: textWhite.withOpacity(0.5)),
+                                hintStyle: TextStyle(color: textWhite.withValues(alpha: 0.2), fontSize: 14),
+                                prefixIcon: Icon(Icons.email_outlined, color: textWhite.withValues(alpha: 0.5)),
                                 filled: true,
                                 fillColor: darkBg,
                                 contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -306,12 +304,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               style: const TextStyle(color: textWhite),
                               decoration: InputDecoration(
                                 hintText: '••••••••',
-                                hintStyle: TextStyle(color: textWhite.withOpacity(0.2), fontSize: 14),
-                                prefixIcon: Icon(Icons.lock_outline, color: textWhite.withOpacity(0.5)),
+                                hintStyle: TextStyle(color: textWhite.withValues(alpha: 0.2), fontSize: 14),
+                                prefixIcon: Icon(Icons.lock_outline, color: textWhite.withValues(alpha: 0.5)),
                                 suffixIcon: IconButton(
                                   icon: Icon(
                                     _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                    color: textWhite.withOpacity(0.5),
+                                    color: textWhite.withValues(alpha: 0.5),
                                   ),
                                   onPressed: () {
                                     setState(() {
@@ -324,11 +322,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
-                                  borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(16),
@@ -356,7 +354,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: textWhite.withOpacity(0.5), width: 1.5),
+                                border: Border.all(color: textWhite.withValues(alpha: 0.5), width: 1.5),
                               ),
                               child: ElevatedButton(
                                 onPressed: _isLoading ? null : _handleLogin,

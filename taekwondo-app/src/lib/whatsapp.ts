@@ -140,6 +140,7 @@ export async function sendWelcomeCredentials(
     `Silakan login dan segera perbarui **Password**, **Tanggal Lahir**, serta data fisik (Tinggi/Berat Badan) Anda di menu Edit Profil.\n\n` +
     `Terima kasih! 🥋`;
 
+  return sendWhatsAppMessage(phone, message);
 }
 
 /**

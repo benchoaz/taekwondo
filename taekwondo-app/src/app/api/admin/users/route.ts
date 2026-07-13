@@ -73,6 +73,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Username sudah digunakan." }, { status: 400 });
     }
 
+
+
     // 5. Password Hashing (bcrypt)
     const bcrypt = require("bcryptjs");
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -143,6 +145,7 @@ export async function POST(request: NextRequest) {
         memberId: result.newMember?.id || null,
         name: result.newMember?.fullName || result.newCoach?.fullName || result.newUser.name,
         username: result.newUser.username,
+        email: result.newUser.email,
         role: result.newUser.role,
         status: "AKTIF",
         memberNumber: result.newMember?.memberNumber || "-",

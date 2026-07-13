@@ -131,7 +131,7 @@ export default function SSOPortal({
           {/* Form */}
           <form onSubmit={handleSecureLogin} className="w-full flex flex-col gap-3 mt-1">
             <div>
-              <label className="block text-[10px] font-bold text-[#0F172A] mb-1">Email atau ID Anggota</label>
+              <label className="block text-[10px] font-bold text-[#0F172A] mb-1">Username atau ID Anggota</label>
               <div className="relative">
                 <input 
                   type="text" 

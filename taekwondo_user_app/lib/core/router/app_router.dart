@@ -37,7 +37,7 @@ class _ComingSoonScreen extends StatelessWidget {
           children: [
             const Icon(Icons.construction_rounded, size: 64, color: Color(0xFFFFD700)),
             const SizedBox(height: 16),
-            Text(
+            const Text(
               'Segera Hadir',
               style: TextStyle(
                 color: Colors.white,

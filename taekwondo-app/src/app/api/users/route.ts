@@ -18,6 +18,7 @@ export async function GET() {
             currentBelt: true,
             progress: true,
             prepaidMonthsRemaining: true,
+            selfieUrl: true,
             phone: true,
             beltHistory: {
               select: {
@@ -58,6 +59,7 @@ export async function GET() {
       memberNumber: u.member?.memberNumber || null,
       currentBelt: u.member?.currentBelt || null,
       progress: u.member?.progress || 0,
+      selfieUrl: u.member?.selfieUrl || null,
       certDocUrl: u.role === "COACH" ? u.coach?.certDocUrl : null,
       prepaidMonthsRemaining: u.member?.prepaidMonthsRemaining || 0,
       phone: u.member?.phone || null,

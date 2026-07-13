@@ -65,9 +65,9 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: Colors.green.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.green.withOpacity(0.2)),
+                        border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
                       ),
                       child: const Icon(Icons.credit_card, color: Colors.green, size: 22),
                     ),
@@ -108,10 +108,10 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                     decoration: BoxDecoration(
                       color: cardBg,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: brandRed.withOpacity(0.4), width: 1.5),
+                      border: Border.all(color: brandRed.withValues(alpha: 0.4), width: 1.5),
                       boxShadow: [
                         BoxShadow(
-                          color: brandRed.withOpacity(0.08),
+                          color: brandRed.withValues(alpha: 0.08),
                           blurRadius: 16,
                           offset: const Offset(0, 8),
                         )
@@ -158,9 +158,9 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            color: brandRed.withOpacity(0.1),
+                            color: brandRed.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: brandRed.withOpacity(0.2)),
+                            border: Border.all(color: brandRed.withValues(alpha: 0.2)),
                           ),
                           alignment: Alignment.center,
                           child: Text(
@@ -196,30 +196,30 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                   itemCount: _months.length,
                   itemBuilder: (context, index) {
                     final monthName = _months[index];
-                    final SppInvoice? inv = invoices.firstWhere(
+                    final SppInvoice inv = invoices.firstWhere(
                       (i) => i.month == (index + 1) && i.year == currentYear,
                       orElse: () => SppInvoice(id: '', month: index + 1, year: currentYear, amount: 0, status: 'NOT_BILLED'),
                     );
                     final isExpanded = _expandedMonthIndex == index;
 
-                    Color cardBorderColor = Colors.white.withOpacity(0.04);
+                    Color cardBorderColor = Colors.white.withValues(alpha: 0.04);
                     Color iconColor = Colors.white24;
-                    Color iconBgColor = Colors.white.withOpacity(0.03);
+                    Color iconBgColor = Colors.white.withValues(alpha: 0.03);
                     Widget statusBadge = Container();
                     String amountText = '-';
 
                     if (inv != null && inv.status != 'NOT_BILLED') {
                       amountText = 'Rp. ${inv.amount.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}';
                       if (inv.status == 'PAID') {
-                        cardBorderColor = Colors.white.withOpacity(0.08);
+                        cardBorderColor = Colors.white.withValues(alpha: 0.08);
                         iconColor = Colors.green;
-                        iconBgColor = Colors.green.withOpacity(0.08);
+                        iconBgColor = Colors.green.withValues(alpha: 0.08);
                         statusBadge = Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.1),
+                            color: Colors.green.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.green.withOpacity(0.2)),
+                            border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -238,15 +238,15 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                           ),
                         );
                       } else {
-                        cardBorderColor = brandRed.withOpacity(0.2);
+                        cardBorderColor = brandRed.withValues(alpha: 0.2);
                         iconColor = brandRed;
-                        iconBgColor = brandRed.withOpacity(0.08);
+                        iconBgColor = brandRed.withValues(alpha: 0.08);
                         statusBadge = Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: brandRed.withOpacity(0.1),
+                            color: brandRed.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: brandRed.withOpacity(0.2)),
+                            border: Border.all(color: brandRed.withValues(alpha: 0.2)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -269,9 +269,9 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                       statusBadge = Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.04),
+                          color: Colors.white.withValues(alpha: 0.04),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withOpacity(0.08)),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                         ),
                         child: Text(
                           'BELUM DITAGIH',
@@ -356,7 +356,7 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                                   bottomLeft: Radius.circular(16),
                                   bottomRight: Radius.circular(16),
                                 ),
-                                border: Border.all(color: Colors.white.withOpacity(0.04)),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,7 +473,7 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                                             borderRadius: BorderRadius.circular(10),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: brandRed.withOpacity(0.2),
+                                                color: brandRed.withValues(alpha: 0.2),
                                                 blurRadius: 8,
                                                 offset: const Offset(0, 4),
                                               ),

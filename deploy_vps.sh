@@ -27,6 +27,10 @@ sshpass -e ssh $SSH_OPTS $HOST "
   # Ekstrak file
   tar -xzf taekwondo_deploy.tar.gz
   
+  # Lakukan Backup Database sebelum mengubah apapun!
+  echo 'Melakukan backup database otomatis...'
+  sudo podman exec taekwondo_db pg_dump -U taekwondo_user -d taekwondo_academy > /home/ubuntu/taekwondo_storage/backup_\$(date +%Y%m%d_%H%M%S).sql || true
+
   # Hentikan dan hapus kontainer lama untuk menghindari konflik nama di Podman
   sudo podman stop taekwondo_web || true
   sudo podman rm taekwondo_web || true

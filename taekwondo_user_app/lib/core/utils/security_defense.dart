@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_jailbreak_detection_plus/flutter_jailbreak_detection_plus.dart';
 
 class SecureInt {
@@ -36,8 +35,8 @@ class SecuritySelfDefense {
 
     try {
       // 2. Root / Jailbreak check
-      final bool isJailbroken = await FlutterJailbreakDetection.jailbroken;
-      final bool isDeveloperMode = await FlutterJailbreakDetection.developerMode;
+      final bool isJailbroken = await FlutterJailbreakDetectionPlus.jailbroken;
+      final bool isDeveloperMode = await FlutterJailbreakDetectionPlus.developerMode;
 
       if (isJailbroken || isDeveloperMode) {
         isTampered = true;

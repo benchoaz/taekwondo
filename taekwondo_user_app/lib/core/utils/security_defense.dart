@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
-import 'package:flutter_jailbreak_detection/flutter_jailbreak_detection.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_jailbreak_detection_plus/flutter_jailbreak_detection_plus.dart';
 
 class SecureInt {
   late int _xorKey;

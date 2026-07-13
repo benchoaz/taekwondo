@@ -41,7 +41,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   video_player: ^2.11.1
   timeago: ^3.7.1
-  flutter_jailbreak_detection: ^1.10.0
+  flutter_jailbreak_detection_plus: ^1.10.7
 dev_dependencies:
   flutter_test:
     sdk: flutter

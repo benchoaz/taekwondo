@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../../auth/data/auth_provider.dart';
 import '../data/profile_service.dart';
 import '../../dashboard/data/shop_service.dart';
+import 'image_adjust_dialog.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -269,7 +270,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 alignment: Alignment.center,
                 children: [
                     GestureDetector(
-                      onTap: _isUploading ? null : () => _pickAndUploadImage(),
+                      onTap: _isUploading ? null : () => _pickAndUploadImage(frameUrl),
                       child: CircleAvatar(
                         radius: 45,
                         backgroundColor: const Color(0xFF1E222D),
@@ -285,7 +286,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         bottom: 0,
                         right: 0,
                         child: GestureDetector(
-                          onTap: () => _pickAndUploadImage(),
+                          onTap: () => _pickAndUploadImage(frameUrl),
                           child: Container(
                             padding: const EdgeInsets.all(4),
                             decoration: const BoxDecoration(
@@ -711,14 +712,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Future<void> _pickAndUploadImage() async {
+  Future<void> _pickAndUploadImage(String? frameUrl) async {
     final ImagePicker picker = ImagePicker();
     try {
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 800, maxHeight: 800);
-      if (image == null) return;
+      final XFile? rawImage = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1200, maxHeight: 1200);
+      if (rawImage == null) return;
+
+      if (!mounted) return;
+      final XFile? adjustedImage = await Navigator.of(context).push<XFile>(
+        MaterialPageRoute(
+          builder: (context) => ImageAdjustDialog(
+            imageFile: rawImage,
+            frameUrl: frameUrl,
+          ),
+        ),
+      );
+
+      if (adjustedImage == null) return; // User cancelled / backed out
       
       setState(() => _isUploading = true);
-      final success = await ref.read(profileServiceProvider).uploadProfilePicture(image);
+      final success = await ref.read(profileServiceProvider).uploadProfilePicture(adjustedImage);
       
       if (success && mounted) {
         ref.invalidate(profileProvider);

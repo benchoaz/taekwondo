@@ -1,0 +1,281 @@
+1. Mempersiapkan archive project...
+2. Mengirim file ke VPS...
+2b. Mengirim .env.secrets ke VPS...
+3. Mengeksekusi command di VPS...
+Melakukan backup database otomatis...
+taekwondo_web
+taekwondo_web
+podman-compose version: 1.0.6
+['podman', '--version', '']
+using podman version: 4.9.3
+** excluding:  set()
+podman build -f ./taekwondo-app/Containerfile -t ubuntu_web ./taekwondo-app
+[1/4] STEP 1/2: FROM node:20-alpine AS base
+[1/4] STEP 2/2: RUN apk add --no-cache openssl wget
+--> Using cache 183bde2fdcc324123683332219e3faed8b0ffd4ee44eea959620504838dbffd1
+--> 183bde2fdcc3
+[4/4] STEP 1/15: FROM 183bde2fdcc324123683332219e3faed8b0ffd4ee44eea959620504838dbffd1 AS runner
+[4/4] STEP 2/15: WORKDIR /app
+--> Using cache 490451563d1a2eab0b454f7a6a550e2bc3fa170e6df4d423ca76f075380a4709
+--> 490451563d1a
+[4/4] STEP 3/15: ENV NODE_ENV=production
+--> Using cache 8634d6a4fc14368fac2263f87625d42ca09a0673b6c9e934176a089164b94317
+--> 8634d6a4fc14
+[4/4] STEP 4/15: ENV PORT=3030
+--> Using cache 0fc2abd022f95f618ae1d01b0db3f50a93350f78fb60900061616c4fe2cd6f26
+--> 0fc2abd022f9
+[4/4] STEP 5/15: ENV HOSTNAME="0.0.0.0"
+--> Using cache 4bd84de852f6c143b9789d2f34b07710fef67fd9da673be3170416315417417f
+--> 4bd84de852f6
+[4/4] STEP 6/15: RUN addgroup --system --gid 1001 nodejs
+--> Using cache 5150adc00bd84a3fe0db6d84a259d3921c3cf9af553408339d00b926c1c1937a
+--> 5150adc00bd8
+[4/4] STEP 7/15: RUN adduser --system --uid 1001 nextjs
+--> Using cache 3d549728d3cfc4def26ed6238e61d0ab75173f993863b7b3bce0ab4c0bc2e32a
+--> 3d549728d3cf
+[4/4] STEP 8/15: COPY --from=builder /app/public ./public
+[2/4] STEP 1/4: FROM 183bde2fdcc324123683332219e3faed8b0ffd4ee44eea959620504838dbffd1 AS deps
+[2/4] STEP 2/4: WORKDIR /app
+--> Using cache 490451563d1a2eab0b454f7a6a550e2bc3fa170e6df4d423ca76f075380a4709
+--> 490451563d1a
+[2/4] STEP 3/4: COPY package*.json ./
+--> Using cache 40689c6def024aac0f1651072a8fc5f6caba0965659ace1a115e446f60f83925
+--> 40689c6def02
+[2/4] STEP 4/4: RUN npm install --legacy-peer-deps
+--> Using cache f77d92962b10448bc3e2f3c51e522ad00b57a9cefc150556bbdf9d5c43a6d4bf
+--> f77d92962b10
+[3/4] STEP 1/7: FROM 183bde2fdcc324123683332219e3faed8b0ffd4ee44eea959620504838dbffd1 AS builder
+[3/4] STEP 2/7: WORKDIR /app
+--> Using cache 490451563d1a2eab0b454f7a6a550e2bc3fa170e6df4d423ca76f075380a4709
+--> 490451563d1a
+[3/4] STEP 3/7: COPY --from=deps /app/node_modules ./node_modules
+--> Using cache fb56f6ee57421ae2483f2f25fefe1e75e01588054dd5f250aa48c117e3927bdb
+--> fb56f6ee5742
+[3/4] STEP 4/7: COPY . .
+--> 6f463f0dcfe3
+[3/4] STEP 5/7: ENV NEXT_TELEMETRY_DISABLED=1
+--> 428a3ee933b9
+[3/4] STEP 6/7: RUN npx prisma generate
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+
+✔ Generated Prisma Client (v7.8.0) to ./node_modules/@prisma/client in 866ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 12.0.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.1
+npm notice To update run: npm install -g npm@12.0.1
+npm notice
+--> f21ee177c5af
+[3/4] STEP 7/7: RUN npm run build
+
+> taekwondo-app@0.1.0 build
+> next build
+
+⚠ `eslint` configuration in next.config.ts is no longer supported. See more info here: https://nextjs.org/docs/app/api-reference/cli/next#next-lint-options
+⚠ Invalid next.config.ts options detected: 
+⚠     Unrecognized key(s) in object: 'eslint'
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+▲ Next.js 16.2.9 (Turbopack)
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+Turbopack build encountered 1 warnings:
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./src/app/api/storage/[filename]/route.ts
+
+
+✓ Compiled successfully in 25.1s
+  Skipping validation of types
+  Finished TypeScript config validation in 24ms ...
+  Collecting page data using 1 worker ...
+FIREBASE_SERVICE_ACCOUNT not found in environment variables. Push notifications will not work.
+  Generating static pages using 1 worker (0/86) ...
+  Generating static pages using 1 worker (21/86) 
+  Generating static pages using 1 worker (42/86) 
+  Generating static pages using 1 worker (64/86) 
+✓ Generating static pages using 1 worker (86/86) in 973ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/achievements
+├ ƒ /api/achievements/[id]
+├ ƒ /api/admin/dashboard-stats
+├ ƒ /api/admin/events
+├ ƒ /api/admin/gamification/coins
+├ ƒ /api/admin/gamification/shop
+├ ƒ /api/admin/gamification/shop/[id]
+├ ƒ /api/admin/users
+├ ƒ /api/admin/users/import
+├ ƒ /api/admin/whatsapp/session
+├ ƒ /api/admin/whatsapp/status
+├ ƒ /api/announcements
+├ ƒ /api/articles
+├ ƒ /api/articles/[id]
+├ ƒ /api/attendances
+├ ƒ /api/attendances/check-in
+├ ƒ /api/auth/[...nextauth]
+├ ƒ /api/auth/login
+├ ƒ /api/badges
+├ ƒ /api/coach/quest-logs
+├ ƒ /api/coach/shop
+├ ƒ /api/coach/shop/grant-coins
+├ ƒ /api/coaches
+├ ƒ /api/cron/fetch-events
+├ ƒ /api/cron/fix-data
+├ ƒ /api/cron/generate-spp
+├ ƒ /api/cron/notify-quest
+├ ƒ /api/cron/notify-spp
+├ ƒ /api/cron/quest-distributor
+├ ƒ /api/cron/test-quests
+├ ƒ /api/curriculum
+├ ƒ /api/events
+├ ƒ /api/exercises
+├ ƒ /api/expenses
+├ ƒ /api/files/[...path]
+├ ƒ /api/gallery
+├ ƒ /api/hero-slides
+├ ƒ /api/landing-data
+├ ƒ /api/landing-stats
+├ ƒ /api/member/belt-history
+├ ƒ /api/member/belt-history/timeline
+├ ƒ /api/member/daily-quests
+├ ƒ /api/member/physical-logs
+├ ƒ /api/member/progress
+├ ƒ /api/notifications
+├ ƒ /api/payments
+├ ƒ /api/payments/[id]/validate
+├ ƒ /api/payments/create-qris
+├ ƒ /api/payments/webhook
+├ ƒ /api/profile
+├ ƒ /api/profile/biometrics
+├ ƒ /api/profile/upload
+├ ƒ /api/quests
+├ ƒ /api/quests/library
+├ ƒ /api/quests/library/[id]
+├ ƒ /api/quests/submit-quiz
+├ ƒ /api/register
+├ ƒ /api/register/upload-payment
+├ ƒ /api/schedules
+├ ƒ /api/schedules/[id]
+├ ƒ /api/settings
+├ ƒ /api/shop
+├ ƒ /api/shop/buy
+├ ƒ /api/shop/equip
+├ ƒ /api/shop/unequip
+├ ƒ /api/shop/wallet
+├ ƒ /api/spp
+├ ƒ /api/spp/generate
+├ ƒ /api/storage/[filename]
+├ ƒ /api/ukt
+├ ƒ /api/ukt/candidates
+├ ƒ /api/ukt/eligibility
+├ ƒ /api/upload
+├ ƒ /api/users
+├ ƒ /api/users/[id]
+├ ƒ /api/users/fcm-token
+├ ƒ /api/verify-certificate/[id]
+├ ƒ /api/whatsapp/remind
+├ ƒ /api/whatsapp/webhook
+├ ○ /coach/quests
+├ ○ /coach/quests/library
+├ ○ /coach/quests/logs
+├ ○ /coach/shop
+├ ƒ /events
+├ ○ /hall-of-fame
+├ ○ /icon.png
+├ ƒ /m
+├ ○ /m/dashboard
+├ ○ /m/login
+├ ○ /m/notifications
+├ ○ /m/profile
+├ ○ /m/quests
+├ ○ /m/schedule
+├ ○ /m/shop
+├ ○ /m/spp
+├ ○ /m/ukt
+└ ○ /mobile-simulator
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+--> ffc9c044dd55
+--> Using cache 09ab6b52321959d09535b5ab293efd43a0a254a2ac7e269dc9a0f2f9360954e4
+--> 09ab6b523219
+[4/4] STEP 9/15: COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+--> 9eec1b44c39e
+[4/4] STEP 10/15: COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+--> d7b1c78e5c40
+[4/4] STEP 11/15: COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+--> d2d21daaad3e
+[4/4] STEP 12/15: USER nextjs
+--> 4308bc5188c9
+[4/4] STEP 13/15: EXPOSE 3030
+--> 5c93692a8aee
+[4/4] STEP 14/15: HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3   CMD wget --no-verbose --tries=1 --spider http://localhost:3030/ || exit 1
+time="2026-07-14T00:44:09+08:00" level=warning msg="HEALTHCHECK is not supported for OCI image format and will be ignored. Must use `docker` format"
+--> b0c515b1115e
+[4/4] STEP 15/15: CMD ["node", "server.js"]
+[4/4] COMMIT ubuntu_web
+time="2026-07-14T00:44:09+08:00" level=warning msg="HEALTHCHECK is not supported for OCI image format and will be ignored. Must use `docker` format"
+--> 5b8a7e678666
+Successfully tagged localhost/ubuntu_web:latest
+5b8a7e6786667fdfd0ee69513d52615b147517f886d2beb10224e5a2eaedf73d
+exit code: 0
+['podman', 'ps', '--filter', 'label=io.podman.compose.project=ubuntu', '-a', '--format', '{{ index .Labels "io.podman.compose.config-hash"}}']
+podman volume inspect ubuntu_postgres_data || podman volume create ubuntu_postgres_data
+['podman', 'volume', 'inspect', 'ubuntu_postgres_data']
+['podman', 'network', 'exists', 'ubuntu_default']
+podman run --name=taekwondo_db -d --label io.podman.compose.config-hash=fd2b923b1ac160e9999e67921325a01f531f9cc9093cc45d4bc46188181a7bdb --label io.podman.compose.project=ubuntu --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@ubuntu.service --label com.docker.compose.project=ubuntu --label com.docker.compose.project.working_dir=/home/ubuntu --label com.docker.compose.project.config_files=docker-compose.yml --label com.docker.compose.container-number=1 --label com.docker.compose.service=postgres -e POSTGRES_USER=taekwondo_user -e POSTGRES_PASSWORD=taekwondo_password -e POSTGRES_DB=taekwondo_academy -v ubuntu_postgres_data:/var/lib/postgresql/data:Z --net ubuntu_default --network-alias postgres -p 5439:5432 --restart always --healthcheck-command /bin/sh -c 'pg_isready -U taekwondo_user -d taekwondo_academy' --healthcheck-interval 10s --healthcheck-timeout 5s --healthcheck-retries 5 docker.io/library/postgres:17-alpine
+Error: creating container storage: the container name "taekwondo_db" is already in use by 20a6194f5be0a2be86083601323ad6d0978c768bdc4a5545519cdbe7293908c3. You have to remove that container to be able to reuse that name: that name is already in use, or use --replace to instruct Podman to do so.
+exit code: 125
+podman start taekwondo_db
+exit code: 0
+['podman', 'network', 'exists', 'ubuntu_default']
+podman run --name=taekwondo_waha -d --label io.podman.compose.config-hash=fd2b923b1ac160e9999e67921325a01f531f9cc9093cc45d4bc46188181a7bdb --label io.podman.compose.project=ubuntu --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@ubuntu.service --label com.docker.compose.project=ubuntu --label com.docker.compose.project.working_dir=/home/ubuntu --label com.docker.compose.project.config_files=docker-compose.yml --label com.docker.compose.container-number=1 --label com.docker.compose.service=waha -e WHATSAPP_API_KEY=taekwondo_waha_key_2026_super_secure -e WHATSAPP_HOOKS=[{"url": "http://web:3030/api/whatsapp/webhook", "events": ["message", "message.created"]}] --net ubuntu_default --network-alias waha --restart always docker.io/devlikeapro/waha:noweb
+Error: creating container storage: the container name "taekwondo_waha" is already in use by 2a74d20e9d383503783f428ff0be5490b09c9da1df73f7c64677b3103c8f7828. You have to remove that container to be able to reuse that name: that name is already in use, or use --replace to instruct Podman to do so.
+exit code: 125
+podman start taekwondo_waha
+exit code: 0
+['podman', 'network', 'exists', 'ubuntu_default']
+podman run --name=taekwondo_web -d --requires=taekwondo_db,taekwondo_waha --label io.podman.compose.config-hash=fd2b923b1ac160e9999e67921325a01f531f9cc9093cc45d4bc46188181a7bdb --label io.podman.compose.project=ubuntu --label io.podman.compose.version=1.0.6 --label PODMAN_SYSTEMD_UNIT=podman-compose@ubuntu.service --label com.docker.compose.project=ubuntu --label com.docker.compose.project.working_dir=/home/ubuntu --label com.docker.compose.project.config_files=docker-compose.yml --label com.docker.compose.container-number=1 --label com.docker.compose.service=web --env-file /home/ubuntu/taekwondo-app/.env.secrets -e DATABASE_URL=postgresql://taekwondo_user:taekwondo_password@postgres:5432/taekwondo_academy?schema=public -e JWT_SECRET=taekwondo_secret_key_2026_super_secure -e NODE_ENV=production -e STORAGE_PATH=/app/storage -e WAHA_BASE_URL=http://waha:3000 -e WHATSAPP_API_KEY=taekwondo_waha_key_2026_super_secure -v /home/ubuntu/taekwondo_storage:/app/storage:Z --net ubuntu_default --network-alias web -p 127.0.0.1:8080:3030 --restart always ubuntu_web
+c056e1e7eb6e3300b27cf5c1659a66993ccaf8d6a6e5e5ebe65f8b5262d65184
+exit code: 0
+Menunggu container web siap (10 detik)...
+npm warn exec The following package was not found and will be installed: prisma@7.8.0
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: '@prisma/streams-local@0.1.2',
+npm warn EBADENGINE   required: { bun: '>=1.3.6', node: '>=22.0.0' },
+npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+npm warn EBADENGINE }
+Failed to load config file "/app/prisma.config.ts" as a TypeScript/JavaScript module. Error: Error: Cannot find module '@prisma/config'
+Require stack:
+- /app/prisma.config.ts
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 12.0.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.1
+npm notice To update run: npm install -g npm@12.0.1
+npm notice
+Deployment Selesai!

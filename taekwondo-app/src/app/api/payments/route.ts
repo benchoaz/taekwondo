@@ -55,13 +55,22 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { id, memberId, amount, purpose, status, action, memberIds, dueDate, paymentProofUrl } = body;
+    const { id, memberId, amount, purpose, status, action, memberIds, dueDate, paymentProofUrl, month, year } = body;
+    
+    // Ambil identitas User (Coach/Admin) dari Header Middleware
+    const userId = request.headers.get("x-user-id");
 
     // If updating status (Approve/Reject)
     if (action === "update-status" && id) {
       const updated = await prisma.payment.update({
         where: { id },
-        data: { status },
+        data: { 
+          status,
+          ...(status === "COMPLETED" && {
+            receivedById: userId,
+            paidAt: new Date(),
+          })
+        },
         include: {
           member: true,
           sppInvoice: true
@@ -143,17 +152,82 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const newPayment = await prisma.payment.create({
-      data: {
-        memberId,
-        amount: parseFloat(amount),
-        purpose,
-        status: status || "PENDING",
-        dueDate: dueDate ? new Date(dueDate) : null,
-      },
+    // Catat Pembayaran Manual (dari kasir / panel admin)
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Buat catatan Pembayaran
+      const paymentRecord = await tx.payment.create({
+        data: {
+          memberId,
+          amount: parseFloat(amount),
+          purpose,
+          status: status || "PENDING",
+          dueDate: dueDate ? new Date(dueDate) : null,
+          paidAt: status === "COMPLETED" ? new Date() : null,
+          receivedById: status === "COMPLETED" ? userId : null,
+          paymentMethod: "TUNAI_CASH", // Default pencatatan manual di kasir
+        },
+      });
+
+      // 2. Hubungkan ke SppInvoice jika tujuannya adalah SPP Bulanan
+      if (purpose === "SPP Bulanan" && month && year) {
+        const m = parseInt(month);
+        const y = parseInt(year);
+
+        // Cari invoice yang ada
+        const existingInvoice = await tx.sppInvoice.findUnique({
+          where: {
+            memberId_month_year: {
+              memberId,
+              month: m,
+              year: y,
+            }
+          }
+        });
+
+        if (existingInvoice) {
+          await tx.sppInvoice.update({
+            where: { id: existingInvoice.id },
+            data: {
+              paymentId: paymentRecord.id,
+              status: status === "COMPLETED" ? "PAID" : "UNPAID",
+            }
+          });
+        } else {
+          // Buat invoice baru jika belum terbit
+          await tx.sppInvoice.create({
+            data: {
+              memberId,
+              month: m,
+              year: y,
+              amount: parseFloat(amount),
+              dueDate: dueDate ? new Date(dueDate) : new Date(),
+              status: status === "COMPLETED" ? "PAID" : "UNPAID",
+              paymentId: paymentRecord.id,
+            }
+          });
+        }
+      }
+
+      return paymentRecord;
     });
 
-    return NextResponse.json(newPayment);
+    // 3. Kirim WhatsApp receipt jika lunas seketika
+    if (status === "COMPLETED" && purpose === "SPP Bulanan" && month && year) {
+      const member = await prisma.member.findUnique({ where: { id: memberId } });
+      if (member?.phone) {
+        const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const monthName = monthNames[parseInt(month) - 1];
+        await sendSppReceipt(
+          member.phone,
+          member.fullName,
+          monthName,
+          parseInt(year),
+          parseFloat(amount)
+        ).catch(e => console.error("Error sending WA receipt for manual payment:", e));
+      }
+    }
+
+    return NextResponse.json(result);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

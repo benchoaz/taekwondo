@@ -45,7 +45,8 @@ import {
   RefreshCw,
   Download,
   Menu,
-  Gamepad
+  Gamepad,
+  Image as ImageIcon
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import SppManagement from "./SppManagement";
@@ -262,11 +263,12 @@ export default function AdminDashboard({
     });
   };
 
-  const uploadToServer = async (file: File | Blob, filename: string): Promise<string | null> => {
+  const uploadToServer = async (file: File | Blob, filename: string, type: string = "general"): Promise<string | null> => {
     try {
       const processedFile = await resizeImageGlobal(file, 1600, 1600);
       const formData = new FormData();
       formData.append("file", processedFile, filename);
+      formData.append("type", type);
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
@@ -416,6 +418,8 @@ export default function AdminDashboard({
   const [paymentAmount, setPaymentAmount] = useState("");
   const [paymentPurpose, setPaymentPurpose] = useState("SPP Bulanan");
   const [paymentStatus, setPaymentStatus] = useState("COMPLETED");
+  const [paymentMonth, setPaymentMonth] = useState(String(new Date().getMonth() + 1));
+  const [paymentYear, setPaymentYear] = useState(String(new Date().getFullYear()));
 
   // UKT Candidates State (Dynamic Requirements reviewer)
   const [candidates, setCandidates] = useState<any[]>([]);
@@ -1481,6 +1485,7 @@ export default function AdminDashboard({
     if (!selectedMemberId || !paymentAmount || !paymentPurpose) return;
 
     try {
+      const isSpp = paymentPurpose === "SPP Bulanan";
       const res = await fetch("/api/payments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1488,7 +1493,11 @@ export default function AdminDashboard({
           memberId: selectedMemberId,
           amount: paymentAmount,
           purpose: paymentPurpose,
-          status: paymentStatus
+          status: paymentStatus,
+          ...(isSpp && {
+            month: paymentMonth,
+            year: paymentYear,
+          })
         })
       });
 
@@ -1511,7 +1520,7 @@ export default function AdminDashboard({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const url = await uploadToServer(file, file.name);
+    const url = await uploadToServer(file, file.name, "gallery");
     if (url) {
       setSettings(prev => ({
         ...prev,
@@ -2584,6 +2593,11 @@ export default function AdminDashboard({
                             }`}>
                               {p.status}
                             </span>
+                            {p.status === "COMPLETED" && p.receiver?.name && (
+                              <span className="text-[9px] text-slate-400 font-medium block mt-1">
+                                Oleh: {p.receiver.name}
+                              </span>
+                            )}
                           </td>
                           <td className="p-4 text-right">
                             <div className="flex justify-end items-center gap-2">
@@ -3742,7 +3756,7 @@ export default function AdminDashboard({
                         <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          const url = await uploadToServer(file, file.name);
+                          const url = await uploadToServer(file, file.name, "gallery");
                           if (url) setSlideImageUrl(url);
                           else alert("Gagal upload gambar");
                         }} />
@@ -4437,6 +4451,45 @@ export default function AdminDashboard({
                 </select>
               </div>
 
+              {paymentPurpose === "SPP Bulanan" && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Bulan SPP</label>
+                    <select
+                      value={paymentMonth}
+                      onChange={(e) => setPaymentMonth(e.target.value)}
+                      className="w-full bg-white border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    >
+                      <option value="1">Januari</option>
+                      <option value="2">Februari</option>
+                      <option value="3">Maret</option>
+                      <option value="4">April</option>
+                      <option value="5">Mei</option>
+                      <option value="6">Juni</option>
+                      <option value="7">Juli</option>
+                      <option value="8">Agustus</option>
+                      <option value="9">September</option>
+                      <option value="10">Oktober</option>
+                      <option value="11">November</option>
+                      <option value="12">Desember</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Tahun SPP</label>
+                    <select
+                      value={paymentYear}
+                      onChange={(e) => setPaymentYear(e.target.value)}
+                      className="w-full bg-white border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    >
+                      {Array.from({ length: 5 }, (_, i) => {
+                        const y = new Date().getFullYear() - 2 + i;
+                        return <option key={y} value={y}>{y}</option>;
+                      })}
+                    </select>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Jumlah Pembayaran (Rp)</label>
                 <input 
@@ -4541,7 +4594,7 @@ export default function AdminDashboard({
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            const url = await uploadToServer(file, file.name);
+                            const url = await uploadToServer(file, file.name, "gallery");
                             if (url) setArticleImage(url);
                           }
                         }} 
@@ -4643,7 +4696,7 @@ export default function AdminDashboard({
                         onChange={async (e) => {
                           const file = e.target.files?.[0];
                           if (!file) return;
-                          const url = await uploadToServer(file, file.name);
+                          const url = await uploadToServer(file, file.name, "profile");
                           if (url) setCoachPhotoUrl(url);
                         }}
                       />
@@ -4987,7 +5040,7 @@ export default function AdminDashboard({
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
-                            const url = await uploadToServer(file, file.name);
+                            const url = await uploadToServer(file, file.name, "gallery");
                             if (url) setAchPhotoUrl(url);
                           }}
                         />
@@ -5064,7 +5117,7 @@ export default function AdminDashboard({
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-2">
-                      <Image className="w-8 h-8 text-slate-300" />
+                      <ImageIcon className="w-8 h-8 text-slate-300" />
                       <label className="bg-white hover:bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all inline-flex items-center gap-1.5">
                         <Upload className="w-3.5 h-3.5 text-slate-500" />
                         Pilih Foto
@@ -5075,7 +5128,7 @@ export default function AdminDashboard({
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
-                            const url = await uploadToServer(file, file.name);
+                            const url = await uploadToServer(file, file.name, "gallery");
                             if (url) setCurrentGalleryItem({ ...currentGalleryItem, imageUrl: url });
                           }}
                         />

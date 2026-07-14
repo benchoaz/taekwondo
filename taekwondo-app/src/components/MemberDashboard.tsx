@@ -27,7 +27,9 @@ import {
   Lock,
   Plus,
   Activity,
-  LineChart as ChartIcon
+  LineChart as ChartIcon,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import confetti from "canvas-confetti";
@@ -68,6 +70,8 @@ export default function MemberDashboard({
   const [editPhone, setEditPhone] = useState("");
   const [editPassword, setEditPassword] = useState("");
   const [editConfirmPassword, setEditConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [editSelfieUrl, setEditSelfieUrl] = useState<string | null>(null);
   const [editCertDocUrl, setEditCertDocUrl] = useState<string | null>(null);
   const [editWeight, setEditWeight] = useState("");
@@ -3138,24 +3142,42 @@ export default function MemberDashboard({
 
               <div>
                 <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Password Baru (Kosongkan jika tidak diganti)</label>
-                <input 
-                  type="password" 
-                  value={editPassword}
-                  onChange={(e) => setEditPassword(e.target.value)}
-                  placeholder="Password Baru" 
-                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                />
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    value={editPassword}
+                    onChange={(e) => setEditPassword(e.target.value)}
+                    placeholder="Password Baru" 
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 pr-10 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Konfirmasi Password Baru</label>
-                <input 
-                  type="password" 
-                  value={editConfirmPassword}
-                  onChange={(e) => setEditConfirmPassword(e.target.value)}
-                  placeholder="Ulangi Password Baru" 
-                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                />
+                <div className="relative">
+                  <input 
+                    type={showConfirmPassword ? "text" : "password"} 
+                    value={editConfirmPassword}
+                    onChange={(e) => setEditConfirmPassword(e.target.value)}
+                    placeholder="Ulangi Password Baru" 
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 pr-10 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <div>

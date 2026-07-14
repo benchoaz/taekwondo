@@ -372,6 +372,7 @@ export default function AdminDashboard({
   const [editUserPhone, setEditUserPhone] = useState("");
   const [editUserBeltHistory, setEditUserBeltHistory] = useState<any[]>([]);
   const [editUserStatus, setEditUserStatus] = useState("ACTIVE");
+  const [showEditUserPassword, setShowEditUserPassword] = useState(false);
 
   // Events / News State
   const [articles, setArticles] = useState<ArticleData[]>([]);
@@ -4109,13 +4110,22 @@ export default function AdminDashboard({
 
               <div>
                 <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Password Baru (Opsional)</label>
-                <input 
-                  type="password" 
-                  value={editUserPassword}
-                  onChange={(e) => setEditUserPassword(e.target.value)}
-                  placeholder="Kosongkan jika tidak ingin diubah" 
-                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                />
+                <div className="relative">
+                  <input 
+                    type={showEditUserPassword ? "text" : "password"} 
+                    value={editUserPassword}
+                    onChange={(e) => setEditUserPassword(e.target.value)}
+                    placeholder="Kosongkan jika tidak ingin diubah" 
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 pr-10 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowEditUserPassword(!showEditUserPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                    {showEditUserPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <div>

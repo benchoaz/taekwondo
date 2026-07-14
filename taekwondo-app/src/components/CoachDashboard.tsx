@@ -31,7 +31,9 @@ import {
   Download,
   QrCode,
   FileBadge,
-  Activity
+  Activity,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 export default function CoachDashboard({ 
@@ -66,6 +68,8 @@ export default function CoachDashboard({
   const [editEmail, setEditEmail] = useState("");
   const [editPassword, setEditPassword] = useState("");
   const [editConfirmPassword, setEditConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   // States for Announcement form
@@ -1693,24 +1697,42 @@ export default function CoachDashboard({
 
               <div>
                 <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Password Baru (Kosongkan jika tidak diganti)</label>
-                <input 
-                  type="password" 
-                  value={editPassword}
-                  onChange={(e) => setEditPassword(e.target.value)}
-                  placeholder="Password Baru" 
-                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                />
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    value={editPassword}
+                    onChange={(e) => setEditPassword(e.target.value)}
+                    placeholder="Password Baru" 
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 pr-10 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Konfirmasi Password Baru</label>
-                <input 
-                  type="password" 
-                  value={editConfirmPassword}
-                  onChange={(e) => setEditConfirmPassword(e.target.value)}
-                  placeholder="Ulangi Password Baru" 
-                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                />
+                <div className="relative">
+                  <input 
+                    type={showConfirmPassword ? "text" : "password"} 
+                    value={editConfirmPassword}
+                    onChange={(e) => setEditConfirmPassword(e.target.value)}
+                    placeholder="Ulangi Password Baru" 
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 pr-10 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
 
               <div className="flex gap-3 mt-2">

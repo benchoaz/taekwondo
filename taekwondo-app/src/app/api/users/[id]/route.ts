@@ -113,7 +113,7 @@ export async function PUT(
             id: memberId,
             userId: id, 
             fullName: name, 
-            memberNumber: `TKD-2026-00${Math.floor(10 + Math.random() * 90)}`,
+            memberNumber: `WTK-2026-00${Math.floor(10 + Math.random() * 90)}`,
             currentBelt: currentBelt !== undefined ? currentBelt : "Sabuk Putih (10 Geup)",
             ...(selfieUrl !== undefined && { selfieUrl }),
             ...(phone !== undefined && { phone }),

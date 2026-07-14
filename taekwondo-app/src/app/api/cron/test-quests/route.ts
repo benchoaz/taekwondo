@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 export async function GET() {
   try {
     const member = await prisma.member.findFirst({
-      where: { memberNumber: 'TKD-2026-0089' }
+      where: { memberNumber: 'WTK-2026-0089' }
     });
     
     if (!member) return NextResponse.json({ error: "Member not found" });

@@ -106,7 +106,7 @@ export async function POST(request: Request) {
         data: {
           userId: newUser.id,
           fullName: name || "New Member",
-          memberNumber: `TKD-2026-00${Math.floor(10 + Math.random() * 90)}`,
+          memberNumber: `WTK-2026-00${Math.floor(10 + Math.random() * 90)}`,
           dateOfBirth: new Date(birthDate),
         },
       });

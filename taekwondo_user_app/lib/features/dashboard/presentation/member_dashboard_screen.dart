@@ -367,7 +367,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     ),
                   ),
                   Text(
-                    widget.user.memberNumber ?? '#TKD-2026-0089',
+                    widget.user.memberNumber ?? '#WTK-2026-0089',
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 10,
                       color: textGray,

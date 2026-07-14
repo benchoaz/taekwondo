@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
           data: {
             userId: newUser.id,
             fullName: name,
-            memberNumber: `WT-${Math.floor(1000 + Math.random() * 9000)}`,
+            memberNumber: `WTK-${Math.floor(1000 + Math.random() * 9000)}`,
             dateOfBirth: dob,
             status: "ACTIVE",
           },

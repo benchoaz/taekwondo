@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
             data: {
               userId: newUser.id,
               fullName: name,
-              memberNumber: `WT-${Math.floor(10000 + Math.random() * 90000)}`, // WT-XXXXX
+              memberNumber: `WTK-${Math.floor(10000 + Math.random() * 90000)}`, // WTK-XXXXX
               phone: phone,
               dateOfBirth: new Date("2000-01-01"), // Default filler date, they can update later
               currentBelt: "Sabuk Putih (10 Geup)", // Default

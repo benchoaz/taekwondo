@@ -58,7 +58,7 @@ export async function seedDatabase() {
     data: {
       userId: userMember.id,
       fullName: 'Beni Setiawan',
-      memberNumber: 'TKD-2026-0089',
+      memberNumber: 'WTK-2026-0089',
       currentBelt: 'Biru Strip Merah (4 Geup)',
       progress: 75,
     },

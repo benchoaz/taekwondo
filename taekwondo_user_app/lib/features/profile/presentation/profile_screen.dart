@@ -715,7 +715,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _pickAndUploadImage(String? frameUrl) async {
     final ImagePicker picker = ImagePicker();
     try {
-      final XFile? rawImage = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1200, maxHeight: 1200);
+      final XFile? rawImage = await picker.pickImage(
+        source: ImageSource.gallery, 
+        maxWidth: 1200, 
+        maxHeight: 1200,
+        imageQuality: 80,
+      );
       if (rawImage == null) return;
 
       if (!mounted) return;

@@ -135,6 +135,8 @@ class ProfileService {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        sendTimeout: const Duration(minutes: 2),
+        receiveTimeout: const Duration(minutes: 2),
       ),
     );
     return response.statusCode == 200 && response.data['success'] == true;

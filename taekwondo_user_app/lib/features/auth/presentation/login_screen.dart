@@ -58,23 +58,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
       context.go('/');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: brandRed,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          content: Row(
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: const Color(0xFF1E222D),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
             children: [
-              const Icon(Icons.error_outline, color: Colors.white),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Login gagal. Periksa kembali username & password Anda.',
-                  style: GoogleFonts.hankenGrotesk(fontWeight: FontWeight.bold, color: Colors.white),
+              const Icon(Icons.error_outline, color: Colors.redAccent, size: 28),
+              const SizedBox(width: 10),
+              Text(
+                'Login Gagal',
+                style: GoogleFonts.hankenGrotesk(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: 18,
                 ),
               ),
             ],
           ),
+          content: Text(
+            'Username/ID atau kata sandi yang Anda masukkan salah. Silakan periksa kembali.',
+            style: GoogleFonts.hankenGrotesk(
+              color: Colors.white70,
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'OK',
+                style: GoogleFonts.hankenGrotesk(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.redAccent,
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }

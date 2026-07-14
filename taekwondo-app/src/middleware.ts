@@ -7,6 +7,7 @@ const publicApiRoutes = [
   '/api/auth/login', // Mobile Flutter Login
   '/api/auth',       // NextAuth operations (uses its own security)
   '/api/files',      // File serving (handles its own sensitive directory security)
+  '/api/storage',    // Profile pictures & public uploads
 ];
 
 export async function middleware(request: NextRequest) {

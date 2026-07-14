@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import '../../auth/data/auth_provider.dart';
 import '../data/profile_service.dart';
@@ -739,6 +738,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final success = await ref.read(profileServiceProvider).uploadProfilePicture(adjustedImage);
       
       if (success && mounted) {
+        PaintingBinding.instance.imageCache.clear();
+        PaintingBinding.instance.imageCache.clearLiveImages();
         ref.invalidate(profileProvider);
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto profil berhasil diperbarui!')));
       } else if (mounted) {

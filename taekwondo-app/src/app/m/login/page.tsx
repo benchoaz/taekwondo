@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { User, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import Image from "next/image";
 
 export default function MobileLoginPage() {
@@ -16,22 +16,23 @@ export default function MobileLoginPage() {
     e.preventDefault();
     setError("");
     if (!email || !password) {
-      setError("Email dan password wajib diisi.");
+      setError("Identitas masuk dan password wajib diisi.");
       return;
     }
     setIsLoading(true);
+
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+        body: JSON.stringify({ email, password }),
       });
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Login gagal.");
-      if (data.role !== "member") {
-        throw new Error("Akses khusus member.");
-      }
-      router.replace("/m/dashboard");
+
+      // Login success
+      router.push("/m/dashboard");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -40,37 +41,26 @@ export default function MobileLoginPage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-center min-h-screen bg-[#020617] text-white relative">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-[url('/bg_taekwondo_kick.png')] bg-cover bg-top opacity-30 pointer-events-none" 
-        style={{ mixBlendMode: 'screen' }} 
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#020617] via-[#020617]/80 to-transparent pointer-events-none" />
-
-      {/* Decorative Game Header */}
-      <div className="relative pt-10 pb-8 px-6 flex flex-col items-center z-10">
-        {/* Glow red light */}
-        <div className="absolute top-0 w-72 h-72 bg-[#E10600]/20 rounded-full blur-[80px]" />
-        
-        <div className="w-24 h-24 rounded-3xl overflow-hidden bg-transparent border-2 border-white/10 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(255,255,255,0.1)] animate-game-float relative z-10">
-          <Image src="/logo.png" alt="Logo" width={80} height={80} className="object-contain p-1" style={{ filter: 'brightness(0) invert(1) drop-shadow(0 0 4px rgba(255,255,255,0.5))' }} />
+    <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between p-6">
+      {/* Brand header */}
+      <div className="flex flex-col items-center mt-8">
+        <div className="w-20 h-20 relative bg-slate-900 border-2 border-slate-800 rounded-3xl p-3 flex items-center justify-center shadow-lg shadow-black/40">
+          <Image
+            src="/wt-logo-mini.png"
+            alt="Dojang Logo"
+            width={60}
+            height={60}
+            className="object-contain"
+          />
         </div>
-        <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FFFFFF] via-[#E2E8F0] to-[#94A3B8] tracking-wider text-center leading-none uppercase relative z-10 drop-shadow-lg">
-          WHITE TIGER<br />
-          <span className="text-[#E10600] drop-shadow-[0_0_8px_rgba(225,6,0,0.8)]">TAEKWONDO CLUB</span>
-        </h1>
-        <p className="text-slate-400 text-[10px] font-black mt-3 uppercase tracking-[0.3em] relative z-10">
-          — Portal Member —
-        </p>
+        <h1 className="text-xl font-black tracking-tight mt-4 uppercase">White Tiger</h1>
+        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Dojang Management App</p>
       </div>
 
       {/* Login Card */}
-      <div className="relative z-10 w-full max-w-[90%] mx-auto bg-slate-900/70 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-6 shadow-[0_16px_40px_rgba(0,0,0,0.5)] mb-10 ring-1 ring-white/10">
-        <div>
-          <h2 className="text-2xl font-black">MEMULAI PETUALANGAN 🥋</h2>
-          <p className="text-xs text-slate-400 mt-1">Masuk dengan email & password terdaftar Anda</p>
-        </div>
+      <div className="w-full max-w-sm mx-auto bg-slate-900/40 border border-slate-800/80 p-6 rounded-3xl backdrop-blur-md mt-6">
+        <h2 className="text-lg font-black uppercase mb-1">Mulai Latihan</h2>
+        <p className="text-xs text-slate-400 mb-6">Masuk menggunakan email, username, atau no. WA terdaftar.</p>
 
         {error && (
           <div className="flex items-start gap-2 bg-red-950/80 border-2 border-red-500/30 text-red-400 p-3.5 rounded-2xl text-xs font-semibold">
@@ -80,16 +70,16 @@ export default function MobileLoginPage() {
         )}
 
         <form onSubmit={handleLogin} className="flex flex-col gap-5">
-          {/* Email */}
+          {/* Email / Username / Phone */}
           <div>
-            <label className="block text-xs font-black uppercase tracking-wider text-slate-400 mb-2">Email Atlet</label>
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-400 mb-2">EMAIL / USERNAME / NO. WA</label>
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="atlet@email.com"
+                placeholder="Username, Email, atau No. WhatsApp"
                 required
                 className="w-full pl-11 pr-4 py-3.5 bg-slate-950 border-2 border-slate-800 rounded-2xl text-sm text-white placeholder-slate-600 outline-none focus:border-[#E10600] focus:ring-1 focus:ring-[#E10600]/30 transition-all font-bold"
               />

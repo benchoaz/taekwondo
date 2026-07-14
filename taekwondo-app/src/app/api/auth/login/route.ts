@@ -22,12 +22,13 @@ export async function POST(request: Request) {
         include: { member: true, coach: true }
       });
     } else {
-      // Find by Username OR Member Number
+      // Find by Username OR Member Number OR Phone Number
       user = await prisma.user.findFirst({
         where: {
           OR: [
             { username: formattedInput },
-            { member: { memberNumber: email.trim().toUpperCase() } }
+            { member: { memberNumber: email.trim().toUpperCase() } },
+            { member: { phone: formattedInput } }
           ]
         },
         include: { member: true, coach: true }

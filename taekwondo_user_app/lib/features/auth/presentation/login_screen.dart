@@ -204,7 +204,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              'Masuk dengan email & password terdaftar Anda',
+                              'Masuk dengan email, username, atau no. WA terdaftar Anda',
                               textAlign: TextAlign.center,
                               style: GoogleFonts.hankenGrotesk(
                                 fontSize: 12,
@@ -214,9 +214,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                             const SizedBox(height: 28),
 
-                            // EMAIL ATLET Label
+                            // EMAIL / USERNAME / NO. WA Label
                             Text(
-                              'EMAIL ATLET',
+                              'EMAIL / USERNAME / NO. WA',
                               style: GoogleFonts.spaceGrotesk(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
@@ -225,14 +225,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            // Username / Email Field
+                            // Username / Email / Phone Field
                             TextFormField(
                               controller: _usernameController,
                               style: const TextStyle(color: textWhite),
                               decoration: InputDecoration(
-                                hintText: 'member.beni@taekwondo.com',
+                                hintText: 'Email, Username, atau No. WhatsApp',
                                 hintStyle: TextStyle(color: textWhite.withValues(alpha: 0.2), fontSize: 14),
-                                prefixIcon: Icon(Icons.email_outlined, color: textWhite.withValues(alpha: 0.5)),
+                                prefixIcon: Icon(Icons.person_outline, color: textWhite.withValues(alpha: 0.5)),
                                 filled: true,
                                 fillColor: darkBg,
                                 contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
@@ -259,7 +259,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                               validator: (val) {
                                 if (val == null || val.trim().isEmpty) {
-                                  return 'Email tidak boleh kosong';
+                                    return 'Identitas masuk tidak boleh kosong';
                                 }
                                 return null;
                               },

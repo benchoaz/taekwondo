@@ -35,8 +35,10 @@ import {
 } from "lucide-react";
 
 export default function CoachDashboard({ 
+  userEmail,
   onBack 
 }: { 
+  userEmail?: string;
   onBack: () => void 
 }) {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -57,6 +59,14 @@ export default function CoachDashboard({
   const [newMemberPassword, setNewMemberPassword] = useState("password123");
   const [newMemberBirthDate, setNewMemberBirthDate] = useState("");
   const [isSubmittingMember, setIsSubmittingMember] = useState(false);
+
+  // States for Coach Profile Edit
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPassword, setEditPassword] = useState("");
+  const [editConfirmPassword, setEditConfirmPassword] = useState("");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
 
   // States for Announcement form
   const [announceTitle, setAnnounceTitle] = useState("");
@@ -84,6 +94,52 @@ export default function CoachDashboard({
     if (b.includes("kuning strip") || b.includes("kuning strip hijau")) return { bg: "bg-yellow-100", text: "text-yellow-700", dot: "bg-yellow-400" };
     if (b.includes("kuning")) return { bg: "bg-yellow-100", text: "text-yellow-700", dot: "bg-yellow-400" };
     return { bg: "bg-slate-100", text: "text-slate-700", dot: "bg-slate-400" };
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const me = coaches.find((c: any) => c.user?.email.toLowerCase() === userEmail?.toLowerCase());
+    if (!me || !me.userId) return;
+
+    if (editPassword && editPassword !== editConfirmPassword) {
+      alert("Konfirmasi password baru tidak cocok.");
+      return;
+    }
+    if (editPassword && editPassword.length < 8) {
+      alert("Password minimal harus 8 karakter.");
+      return;
+    }
+
+    setIsSavingProfile(true);
+    try {
+      const res = await fetch(`/api/users/${me.userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName,
+          email: editEmail,
+          ...(editPassword && { password: editPassword }),
+          role: "COACH",
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setCoaches(prev => prev.map((c: any) => c.id === me.id ? {
+          ...c,
+          fullName: editName,
+          user: { ...c.user, email: editEmail }
+        } : c));
+        setShowEditProfileModal(false);
+        alert("Profil pelatih berhasil diperbarui!");
+      } else {
+        alert(data.error || "Gagal memperbarui profil");
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert("Terjadi kesalahan koneksi.");
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
   const fetchAllData = async () => {
@@ -642,6 +698,23 @@ export default function CoachDashboard({
             >
               <Plus className="w-4 h-4" /> Mulai Penilaian UKT
             </button>
+            <button 
+              onClick={() => {
+                const me = coaches.find((c: any) => c.user?.email.toLowerCase() === userEmail?.toLowerCase());
+                if (me) {
+                  setEditName(me.fullName);
+                  setEditEmail(me.user?.email || "");
+                  setEditPassword("");
+                  setEditConfirmPassword("");
+                  setShowEditProfileModal(true);
+                } else {
+                  alert("Data pelatih tidak ditemukan!");
+                }
+              }}
+              className="flex items-center gap-3 px-4 py-2.5 text-gray-500 hover:text-[#0F172A] font-bold text-xs text-left cursor-pointer transition-all hover:bg-slate-50 rounded-xl"
+             >
+               <Settings className="w-4 h-4" /> Edit Profil
+             </button>
             <button onClick={onBack} className="flex items-center gap-3 px-4 py-2.5 text-[#E10600] hover:bg-red-50 font-bold text-xs text-left rounded-xl transition-all">
               <LogOut className="w-4 h-4" /> Keluar
             </button>
@@ -1574,6 +1647,89 @@ export default function CoachDashboard({
                 {isSubmittingMember ? "Menyimpan..." : "Daftarkan Siswa"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Edit Profile Modal */}
+      {showEditProfileModal && (
+        <div className="fixed inset-0 z-50 bg-[#0F172A]/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-[24px] p-8 shadow-xl relative border border-slate-100 flex flex-col gap-5 animate-in fade-in zoom-in duration-200">
+            <button 
+              onClick={() => setShowEditProfileModal(false)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 cursor-pointer transition-all"
+            >
+              <XCircle className="w-5 h-5" />
+            </button>
+
+            <div>
+              <h3 className="font-extrabold text-lg text-[#0F172A]">Edit Profil Anda</h3>
+              <p className="text-gray-400 text-xs mt-1">Perbarui informasi nama lengkap, email, dan kata sandi.</p>
+            </div>
+
+            <form onSubmit={handleUpdateProfile} className="flex flex-col gap-5">
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Nama Lengkap</label>
+                <input 
+                  type="text" 
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  required
+                  placeholder="Nama Lengkap" 
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Alamat Email</label>
+                <input 
+                  type="email" 
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  required
+                  placeholder="Email" 
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Password Baru (Kosongkan jika tidak diganti)</label>
+                <input 
+                  type="password" 
+                  value={editPassword}
+                  onChange={(e) => setEditPassword(e.target.value)}
+                  placeholder="Password Baru" 
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Konfirmasi Password Baru</label>
+                <input 
+                  type="password" 
+                  value={editConfirmPassword}
+                  onChange={(e) => setEditConfirmPassword(e.target.value)}
+                  placeholder="Ulangi Password Baru" 
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                />
+              </div>
+
+              <div className="flex gap-3 mt-2">
+                <button 
+                  type="button" 
+                  onClick={() => setShowEditProfileModal(false)}
+                  className="w-full bg-slate-100 text-gray-500 py-3 rounded-xl font-bold text-xs cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isSavingProfile}
+                  className="w-full bg-[#E10600] text-white py-3 rounded-xl font-bold text-xs shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isSavingProfile ? "Menyimpan..." : "Simpan Perubahan"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -108,7 +108,7 @@ export default function Home() {
           )}
 
           {currentView === "coach" && (
-            <CoachDashboard onBack={() => handleNavigate("sso")} />
+            <CoachDashboard userEmail={userEmail} onBack={() => handleNavigate("sso")} />
           )}
 
           {currentView === "admin" && (

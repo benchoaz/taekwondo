@@ -78,6 +78,8 @@ export default function MemberDashboard({
   const [editHeight, setEditHeight] = useState("");
   const [editWaistCircum, setEditWaistCircum] = useState("");
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [uploadingHistoryId, setUploadingHistoryId] = useState<string | null>(null);
+  const [selectedPromotedDate, setSelectedPromotedDate] = useState("");
   const [payments, setPayments] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>(null);
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -1997,16 +1999,19 @@ export default function MemberDashboard({
                                 Lihat Sertifikat
                               </a>
                             ) : (
-                              <label className="flex items-center gap-1 text-[10px] text-slate-500 font-medium hover:text-slate-700 bg-slate-50 hover:bg-slate-100 px-2 py-1 rounded-md cursor-pointer transition-colors border border-slate-200 shadow-sm">
+                              <button 
+                                onClick={() => {
+                                  if (item.id.startsWith('mock-')) {
+                                    alert("Silakan hubungi Admin untuk merekam riwayat sabuk Anda ke sistem sebelum mengunggah sertifikat secara mandiri.");
+                                    return;
+                                  }
+                                  setUploadingHistoryId(item.id);
+                                }}
+                                className="flex items-center gap-1 text-[10px] text-slate-500 font-medium hover:text-slate-700 bg-slate-50 hover:bg-slate-100 px-2.5 py-1.5 rounded-md cursor-pointer transition-colors border border-slate-200 shadow-sm"
+                              >
                                 <Upload className="w-3 h-3" />
                                 Unggah Sertifikat
-                                <input 
-                                  type="file" 
-                                  className="hidden" 
-                                  accept="image/*,application/pdf"
-                                  onChange={(e) => handleUploadCert(e, item.id)}
-                                />
-                              </label>
+                              </button>
                             )}
                           </div>
                         </div>
@@ -3349,6 +3354,96 @@ export default function MemberDashboard({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Upload Certificate Modal */}
+      {uploadingHistoryId && (
+        <div className="fixed inset-0 bg-[#0F172A]/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#F8FAFC] rounded-[24px] border border-slate-100 p-8 w-full max-w-sm shadow-2xl flex flex-col gap-6 animate-in fade-in zoom-in duration-200">
+            <div>
+              <h3 className="font-extrabold text-lg text-[#0F172A] font-display">Unggah Sertifikat</h3>
+              <p className="text-gray-400 text-xs mt-1">Masukkan tanggal kelulusan ujian dan pilih berkas sertifikat Anda.</p>
+            </div>
+            
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="block text-[10px] font-bold text-[#0F172A] uppercase mb-1.5 tracking-wider">Tanggal Kelulusan / UKT</label>
+                <input 
+                  type="date"
+                  value={selectedPromotedDate}
+                  onChange={(e) => setSelectedPromotedDate(e.target.value)}
+                  className="w-full bg-white border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-[#0F172A] uppercase mb-1.5 tracking-wider">Berkas Sertifikat (Gambar/PDF)</label>
+                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-5 bg-white flex flex-col items-center gap-3">
+                  <input 
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (!selectedPromotedDate) {
+                        alert("Harap isi tanggal kelulusan terlebih dahulu!");
+                        e.target.value = ""; // clear selected file
+                        return;
+                      }
+                      
+                      setIsSavingProfile(true);
+                      try {
+                        const url = await uploadToServer(file, file.name);
+                        if (url) {
+                          const res = await fetch("/api/member/belt-history", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ 
+                              historyId: uploadingHistoryId, 
+                              certUrl: url,
+                              promotedAt: selectedPromotedDate
+                            })
+                          });
+                          if (res.ok) {
+                            alert("Sertifikat & Tanggal berhasil disimpan!");
+                            setUploadingHistoryId(null);
+                            setSelectedPromotedDate("");
+                            if (profile?.id) {
+                              const resHist = await fetch(`/api/member/belt-history?memberId=${profile.id}`);
+                              if (resHist.ok) setBeltHistory(await resHist.json());
+                            }
+                          } else {
+                            alert("Gagal menyimpan data sertifikat.");
+                          }
+                        }
+                      } catch (err) {
+                        console.error(err);
+                        alert("Terjadi kesalahan saat mengunggah.");
+                      } finally {
+                        setIsSavingProfile(false);
+                      }
+                    }}
+                    className="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-[11px] file:font-bold file:bg-[#E10600]/10 file:text-[#E10600] hover:file:bg-[#E10600]/20 cursor-pointer"
+                  />
+                  <span className="text-[9px] text-gray-400">JPG, PNG, atau PDF (Maksimal 2MB)</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button 
+                type="button"
+                onClick={() => {
+                  setUploadingHistoryId(null);
+                  setSelectedPromotedDate("");
+                }}
+                className="w-full bg-slate-100 text-gray-500 py-3 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition-colors"
+              >
+                Batal
+              </button>
+            </div>
           </div>
         </div>
       )}

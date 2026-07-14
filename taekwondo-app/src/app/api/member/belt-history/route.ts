@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { historyId, certUrl } = body;
+    const { historyId, certUrl, promotedAt } = body;
 
     if (!historyId || !certUrl) {
       return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
@@ -70,6 +70,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Update BeltHistory promotedAt if provided
+    if (promotedAt) {
+      await prisma.beltHistory.update({
+        where: { id: historyId },
+        data: { promotedAt: new Date(promotedAt) }
+      });
+    }
+
     // Create Certificate record
     const newCertificate = await prisma.certificate.create({
       data: {
@@ -78,7 +86,7 @@ export async function POST(request: Request) {
         oldBelt: historyItem.fromBelt,
         newBelt: historyItem.toBelt,
         qrCodeUrl: certUrl,
-        issueDate: new Date()
+        issueDate: promotedAt ? new Date(promotedAt) : new Date()
       }
     });
 

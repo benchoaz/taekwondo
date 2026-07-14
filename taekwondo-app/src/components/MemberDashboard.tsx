@@ -1908,85 +1908,41 @@ export default function MemberDashboard({
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* SPP Item */}
-                  <div className="bg-[#F8FAFC] border border-[#0F172A]/5 rounded-2xl p-5 flex flex-col justify-between min-h-[140px]">
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">SPP Bulanan</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                          isSppPaidThisMonth ? "bg-green-50 text-green-600" : isSppPendingThisMonth ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600"
-                        }`}>
-                          {isSppPaidThisMonth ? "Lunas" : isSppPendingThisMonth ? "Pending" : "Belum Bayar"}
-                        </span>
+                  {payments.filter((p: any) => p.status === "PENDING").map((p: any) => (
+                    <div key={p.id} className="bg-[#F8FAFC] border border-[#0F172A]/5 rounded-2xl p-5 flex flex-col justify-between min-h-[140px]">
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                            {p.purpose.toLowerCase().includes("spp") 
+                              ? "SPP Bulanan" 
+                              : p.purpose.toLowerCase().includes("ukt") 
+                                ? "Ujian UKT" 
+                                : p.purpose.toLowerCase().includes("iuran") 
+                                  ? "Iuran Pertemuan" 
+                                  : "Tagihan Lain"}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-red-50 text-red-600">
+                            Belum Bayar
+                          </span>
+                        </div>
+                        <h4 className="font-extrabold text-sm text-[#0F172A]">{p.purpose}</h4>
                       </div>
-                      <h4 className="font-extrabold text-sm text-[#0F172A]">SPP Juni 2026</h4>
-                    </div>
-                    <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-100">
-                      <span className="font-black text-[#0F172A] text-sm">Rp {sppFeeRate.toLocaleString("id-ID")}</span>
-                      {!isSppPaidThisMonth && !isSppPendingThisMonth && (
+                      <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-100">
+                        <span className="font-black text-[#0F172A] text-sm">Rp {p.amount.toLocaleString("id-ID")}</span>
                         <button 
-                          onClick={() => openCheckout("SPP Juni 2026", sppFeeRate)}
+                          onClick={() => openCheckout(p.purpose, p.amount, p.id)}
                           className="bg-[#E10600] hover:bg-[#C00500] text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-sm transition-all cursor-pointer"
                         >
                           Bayar
                         </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Iuran Pertemuan Item */}
-                  <div className="bg-[#F8FAFC] border border-[#0F172A]/5 rounded-2xl p-5 flex flex-col justify-between min-h-[140px]">
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Iuran Pertemuan</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                          isMeetingFeePaid ? "bg-green-50 text-green-600" : isMeetingFeePending ? "bg-amber-50 text-amber-600" : meetingFeeAmount > 0 ? "bg-red-50 text-red-600" : "bg-slate-100 text-gray-400"
-                        }`}>
-                          {isMeetingFeePaid ? "Lunas" : isMeetingFeePending ? "Pending" : meetingFeeAmount > 0 ? "Belum Bayar" : "Lunas"}
-                        </span>
                       </div>
-                      <h4 className="font-extrabold text-sm text-[#0F172A]">Iuran 2 Sesi Latihan</h4>
                     </div>
-                    <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-100">
-                      <span className="font-black text-[#0F172A] text-sm">
-                        {isMeetingFeePaid ? "Rp 0" : `Rp ${meetingFeeAmount.toLocaleString("id-ID")}`}
-                      </span>
-                      {!isMeetingFeePaid && !isMeetingFeePending && meetingFeeAmount > 0 && (
-                        <button 
-                          onClick={() => openCheckout(`Iuran Pertemuan (2 Sesi)`, meetingFeeAmount)}
-                          className="bg-[#E10600] hover:bg-[#C00500] text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-sm transition-all cursor-pointer"
-                        >
-                          Bayar
-                        </button>
-                      )}
+                  ))}
+                  {payments.filter((p: any) => p.status === "PENDING").length === 0 && (
+                    <div className="col-span-3 text-center py-8 text-gray-400 text-xs">
+                      Tidak ada tagihan aktif. Semua pembayaran Anda lunas!
                     </div>
-                  </div>
-
-                  {/* UKT Item */}
-                  <div className="bg-[#F8FAFC] border border-[#0F172A]/5 rounded-2xl p-5 flex flex-col justify-between min-h-[140px]">
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Ujian UKT</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                          uktStatus === "COMPLETED" ? "bg-green-50 text-green-600" : uktStatus === "PENDING" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600"
-                        }`}>
-                          {uktStatus === "COMPLETED" ? "Lunas" : uktStatus === "PENDING" ? "Pending" : "Belum Bayar"}
-                        </span>
-                      </div>
-                      <h4 className="font-extrabold text-sm text-[#0F172A]">Pendaftaran UKT</h4>
-                    </div>
-                    <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-100">
-                      <span className="font-black text-[#0F172A] text-sm">Rp {uktFeeRate.toLocaleString("id-ID")}</span>
-                      {uktStatus !== "COMPLETED" && uktStatus !== "PENDING" && (
-                        <button 
-                          onClick={() => openCheckout(`Pendaftaran UKT (${nextBeltInfo.split(" (")[0]})`, uktFeeRate)}
-                          className="bg-[#E10600] hover:bg-[#C00500] text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-sm transition-all cursor-pointer"
-                        >
-                          Bayar
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 

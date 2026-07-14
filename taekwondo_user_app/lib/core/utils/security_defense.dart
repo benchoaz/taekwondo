@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_jailbreak_detection_plus/flutter_jailbreak_detection_plus.dart';
 
 class SecureInt {
@@ -38,12 +39,17 @@ class SecuritySelfDefense {
       final bool isJailbroken = await FlutterJailbreakDetectionPlus.jailbroken;
       final bool isDeveloperMode = await FlutterJailbreakDetectionPlus.developerMode;
 
-      if (isJailbroken || isDeveloperMode) {
+      if (isDeveloperMode) {
+        // Log instead of crashing, as developers/testers always have this enabled.
+        debugPrint("Security Warning: Developer options are enabled.");
+      }
+
+      if (isJailbroken) {
         isTampered = true;
       }
-    } catch (_) {
-      // Fail-secure: default to true on errors checking jailbreak
-      isTampered = true;
+    } catch (e) {
+      // Do not crash the app if the jailbreak detection library fails to load
+      debugPrint("Jailbreak check skipped/failed: $e");
     }
 
     try {
@@ -58,11 +64,17 @@ class SecuritySelfDefense {
       if (!isSignatureValid) {
         isTampered = true;
       }
-    } catch (_) {
-      isTampered = true;
+    } on MissingPluginException catch (e) {
+      // Gracefully handle unimplemented native platform channels on some builds
+      debugPrint("Security MethodChannel not implemented: $e");
+    } on PlatformException catch (e) {
+      debugPrint("Security PlatformException: $e");
+    } catch (e) {
+      debugPrint("Security general exception: $e");
     }
 
     if (isTampered) {
+      debugPrint("TAMPERING DETECTED! Closing application.");
       // Force terminate app cleanly
       SystemNavigator.pop();
       exit(0);

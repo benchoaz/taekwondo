@@ -125,6 +125,7 @@ model BeltRank {
   name        String   @unique // e.g., "Sabuk Putih (10 Geup)"
   level       Int      // Higher value = higher rank, or custom order
   nextBeltId  String?  @map("next_belt_id")
+  imageUrl    String?  @map("image_url") // Dynamic 2D belt asset URL
 
   // Belt Requirements
   minAttendance Int @default(80) @map("min_attendance") // Persentase kehadiran

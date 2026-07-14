@@ -377,7 +377,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               _buildStatColumn('UMUR', '${profile.age} THN'),
               Container(width: 1, height: 40, color: Colors.white.withValues(alpha: 0.1)),
-              _buildStatColumn('SABUK', profile.currentBelt.split(' ').first),
+              _buildStatColumn('SABUK', profile.currentBelt.replaceAll('Sabuk ', '').split(' ').first),
             ],
           )
         ],

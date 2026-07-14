@@ -65,6 +65,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, data: belt });
     }
 
+    if (action === 'UPDATE_BELT_IMAGE') {
+      const belt = await prisma.beltRank.update({
+        where: { id: payload.beltId },
+        data: {
+          imageUrl: payload.imageUrl,
+        } as any
+      });
+      return NextResponse.json({ success: true, data: belt });
+    }
+
     return NextResponse.json({ success: false, message: 'Invalid action' }, { status: 400 });
   } catch (error: any) {
     console.error('Error updating curriculum:', error);

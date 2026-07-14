@@ -40,6 +40,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Profil Member tidak ditemukan" }, { status: 404 });
     }
 
+    // Find matching belt rank to get image URL
+    const beltRank = await prisma.beltRank.findFirst({
+      where: {
+        OR: [
+          { name: user.member.currentBelt },
+          { name: { contains: user.member.currentBelt.split(" (")[0], mode: 'insensitive' } }
+        ]
+      }
+    });
+
     // Kalkulasi Umur
     let age = 0;
     if (user.member.dateOfBirth) {
@@ -70,6 +80,7 @@ export async function GET(req: NextRequest) {
       waistCircum: latestPhysicalLog?.waistCircum || null,
       age: age > 0 ? age : 18, // Fallback otomatis 18 tahun jika belum diisi
       profilePicture: user.image || null,
+      beltImageUrl: (beltRank as any)?.imageUrl || null, // Dynamic belt image from database
       achievements: achievements,
       physicalLogs: user.member.physicalLogs || [],
       beltHistory: user.member.beltHistory || [],

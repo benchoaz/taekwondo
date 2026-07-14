@@ -80,6 +80,7 @@ export default function MemberDashboard({
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [uploadingHistoryId, setUploadingHistoryId] = useState<string | null>(null);
   const [selectedPromotedDate, setSelectedPromotedDate] = useState("");
+  const [beltImageUrl, setBeltImageUrl] = useState<string | null>(null);
   const [payments, setPayments] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>(null);
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -685,6 +686,25 @@ export default function MemberDashboard({
             certDocUrl: currentUser.certDocUrl || null,
           });
           setCurrentBelt(currentUser.currentBelt || "Biru Strip Merah (4 Geup)");
+ 
+           // Fetch dynamic belt image from curriculum API
+           try {
+             const resCur = await fetch("/api/curriculum");
+             if (resCur.ok) {
+               const curData = await resCur.json();
+               const beltsList = curData.data || [];
+               const matchingBelt = beltsList.find(
+                 (b: any) => b.name.toLowerCase() === (currentUser.currentBelt || "").toLowerCase()
+               );
+               if (matchingBelt && matchingBelt.imageUrl) {
+                 setBeltImageUrl(matchingBelt.imageUrl);
+               } else {
+                 setBeltImageUrl(null);
+               }
+             }
+           } catch (e) {
+             console.error("Error fetching belt image:", e);
+           }
 
           // Load payments from API
           const resPayments = await fetch("/api/payments");
@@ -1858,7 +1878,14 @@ export default function MemberDashboard({
                   </div>
                   
                   {/* Dynamic 3D Belt Visual */}
-                  {render3DBelt(currentBelt)}
+                  {beltImageUrl ? (
+                    <div className="relative w-56 h-48 flex items-center justify-center bg-slate-50/50 rounded-full border border-slate-100 shadow-inner group hover:scale-[1.03] transition-all duration-500 shrink-0 overflow-hidden">
+                      <div className="absolute inset-2 rounded-full bg-white border border-slate-50 shadow-md"></div>
+                      <img src={beltImageUrl} alt={currentBelt} className="relative w-40 h-28 object-contain z-10" />
+                    </div>
+                  ) : (
+                    render3DBelt(currentBelt)
+                  )}
                 </div>
 
                 {/* Next rank card - Dynamically Connected */}

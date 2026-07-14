@@ -78,12 +78,91 @@ export default function CurriculumBuilder() {
             onClick={() => setExpandedBelt(expandedBelt === belt.id ? null : belt.id)}
           >
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-[#E10600]/10 flex items-center justify-center">
-                <div className="w-6 h-2 bg-[#E10600] rounded-sm" />
+              <div className="w-10 h-10 rounded-full bg-[#E10600]/10 flex items-center justify-center overflow-hidden">
+                {belt.imageUrl ? (
+                  <img src={belt.imageUrl} alt={belt.name} className="w-8 h-8 object-contain" />
+                ) : (
+                  <div className="w-6 h-2 bg-[#E10600] rounded-sm" />
+                )}
               </div>
               <div>
                 <h3 className="font-bold text-[#0F172A] text-lg">{belt.name}</h3>
-                <p className="text-xs text-gray-500 mt-1">{belt.categories?.length || 0} Kategori Pembelajaran</p>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500 mt-1">
+                  <span>{belt.categories?.length || 0} Kategori Pembelajaran</span>
+                  <span className="text-slate-300">•</span>
+                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <label className="text-[11px] text-blue-600 font-bold hover:underline cursor-pointer">
+                      Ubah Aset Sabuk
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          
+                          const formData = new FormData();
+                          formData.append("file", file);
+                          formData.append("filename", file.name);
+                          
+                          try {
+                            const resUpload = await fetch("/api/upload", {
+                              method: "POST",
+                              body: formData
+                            });
+                            if (resUpload.ok) {
+                              const dataUpload = await resUpload.json();
+                              const resImage = await fetch("/api/curriculum", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  action: "UPDATE_BELT_IMAGE",
+                                  payload: { beltId: belt.id, imageUrl: dataUpload.url }
+                                })
+                              });
+                              if (resImage.ok) {
+                                alert("Gambar sabuk berhasil diperbarui!");
+                                fetchCurriculum();
+                              }
+                            }
+                          } catch (err) {
+                            console.error(err);
+                            alert("Gagal mengunggah gambar.");
+                          }
+                        }}
+                      />
+                    </label>
+                    {belt.imageUrl && (
+                      <>
+                        <span className="text-slate-300">/</span>
+                        <button 
+                          onClick={async () => {
+                            if (!confirm("Hapus gambar kustom sabuk?")) return;
+                            try {
+                              const resImage = await fetch("/api/curriculum", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  action: "UPDATE_BELT_IMAGE",
+                                  payload: { beltId: belt.id, imageUrl: null }
+                                })
+                              });
+                              if (resImage.ok) {
+                                alert("Gambar kustom sabuk dihapus.");
+                                fetchCurriculum();
+                              }
+                            } catch (err) {
+                              console.error(err);
+                            }
+                          }}
+                          className="text-[11px] text-red-500 font-bold hover:underline cursor-pointer"
+                        >
+                          Hapus
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
             {expandedBelt === belt.id ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}

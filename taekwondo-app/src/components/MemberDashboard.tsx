@@ -42,7 +42,6 @@ export default function MemberDashboard({
   const [activeTab, setActiveTab] = useState("dashboard");
   const [currentBelt, setCurrentBelt] = useState("Biru Strip Merah (4 Geup)");
   
-  // Database states
   const [profile, setProfile] = useState<{
     id: string;
     userId: string;
@@ -51,6 +50,7 @@ export default function MemberDashboard({
     currentBelt: string;
     progress: number;
     email: string;
+    phone?: string;
     selfieUrl?: string | null;
     certDocUrl?: string | null;
     weight?: number | null;
@@ -65,6 +65,9 @@ export default function MemberDashboard({
   const [showEditProfileModal, setShowEditProfileModal] = useState(false);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editPassword, setEditPassword] = useState("");
+  const [editConfirmPassword, setEditConfirmPassword] = useState("");
   const [editSelfieUrl, setEditSelfieUrl] = useState<string | null>(null);
   const [editCertDocUrl, setEditCertDocUrl] = useState<string | null>(null);
   const [editWeight, setEditWeight] = useState("");
@@ -668,6 +671,7 @@ export default function MemberDashboard({
             currentBelt: currentUser.currentBelt || "Biru Strip Merah (4 Geup)",
             progress: currentUser.progress || 75,
             email: currentUser.email || "",
+            phone: currentUser.phone || "",
             selfieUrl: currentUser.selfieUrl || null,
             certDocUrl: currentUser.certDocUrl || null,
           });
@@ -974,6 +978,15 @@ export default function MemberDashboard({
     e.preventDefault();
     if (!profile || !profile.userId || !editName || !editEmail) return;
 
+    if (editPassword && editPassword !== editConfirmPassword) {
+      alert("Konfirmasi password baru tidak cocok.");
+      return;
+    }
+    if (editPassword && editPassword.length < 8) {
+      alert("Password minimal harus 8 karakter.");
+      return;
+    }
+
     setIsSavingProfile(true);
     try {
       const res = await fetch(`/api/users/${profile.userId}`, {
@@ -982,6 +995,8 @@ export default function MemberDashboard({
         body: JSON.stringify({
           name: editName,
           email: editEmail,
+          phone: editPhone,
+          ...(editPassword && { password: editPassword }),
           role: "MEMBER",
           currentBelt: profile.currentBelt,
           ...(editSelfieUrl !== null && { selfieUrl: editSelfieUrl }),
@@ -997,6 +1012,7 @@ export default function MemberDashboard({
           ...prev,
           fullName: editName,
           email: editEmail,
+          phone: editPhone,
           ...(editSelfieUrl !== null && { selfieUrl: editSelfieUrl }),
           ...(editCertDocUrl !== null && { certDocUrl: editCertDocUrl }),
           weight: editWeight ? parseFloat(editWeight) : null,
@@ -1769,7 +1785,6 @@ export default function MemberDashboard({
               ))}
             </div>
           </div>
-
           {/* Footer of Sidebar */}
           <div className="flex flex-col gap-1 pt-6 border-t border-slate-100 mt-6">
             <button 
@@ -1783,6 +1798,9 @@ export default function MemberDashboard({
                 if (profile) {
                   setEditName(profile.fullName);
                   setEditEmail(profile.email || "");
+                  setEditPhone(profile.phone || "");
+                  setEditPassword("");
+                  setEditConfirmPassword("");
                   setEditSelfieUrl(profile.selfieUrl ?? null);
                   setEditCertDocUrl(profile.certDocUrl ?? null);
                   setEditWeight(profile.weight ? String(profile.weight) : "");
@@ -3102,6 +3120,40 @@ export default function MemberDashboard({
                   onChange={(e) => setEditEmail(e.target.value)}
                   required
                   placeholder="Email" 
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Nomor WhatsApp</label>
+                <input 
+                  type="text" 
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  required
+                  placeholder="Contoh: 08123456789" 
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Password Baru (Kosongkan jika tidak diganti)</label>
+                <input 
+                  type="password" 
+                  value={editPassword}
+                  onChange={(e) => setEditPassword(e.target.value)}
+                  placeholder="Password Baru" 
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Konfirmasi Password Baru</label>
+                <input 
+                  type="password" 
+                  value={editConfirmPassword}
+                  onChange={(e) => setEditConfirmPassword(e.target.value)}
+                  placeholder="Ulangi Password Baru" 
                   className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
                 />
               </div>

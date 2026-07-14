@@ -51,36 +51,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Pasang Medali Bayangan jika kosong (sesuai kesepakatan)
-    let achievements = user.member.achievements;
-    if (achievements.length === 0) {
-      achievements = [
-        {
-          id: "mock-1",
-          memberId: user.member.id,
-          title: "Juara 1 Kyorugi Putra U-45",
-          eventName: "Kejurda DKI Jakarta 2024",
-          date: new Date("2024-05-12"),
-          rank: "Emas",
-          photoUrl: null,
-          certificateUrl: null,
-          status: "APPROVED",
-          createdAt: new Date(),
-        },
-        {
-          id: "mock-2",
-          memberId: user.member.id,
-          title: "Poomsae Beregu Putra",
-          eventName: "Sirkuit Nasional Taekwondo 2023",
-          date: new Date("2023-11-20"),
-          rank: "Perak",
-          photoUrl: null,
-          certificateUrl: null,
-          status: "APPROVED",
-          createdAt: new Date(),
-        }
-      ] as any[];
-    }
+    const achievements = user.member.achievements;
 
     const latestPhysicalLog = user.member.physicalLogs?.length > 0 
       ? user.member.physicalLogs[user.member.physicalLogs.length - 1] 

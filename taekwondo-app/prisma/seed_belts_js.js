@@ -1,5 +1,10 @@
 const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+const { PrismaPg } = require("@prisma/adapter-pg");
+const pg = require("pg");
+
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 const belts = [
   { id: "Sabuk Putih (10 Geup)", name: "Sabuk Putih (10 Geup)", level: 1 },

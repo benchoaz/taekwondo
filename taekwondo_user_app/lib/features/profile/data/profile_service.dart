@@ -133,7 +133,7 @@ class ProfileService {
       data: formData,
       options: Options(
         headers: {
-          'Content-Type': null,
+          'Content-Type': 'multipart/form-data',
         },
       ),
     );

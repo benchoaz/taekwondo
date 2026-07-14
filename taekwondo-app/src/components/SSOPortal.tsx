@@ -67,7 +67,7 @@ export default function SSOPortal({
         throw new Error(data.error || "Login gagal");
       }
 
-      onNavigate(data.role, email);
+      onNavigate(data.role, data.user?.email || email);
     } catch (err: any) {
       setErrorMsg(err.message || "Terjadi kesalahan saat masuk.");
     } finally {

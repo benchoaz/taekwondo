@@ -663,7 +663,10 @@ export default function MemberDashboard({
       if (resUsers.ok) {
         const usersList = await resUsers.json();
         const currentUser = usersList.find(
-          (u: any) => u.email.toLowerCase() === emailToQuery.toLowerCase()
+          (u: any) => 
+            u.email.toLowerCase() === emailToQuery.toLowerCase() ||
+            (u.username && u.username.toLowerCase() === emailToQuery.toLowerCase()) ||
+            (u.member?.phone && u.member.phone === emailToQuery)
         );
         if (currentUser && currentUser.memberId) {
           const mId = currentUser.memberId;

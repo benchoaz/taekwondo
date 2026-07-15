@@ -22,6 +22,12 @@ function CoachQuestFormContent() {
   const [readingContent, setReadingContent] = useState("");
   const [frequency, setFrequency] = useState("ONE_TIME");
   const [isActive, setIsActive] = useState(true);
+
+  // States Kuis
+  const [quizType, setQuizType] = useState<string>("NONE");
+  const [quizQuestion, setQuizQuestion] = useState("");
+  const [quizOptions, setQuizOptions] = useState<string[]>(["", "", "", ""]);
+  const [quizCorrectAnswer, setQuizCorrectAnswer] = useState("");
   
   const [belts, setBelts] = useState<{ id: string; name: string }[]>([]);
   const [selectedBeltIds, setSelectedBeltIds] = useState<string[]>([]);
@@ -58,6 +64,27 @@ function CoachQuestFormContent() {
             setReadingContent(q.readingContent || "");
             setFrequency(q.frequency || "ONE_TIME");
             setIsActive(q.isActive !== undefined ? q.isActive : true);
+
+            // Load kuis jika ada
+            if (q.quizQuestions && Array.isArray(q.quizQuestions) && q.quizQuestions.length > 0) {
+              const quizObj = q.quizQuestions[0];
+              setQuizQuestion(quizObj.question || "");
+              if (quizObj.options && Array.isArray(quizObj.options) && quizObj.options.length > 0) {
+                setQuizType("MULTIPLE_CHOICE");
+                const opts = [...quizObj.options];
+                while (opts.length < 4) opts.push("");
+                setQuizOptions(opts);
+              } else {
+                setQuizType("TEXT");
+              }
+              setQuizCorrectAnswer(quizObj.correctAnswer || "");
+            } else {
+              setQuizType("NONE");
+              setQuizQuestion("");
+              setQuizOptions(["", "", "", ""]);
+              setQuizCorrectAnswer("");
+            }
+
             if (q.requirements && q.requirements.length > 0) {
               const req = q.requirements[0];
               setMinAge(req.minAge.toString());
@@ -80,6 +107,10 @@ function CoachQuestFormContent() {
       setFrequency("ONE_TIME");
       setIsActive(true);
       setSelectedBeltIds([]);
+      setQuizType("NONE");
+      setQuizQuestion("");
+      setQuizOptions(["", "", "", ""]);
+      setQuizCorrectAnswer("");
     }
   }, [editId]);
 
@@ -109,6 +140,19 @@ function CoachQuestFormContent() {
       const method = editId ? "PUT" : "POST";
       const endpoint = editId ? `/api/quests/library/${editId}` : "/api/quests/library";
 
+      // Formulate quizQuestions JSON structure compatible with DB and Mobile format
+      let formattedQuiz: any = null;
+      if (category === "THEORY" && quizType !== "NONE" && quizQuestion.trim() !== "") {
+        formattedQuiz = [
+          {
+            id: "q1",
+            question: quizQuestion.trim(),
+            options: quizType === "MULTIPLE_CHOICE" ? quizOptions.filter(o => o.trim() !== "") : null,
+            correctAnswer: quizCorrectAnswer.trim()
+          }
+        ];
+      }
+
       const res = await fetch(endpoint, {
         method: method,
         headers: { "Content-Type": "application/json" },
@@ -122,6 +166,7 @@ function CoachQuestFormContent() {
           requireVideo,
           videoUrl,
           readingContent,
+          quizQuestions: formattedQuiz,
           frequency,
           isActive,
           allowedBeltIds: selectedBeltIds
@@ -133,10 +178,13 @@ function CoachQuestFormContent() {
         setStatus(editId ? "Misi berhasil diperbarui!" : "Misi berhasil disebarkan!");
         setIsSuccess(true);
         if (!editId) {
-          // Reset form if creating new
           setTitle("");
           setDescription("");
           setReadingContent("");
+          setQuizQuestion("");
+          setQuizOptions(["", "", "", ""]);
+          setQuizCorrectAnswer("");
+          setQuizType("NONE");
         }
         
         setTimeout(() => {
@@ -207,15 +255,99 @@ function CoachQuestFormContent() {
           </div>
 
           {category === "THEORY" && (
-            <div>
-              <label className="block text-sm font-bold text-gray-800 mb-1">Materi Bacaan (Opsional)</label>
-              <textarea 
-                value={readingContent} 
-                onChange={e => setReadingContent(e.target.value)} 
-                className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all font-medium text-gray-800 resize-none" 
-                rows={6} 
-                placeholder="Masukkan teks bahan bacaan, sejarah, atau teori Taekwondo di sini agar murid bisa membacanya..." 
-              />
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-800 mb-1">Materi Bacaan (Opsional)</label>
+                <textarea 
+                  value={readingContent} 
+                  onChange={e => setReadingContent(e.target.value)} 
+                  className="block w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all font-medium text-gray-800 resize-none" 
+                  rows={6} 
+                  placeholder="Masukkan teks bahan bacaan, sejarah, atau teori Taekwondo di sini agar murid bisa membacanya..." 
+                />
+              </div>
+
+              {/* Tipe Kuis Selector */}
+              <div className="p-5 bg-red-50/30 rounded-2xl border border-red-100/60">
+                <label className="block text-sm font-black text-red-800 mb-2 uppercase tracking-wide">Model Tes / Kuis Teori</label>
+                <div className="grid grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setQuizType("NONE")}
+                    className={`p-3 rounded-xl border font-bold text-xs transition-all ${quizType === "NONE" ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                  >
+                    📖 Hanya Membaca
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuizType("MULTIPLE_CHOICE")}
+                    className={`p-3 rounded-xl border font-bold text-xs transition-all ${quizType === "MULTIPLE_CHOICE" ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                  >
+                    🔠 Pilihan Ganda
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setQuizType("TEXT")}
+                    className={`p-3 rounded-xl border font-bold text-xs transition-all ${quizType === "TEXT" ? 'bg-red-600 text-white border-red-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                  >
+                    ✍️ Tulis Jawaban
+                  </button>
+                </div>
+              </div>
+
+              {/* Form Input Pertanyaan & Pilihan */}
+              {quizType !== "NONE" && (
+                <div className="p-5 bg-gray-50 rounded-2xl border border-gray-200/80 space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">Pertanyaan / Soal Kuis</label>
+                    <input 
+                      type="text"
+                      required={quizType !== "NONE"}
+                      value={quizQuestion}
+                      onChange={e => setQuizQuestion(e.target.value)}
+                      className="block w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-sm font-medium text-gray-800"
+                      placeholder="Masukkan pertanyaan kuis di sini..."
+                    />
+                  </div>
+
+                  {quizType === "MULTIPLE_CHOICE" && (
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-gray-700">Pilihan Jawaban</label>
+                      {quizOptions.map((opt, idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                          <span className="font-bold text-xs text-gray-400 w-4">{String.fromCharCode(65 + idx)}.</span>
+                          <input 
+                            type="text"
+                            required={quizType === "MULTIPLE_CHOICE"}
+                            value={opt}
+                            onChange={e => {
+                              const nextOpts = [...quizOptions];
+                              nextOpts[idx] = e.target.value;
+                              setQuizOptions(nextOpts);
+                            }}
+                            className="block w-full px-4 py-2 rounded-lg border border-gray-200 bg-white focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-xs font-medium text-gray-800"
+                            placeholder={`Pilihan ${String.fromCharCode(65 + idx)}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1">
+                      {quizType === "MULTIPLE_CHOICE" ? "Pilihan Jawaban yang Benar (Harus persis sama dengan salah satu pilihan di atas)" : "Kunci Jawaban Tulis (Case-insensitive)"}
+                    </label>
+                    <input 
+                      type="text"
+                      required={quizType !== "NONE"}
+                      value={quizCorrectAnswer}
+                      onChange={e => setQuizCorrectAnswer(e.target.value)}
+                      className="block w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none transition-all text-sm font-bold text-red-600"
+                      placeholder={quizType === "MULTIPLE_CHOICE" ? "Contoh: Momtong" : "Masukkan kunci jawaban di sini..."}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

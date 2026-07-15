@@ -62,12 +62,14 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
   String? _expandedQuestId;
   final Map<String, bool> _watchedQuests = {};
   String? _selectedQuizOption;
+  final TextEditingController _quizTextController = TextEditingController();
   bool _isQuestSubmitting = false;
   bool _isUploadingVideo = false;
   final Map<String, dynamic> _ytControllers = {};
 
   @override
   void dispose() {
+    _quizTextController.dispose();
     // Bersihkan controller mobile YouTube
     for (var controller in _ytControllers.values) {
       if (controller is YoutubePlayerController) {
@@ -1402,6 +1404,8 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
           Builder(
             builder: (context) {
               final quiz = quest.quizQuestions!.first;
+              final hasOptions = quiz.options != null && (quiz.options as List).isNotEmpty;
+
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1410,51 +1414,88 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: textWhite),
                   ),
                   const SizedBox(height: 12),
-                  ...quiz.options.map((option) {
-                    final isSelected = _selectedQuizOption == option;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: InkWell(
-                        onTap: _isQuestSubmitting ? null : () {
-                          setState(() {
-                            _selectedQuizOption = option;
-                          });
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: isSelected ? themeColor.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.03),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected ? themeColor : Colors.white10,
-                              width: 1.5,
+                  
+                  if (hasOptions) ...[
+                    // Tipe Kuis Pilihan Ganda
+                    ...(quiz.options as List).map((optionItem) {
+                      final option = optionItem.toString();
+                      final isSelected = _selectedQuizOption == option;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: InkWell(
+                          onTap: _isQuestSubmitting ? null : () {
+                            setState(() {
+                              _selectedQuizOption = option;
+                            });
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isSelected ? themeColor.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.03),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected ? themeColor : Colors.white10,
+                                width: 1.5,
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            option,
-                            style: GoogleFonts.hankenGrotesk(
-                              fontSize: 13,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? themeColor : textWhite,
+                            child: Text(
+                              option,
+                              style: GoogleFonts.hankenGrotesk(
+                                fontSize: 13,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                color: isSelected ? themeColor : textWhite,
+                              ),
                             ),
                           ),
                         ),
+                      );
+                    }).toList(),
+                  ] else ...[
+                    // Tipe Kuis Isian/Tulis Teks
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white10),
                       ),
-                    );
-                  }).toList(),
-                  const SizedBox(height: 12),
+                      child: TextField(
+                        controller: _quizTextController,
+                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                        decoration: InputDecoration(
+                          hintText: 'Ketik jawaban Anda di sini...',
+                          hintStyle: const TextStyle(color: Colors.white30, fontSize: 13),
+                          contentPadding: const EdgeInsets.all(16),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: themeColor, width: 1.5),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: (_selectedQuizOption == null || _isQuestSubmitting)
+                      onPressed: (_isQuestSubmitting || (hasOptions && _selectedQuizOption == null))
                           ? null
                           : () async {
+                              final answerStr = hasOptions ? _selectedQuizOption! : _quizTextController.text.trim();
+                              if (answerStr.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Harap masukkan jawaban terlebih dahulu!')),
+                                );
+                                return;
+                              }
+
                               setState(() => _isQuestSubmitting = true);
                               try {
                                 await ref.read(questServiceProvider).submitQuiz(
                                   log.id,
-                                  [_selectedQuizOption!],
+                                  [answerStr],
                                 );
                                 ref.invalidate(questProvider);
                                 ref.invalidate(profileProvider);
@@ -1462,6 +1503,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                   _expandedQuestId = null;
                                   _isQuestSubmitting = false;
                                   _selectedQuizOption = null;
+                                  _quizTextController.clear();
                                 });
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(

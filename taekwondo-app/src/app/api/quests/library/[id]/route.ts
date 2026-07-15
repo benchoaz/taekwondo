@@ -54,7 +54,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     const body = await req.json();
-    const { title, description, category, baseXp, minAge, maxAge, allowedBeltIds, requireVideo, videoUrl, readingContent, frequency, isActive } = body;
+    const { title, description, category, baseXp, minAge, maxAge, allowedBeltIds, requireVideo, videoUrl, readingContent, quizQuestions, frequency, isActive } = body;
 
     // Update quest
     const updatedQuest = await prisma.questLibrary.update({
@@ -67,6 +67,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         requireVideo: requireVideo ?? false,
         videoUrl: videoUrl || null,
         readingContent: readingContent || null,
+        quizQuestions: quizQuestions || null,
         frequency: frequency || "ONE_TIME",
         isActive: isActive !== undefined ? isActive : true,
       }

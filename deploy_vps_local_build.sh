@@ -26,7 +26,7 @@ sshpass -e ssh $SSH_OPTS $HOST "
   sed -i '/build:/d' docker-compose.yml
   sed -i '/context:/d' docker-compose.yml
   sed -i '/dockerfile:/d' docker-compose.yml
-  sed -i 's/container_name: taekwondo_web/image: taekwondo_web_local:latest\\n    container_name: taekwondo_web/g' docker-compose.yml
+  sed -i 's/container_name: taekwondo_web_v3/image: taekwondo_web_local:latest\\n    container_name: taekwondo_web_v3/g' docker-compose.yml
   
   # Jalankan podman compose tanpa build
   echo 'Menjalankan ulang layanan web...'
@@ -36,6 +36,6 @@ sshpass -e ssh $SSH_OPTS $HOST "
   sleep 10
   
   # Eksekusi migrasi
-  podman exec taekwondo_web npx prisma migrate deploy
+  podman exec taekwondo_web_v3 npx prisma migrate deploy
 "
 echo "Deployment Selesai!"

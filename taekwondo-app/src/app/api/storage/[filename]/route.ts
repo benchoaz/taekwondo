@@ -4,10 +4,10 @@ import path from 'path';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { filename: string } }
+  { params }: { params: Promise<{ filename: string }> }
 ) {
   try {
-    const filename = params.filename;
+    const { filename } = await params;
     
     if (!filename) {
       return new NextResponse("Filename is required", { status: 400 });

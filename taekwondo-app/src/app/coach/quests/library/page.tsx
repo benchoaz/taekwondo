@@ -2,12 +2,22 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Edit, ListFilter, Trash2, Library, PlusCircle } from "lucide-react";
+import { Edit, ListFilter, Trash2, Library, PlusCircle, Send, ToggleLeft, ToggleRight, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default function QuestLibraryPage() {
   const [quests, setQuests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [toastMsg, setToastMsg] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+  const [distributing, setDistributing] = useState<string | null>(null);
+  const [toggling, setToggling] = useState<string | null>(null);
+
+  const showToast = (msg: string, type: "success" | "error" = "success") => {
+    setToastMsg(msg);
+    setToastType(type);
+    setTimeout(() => setToastMsg(""), 4000);
+  };
 
   const fetchQuests = () => {
     setLoading(true);
@@ -29,32 +39,92 @@ export default function QuestLibraryPage() {
   }, []);
 
   const handleDelete = async (id: string, title: string) => {
-    if (!window.confirm(`Apakah Anda yakin ingin menghapus misi "${title}"?`)) return;
-
+    if (!window.confirm(`Hapus misi "${title}"? Tindakan ini tidak bisa dibatalkan.`)) return;
     try {
       const res = await fetch(`/api/quests/library/${id}`, { method: "DELETE" });
       const json = await res.json();
       if (json.success) {
-        alert("Misi berhasil dihapus.");
-        fetchQuests(); // Refresh data
+        showToast("Misi berhasil dihapus dari Library.");
+        fetchQuests();
       } else {
-        alert("Gagal menghapus: " + json.error);
+        showToast("Gagal menghapus: " + json.error, "error");
       }
-    } catch (err) {
-      alert("Terjadi kesalahan jaringan");
+    } catch {
+      showToast("Terjadi kesalahan jaringan", "error");
     }
+  };
+
+  // Toggle aktif / nonaktif
+  const handleToggleActive = async (q: any) => {
+    setToggling(q.id);
+    try {
+      const res = await fetch(`/api/quests/library/${q.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...q, isActive: !q.isActive })
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(`Misi "${q.title}" kini ${!q.isActive ? "AKTIF" : "NONAKTIF"}.`);
+        fetchQuests();
+      } else {
+        showToast("Gagal mengubah status: " + json.error, "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan jaringan", "error");
+    } finally {
+      setToggling(null);
+    }
+  };
+
+  // Distribusikan langsung ke DailyQuestLog member hari ini
+  const handleDistribute = async (q: any) => {
+    if (!window.confirm(`Distribusikan misi "${q.title}" langsung ke semua member yang eligible HARI INI?\n\nMember yang sudah punya quest ini hari ini akan dilewati otomatis.`)) return;
+    setDistributing(q.id);
+    try {
+      const res = await fetch(`/api/quests/library/${q.id}/distribute`, { method: "POST" });
+      const json = await res.json();
+      if (json.success) {
+        showToast(`✅ ${json.message}`);
+      } else {
+        showToast("Gagal: " + json.error, "error");
+      }
+    } catch {
+      showToast("Terjadi kesalahan jaringan", "error");
+    } finally {
+      setDistributing(null);
+    }
+  };
+
+  const categoryColor: Record<string, string> = {
+    FITNESS: "text-orange-700 bg-orange-100",
+    TECHNICAL: "text-blue-700 bg-blue-100",
+    DISCIPLINE: "text-purple-700 bg-purple-100",
+    THEORY: "text-teal-700 bg-teal-100",
   };
 
   return (
     <div className="min-h-screen bg-[#f3f4f5] py-12 px-4 sm:px-6 lg:px-8 font-sans">
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className={`fixed top-6 right-6 z-50 flex items-start gap-3 max-w-sm px-5 py-4 rounded-2xl shadow-2xl text-sm font-semibold transition-all animate-fade-in
+          ${toastType === "success" ? "bg-green-600 text-white" : "bg-red-600 text-white"}`}>
+          {toastType === "success"
+            ? <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+            : <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />}
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-        
-        {/* Header Premium Merah */}
+
+        {/* Header */}
         <div className="bg-gradient-to-r from-red-600 to-red-800 px-8 py-10 text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl"></div>
           <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-          
-          <div className="flex justify-center gap-4 mb-4 relative z-10">
+
+          <div className="flex justify-center gap-4 mb-4 relative z-10 flex-wrap">
             <Link href="/coach/quests" className="bg-red-950/40 text-red-100 hover:text-white text-xs font-black px-3.5 py-1 rounded-full border border-red-700/30 uppercase tracking-widest transition-colors flex items-center gap-1.5">
               <PlusCircle className="w-3.5 h-3.5" /> Buat Misi Baru
             </Link>
@@ -67,13 +137,19 @@ export default function QuestLibraryPage() {
           </div>
 
           <h2 className="text-3xl font-black text-white tracking-tight relative z-10">
-            Daftar Seluruh Misi (Library)
+            Library Misi
           </h2>
           <p className="mt-2 text-red-100 font-medium relative z-10">
-            Kumpulan misi dari database pusat dan misi yang Anda buat sendiri.
+            Kolam template misi yang siap didistribusikan ke member sesuai sabuk &amp; usia.
           </p>
         </div>
-        
+
+        {/* Legend */}
+        <div className="bg-amber-50 border-b border-amber-100 px-8 py-3 flex flex-wrap gap-4 text-xs text-amber-800 font-semibold">
+          <span className="flex items-center gap-1.5"><ToggleRight className="w-4 h-4 text-green-600" /> Toggle = Aktifkan/Nonaktifkan misi (tanpa hapus)</span>
+          <span className="flex items-center gap-1.5"><Send className="w-4 h-4 text-red-600" /> Kirim = Distribusikan langsung ke member hari ini</span>
+        </div>
+
         {/* Konten */}
         <div className="p-8">
           {loading ? (
@@ -86,15 +162,26 @@ export default function QuestLibraryPage() {
             </div>
           ) : quests.length === 0 ? (
             <div className="text-center py-12 text-gray-500 font-medium">
-              Belum ada misi yang tersimpan di dalam Library.
+              Belum ada misi di Library. Silakan buat misi baru terlebih dahulu.
             </div>
           ) : (
             <div className="grid gap-4">
               {quests.map((q) => (
-                <div key={q.id} className="p-5 border border-gray-100 bg-gray-50/50 hover:bg-white rounded-2xl flex items-start justify-between gap-4 transition-all">
-                  <div>
+                <div
+                  key={q.id}
+                  className={`p-5 border rounded-2xl flex items-start justify-between gap-4 transition-all
+                    ${q.isActive
+                      ? "border-gray-100 bg-gray-50/50 hover:bg-white"
+                      : "border-dashed border-gray-300 bg-gray-100/70 opacity-60"}`}
+                >
+                  <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-red-600 bg-red-100 px-2 py-0.5 rounded-md">
+                      {/* Status badge */}
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md
+                        ${q.isActive ? "text-green-700 bg-green-100" : "text-gray-500 bg-gray-200"}`}>
+                        {q.isActive ? "● AKTIF" : "○ NONAKTIF"}
+                      </span>
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${categoryColor[q.category] ?? "text-gray-600 bg-gray-100"}`}>
                         {q.category}
                       </span>
                       <span className="text-[10px] font-black uppercase tracking-wider text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-md">
@@ -105,36 +192,74 @@ export default function QuestLibraryPage() {
                           <span className="text-[10px] font-black uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">
                             USIA: {q.requirements[0].minAge}-{q.requirements[0].maxAge} TH
                           </span>
-                          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md max-w-[200px] truncate" title={q.requirements[0].allowedBeltIds?.join(', ')}>
-                            {q.requirements[0].allowedBeltIds?.length > 0 
-                              ? (q.requirements[0].allowedBeltIds.length > 1 
-                                  ? `${q.requirements[0].allowedBeltIds[0].split('(')[0].trim()} ... (+${q.requirements[0].allowedBeltIds.length - 1})`
-                                  : q.requirements[0].allowedBeltIds[0].split('(')[0].trim())
+                          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                            {q.requirements[0].allowedBeltIds?.length > 0
+                              ? `${q.requirements[0].allowedBeltIds.length} SABUK`
                               : 'SEMUA SABUK'}
                           </span>
                         </>
                       )}
+                      {q.videoUrl && (
+                        <span className="text-[10px] font-black uppercase tracking-wider text-pink-700 bg-pink-100 px-2 py-0.5 rounded-md">
+                          📹 VIDEO
+                        </span>
+                      )}
                     </div>
-                    <h3 className="font-bold text-gray-800 text-lg leading-tight mb-1.5">{q.title}</h3>
+
+                    <h3 className="font-bold text-gray-800 text-lg leading-tight mb-1">{q.title}</h3>
                     <p className="text-sm text-gray-500 line-clamp-2 leading-snug">{q.description}</p>
-                    
+
                     <div className="mt-3 text-xs font-medium text-gray-400">
-                      Dibuat pada: {new Date(q.createdAt).toLocaleDateString('id-ID')}
+                      Dibuat: {new Date(q.createdAt).toLocaleDateString('id-ID')}
                     </div>
                   </div>
-                  
+
+                  {/* Action Buttons */}
                   <div className="flex flex-col gap-2 shrink-0">
-                    <Link 
+                    {/* Toggle Aktif/Nonaktif */}
+                    <button
+                      onClick={() => handleToggleActive(q)}
+                      disabled={toggling === q.id}
+                      className={`p-2 rounded-xl transition-all title="Aktifkan/Nonaktifkan"
+                        ${q.isActive
+                          ? "text-green-600 hover:bg-green-50"
+                          : "text-gray-400 hover:bg-gray-100"}`}
+                      title={q.isActive ? "Nonaktifkan misi" : "Aktifkan misi"}
+                    >
+                      {q.isActive
+                        ? <ToggleRight className="w-5 h-5" />
+                        : <ToggleLeft className="w-5 h-5" />}
+                    </button>
+
+                    {/* Edit */}
+                    <Link
                       href={`/coach/quests?editId=${q.id}`}
                       className="p-2 text-gray-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all"
-                      title="Edit Misi"
+                      title="Edit data misi"
                     >
                       <Edit className="w-5 h-5" />
                     </Link>
-                    <button 
+
+                    {/* Distribusikan Sekarang */}
+                    <button
+                      onClick={() => handleDistribute(q)}
+                      disabled={distributing === q.id || !q.isActive}
+                      className={`p-2 rounded-xl transition-all
+                        ${q.isActive
+                          ? "text-gray-400 hover:bg-red-50 hover:text-red-600"
+                          : "text-gray-300 cursor-not-allowed"}`}
+                      title={q.isActive ? "Distribusikan ke member sekarang" : "Aktifkan misi dulu untuk mendistribusikan"}
+                    >
+                      {distributing === q.id
+                        ? <div className="w-5 h-5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                        : <Send className="w-5 h-5" />}
+                    </button>
+
+                    {/* Hapus */}
+                    <button
                       onClick={() => handleDelete(q.id, q.title)}
                       className="p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
-                      title="Hapus Misi"
+                      title="Hapus misi dari Library"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>

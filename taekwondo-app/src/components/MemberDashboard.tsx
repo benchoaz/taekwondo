@@ -34,6 +34,28 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import confetti from "canvas-confetti";
 
+const normalizeBelt = (name: string) => {
+  if (!name) return "";
+  const lc = name.toLowerCase();
+  const nums = lc.match(/\d+/) || [];
+  const num = nums[0] || "";
+  let color = "";
+  if (lc.includes("putih")) color = "putih";
+  else if (lc.includes("kuning")) color = "kuning";
+  else if (lc.includes("hijau")) color = "hijau";
+  else if (lc.includes("biru")) color = "biru";
+  else if (lc.includes("merah")) color = "merah";
+  else if (lc.includes("hitam")) color = "hitam";
+  let strip = "";
+  if (lc.includes("strip")) {
+    if (lc.includes("hijau")) strip = "hijau";
+    else if (lc.includes("biru")) strip = "biru";
+    else if (lc.includes("merah")) strip = "merah";
+    else if (lc.includes("hitam")) strip = "hitam";
+  }
+  return `${color}-${strip}-${num}`;
+};
+
 export default function MemberDashboard({ 
   userEmail,
   onBack 
@@ -795,9 +817,15 @@ export default function MemberDashboard({
 
   // Get index of current belt in sequence
   const getCurrentIndex = () => {
-    const cleanName = currentBelt.split(" (")[0];
-    const idx = beltSequence.findIndex(b => b.name === cleanName);
-    return idx !== -1 ? idx : 5;
+    // Strip leading "Sabuk " if it matches a strip belt name in sequence, or keep it.
+    // e.g. "Sabuk Kuning (9 Geup)" -> "Sabuk Kuning"
+    // "Sabuk Kuning Strip Hijau (8 Geup)" -> "Kuning Strip Hijau"
+    let cleanName = currentBelt.split(" (")[0];
+    if (cleanName.startsWith("Sabuk ") && (cleanName.includes("Strip") || cleanName.includes("strip"))) {
+      cleanName = cleanName.replace("Sabuk ", "");
+    }
+    const idx = beltSequence.findIndex(b => b.name.toLowerCase() === cleanName.toLowerCase());
+    return idx !== -1 ? idx : 0;
   };
 
   const currentIndex = getCurrentIndex();
@@ -1881,7 +1909,7 @@ export default function MemberDashboard({
                   {beltImageUrl ? (
                     <div className="relative w-56 h-48 flex items-center justify-center bg-slate-50/50 rounded-full border border-slate-100 shadow-inner group hover:scale-[1.03] transition-all duration-500 shrink-0 overflow-hidden">
                       <div className="absolute inset-2 rounded-full bg-white border border-slate-50 shadow-md"></div>
-                      <img src={beltImageUrl} alt={currentBelt} className="relative w-40 h-28 object-contain z-10" />
+                      <img src={beltImageUrl} alt={currentBelt} className="relative w-[80%] h-[80%] object-contain z-10 transition-transform duration-300 group-hover:scale-110" />
                     </div>
                   ) : (
                     render3DBelt(currentBelt)

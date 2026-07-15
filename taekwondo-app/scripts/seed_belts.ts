@@ -1,5 +1,6 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+import { prisma } from '../src/lib/prisma';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 const belts = [
   { id: "Sabuk Putih (10 Geup)", name: "Sabuk Putih (10 Geup)", level: 1 },
@@ -18,9 +19,9 @@ const belts = [
 ];
 
 async function main() {
-  console.log("Seeding BeltRanks...");
+  console.log("=== SEEDING BELT RANKS TO DATABASE ===");
   for (const belt of belts) {
-    await prisma.beltRank.upsert({
+    const result = await prisma.beltRank.upsert({
       where: { name: belt.name },
       update: { level: belt.level, id: belt.id },
       create: {
@@ -29,8 +30,9 @@ async function main() {
         level: belt.level,
       },
     });
+    console.log(`Upserted belt rank: ${result.name}`);
   }
-  console.log("BeltRanks seeded successfully!");
+  console.log("=== BELT RANKS SEEDED SUCCESSFULLY ===");
 }
 
 main()
@@ -38,4 +40,6 @@ main()
     console.error(e);
     process.exit(1);
   })
-  .finally(() => prisma.$disconnect());
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

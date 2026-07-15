@@ -347,7 +347,10 @@ export default function AdminDashboard({
 
   // Users state
   const [users, setUsers] = useState<UserData[]>([]);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(false);  const [showAddModal, setShowAddModal] = useState(false);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  // Dynamic belt list from DB
+  const [beltRanks, setBeltRanks] = useState<{ id: string; name: string; level: number }[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
@@ -486,6 +489,7 @@ export default function AdminDashboard({
   // Load essential settings on mount
   useEffect(() => {
     fetchSettings();
+    fetchBeltRanks();
   }, []);
 
   useEffect(() => {
@@ -512,8 +516,10 @@ export default function AdminDashboard({
     } else if (activeTab === "ukt_candidates") {
       fetchCandidates();
       fetchUsers(); // Needed for member selection
+      fetchBeltRanks();
     } else if (activeTab === "users") {
       fetchUsers();
+      fetchBeltRanks();
     } else if (activeTab === "coaches") {
       fetchCoaches();
     } else if (activeTab === "schedules") {
@@ -566,6 +572,22 @@ export default function AdminDashboard({
       console.error("Error fetching users:", e);
     } finally {
       setIsLoadingUsers(false);
+    }
+  };
+
+  const fetchBeltRanks = async () => {
+    try {
+      const res = await fetch("/api/curriculum");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          setBeltRanks(
+            data.data.map((b: any) => ({ id: b.id, name: b.name, level: b.level }))
+          );
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching belt ranks:", e);
     }
   };
 
@@ -2135,7 +2157,7 @@ export default function AdminDashboard({
                   <div className="border-t border-[#0F172A]/5 pt-4">
                     <span className="block text-xs font-bold text-[#0F172A] uppercase mb-3">Tarif Khusus UKT per Tingkat Sabuk / Geup</span>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto pr-2 border border-[#0F172A]/5 rounded-xl p-4 bg-[#F8FAFC]">
-                      {[
+                      {(beltRanks.length > 0 ? beltRanks.map(b => b.name) : [
                         "Sabuk Putih (10 Geup)",
                         "Sabuk Kuning (9 Geup)",
                         "Kuning Strip Hijau (8 Geup)",
@@ -2147,7 +2169,7 @@ export default function AdminDashboard({
                         "Merah Strip Hitam 1 (2 Geup)",
                         "Merah Strip Hitam 2 (1 Geup)",
                         "Sabuk Hitam (1 Dan)"
-                      ].map((belt) => {
+                      ]).map((belt) => {
                         const currentVal = settings.uktFees?.[belt] !== undefined ? settings.uktFees[belt] : "";
                         return (
                           <div key={belt} className="flex items-center justify-between gap-4 bg-white p-3 rounded-lg border border-[#0F172A]/5">
@@ -4149,7 +4171,7 @@ export default function AdminDashboard({
                     onChange={(e) => setEditUserBelt(e.target.value)}
                     className="w-full bg-white border border-[#E10600] rounded-xl px-4 py-3 text-xs outline-none font-bold text-[#E10600] focus:ring-2 focus:ring-[#E10600]"
                   >
-                    {[
+                    {(beltRanks.length > 0 ? beltRanks.map(b => b.name) : [
                       "Sabuk Putih (10 Geup)",
                       "Sabuk Kuning (9 Geup)",
                       "Kuning Strip Hijau (8 Geup)",
@@ -4161,10 +4183,10 @@ export default function AdminDashboard({
                       "Merah Strip Hitam 1 (2 Geup)",
                       "Merah Strip Hitam 2 (1 Geup)",
                       "Sabuk Hitam (1 Dan)"
-                    ].map((belt) => (
+                    ]).map((belt) => (
                       <option key={belt} value={belt}>{belt}</option>
                     ))}
-                    {editUserBelt && ![
+                    {editUserBelt && !(beltRanks.length > 0 ? beltRanks.map(b => b.name) : [
                       "Sabuk Putih (10 Geup)",
                       "Sabuk Kuning (9 Geup)",
                       "Kuning Strip Hijau (8 Geup)",
@@ -4176,7 +4198,7 @@ export default function AdminDashboard({
                       "Merah Strip Hitam 1 (2 Geup)",
                       "Merah Strip Hitam 2 (1 Geup)",
                       "Sabuk Hitam (1 Dan)"
-                    ].includes(editUserBelt) && (
+                    ]).includes(editUserBelt) && (
                       <option value={editUserBelt}>{editUserBelt}</option>
                     )}
                   </select>

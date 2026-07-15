@@ -54,6 +54,11 @@ export default function CoachDashboard({
   const [searchTerm, setSearchTerm] = useState("");
   const [memberSearchTerm, setMemberSearchTerm] = useState("");
 
+  // States for Quest monitoring
+  const [questLogs, setQuestLogs] = useState<any[]>([]);
+  const [isLoadingQuests, setIsLoadingQuests] = useState(false);
+  const [questFilterCompleted, setQuestFilterCompleted] = useState("false");
+
   // States for Add Member form modal
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [newMemberName, setNewMemberName] = useState("");
@@ -205,9 +210,58 @@ export default function CoachDashboard({
     }
   };
 
+  const fetchQuestLogs = async () => {
+    setIsLoadingQuests(true);
+    try {
+      const url = `/api/coach/quest-logs?completed=${questFilterCompleted}`;
+      const res = await fetch(url);
+      if (res.ok) {
+        const result = await res.json();
+        setQuestLogs(result.data || []);
+      }
+    } catch (e) {
+      console.error("Error fetching quest logs:", e);
+    } finally {
+      setIsLoadingQuests(false);
+    }
+  };
+
+  const handleQuestApproval = async (logId: string, action: "APPROVE" | "REJECT") => {
+    const notes = prompt(action === "APPROVE" ? "Catatan persetujuan (opsional):" : "Masukkan alasan penolakan (wajib):");
+    if (action === "REJECT" && notes === null) return;
+    if (action === "REJECT" && !notes?.trim()) {
+      alert("Alasan penolakan wajib diisi.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/coach/quest-logs", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logId, action, notes })
+      });
+      const result = await res.json();
+      if (res.ok) {
+        alert(action === "APPROVE" ? "✅ Misi disetujui, reward telah dikirim ke siswa!" : "❌ Misi ditolak.");
+        fetchQuestLogs();
+      } else {
+        alert(result.error || "Gagal memproses approval.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Gagal menghubungi server.");
+    }
+  };
+
   useEffect(() => {
     fetchAllData();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "quests") {
+      fetchQuestLogs();
+    }
+  }, [activeTab, questFilterCompleted]);
 
   const handleScoreChange = (field: string, val: number) => {
     setSelectedCandidate((prev: any) => ({ ...prev, [field]: val }));
@@ -651,6 +705,7 @@ export default function CoachDashboard({
     { id: "members", label: "Data Siswa", icon: <Users className="w-4 h-4" /> },
     { id: "grading", label: "Penilaian UKT", icon: <Calendar className="w-4 h-4" /> },
     { id: "history", label: "Progres Sabuk", icon: <Award className="w-4 h-4" /> },
+    { id: "quests", label: "Misi Atlet", icon: <Activity className="w-4 h-4" /> },
     { id: "schedule", label: "Jadwal Latihan", icon: <Clock className="w-4 h-4" /> },
     { id: "certificates", label: "Sertifikat", icon: <FileText className="w-4 h-4" /> },
     { id: "announcements", label: "Buat Pengumuman", icon: <Send className="w-4 h-4" /> },
@@ -1538,6 +1593,125 @@ export default function CoachDashboard({
                   )}
                 </button>
               </div>
+            </div>
+          )}
+          {/* ══════════════ TAB: QUESTS (MONITORING & APPROVAL) ══════════════ */}
+          {activeTab === "quests" && (
+            <div className="flex flex-col gap-8">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <h2 className="text-3xl font-black text-[#0F172A]">Verifikasi Misi Atlet</h2>
+                  <p className="text-gray-400 text-xs mt-1">Pantau kiriman bukti video teknik taekwondo siswa dan berikan penilaian langsung.</p>
+                </div>
+
+                {/* Filter Status */}
+                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl p-1 shadow-sm shrink-0">
+                  <button
+                    onClick={() => setQuestFilterCompleted("false")}
+                    className={`px-4 py-2 rounded-lg font-bold text-xs transition-all ${
+                      questFilterCompleted === "false"
+                        ? "bg-[#E10600] text-white shadow-sm"
+                        : "text-gray-500 hover:text-[#0F172A]"
+                    }`}
+                  >
+                    Menunggu (Pending)
+                  </button>
+                  <button
+                    onClick={() => setQuestFilterCompleted("true")}
+                    className={`px-4 py-2 rounded-lg font-bold text-xs transition-all ${
+                      questFilterCompleted === "true"
+                        ? "bg-[#E10600] text-white shadow-sm"
+                        : "text-gray-500 hover:text-[#0F172A]"
+                    }`}
+                  >
+                    Disetujui (Approved)
+                  </button>
+                </div>
+              </div>
+
+              {isLoadingQuests ? (
+                <div className="flex items-center justify-center p-12">
+                  <RefreshCw className="w-6 h-6 animate-spin text-[#E10600]" />
+                </div>
+              ) : questLogs.length === 0 ? (
+                <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-12 text-center shadow-sm">
+                  <Activity className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+                  <p className="font-bold text-sm text-slate-500">Tidak ada pengiriman misi yang cocok.</p>
+                </div>
+              ) : (
+                <div className="bg-white border border-[#0F172A]/5 rounded-[24px] overflow-hidden shadow-sm">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50/75 border-b border-slate-100">
+                        <th className="p-4 font-bold text-[10px] uppercase text-gray-400">Atlet & Sabuk</th>
+                        <th className="p-4 font-bold text-[10px] uppercase text-gray-400">Misi & Kategori</th>
+                        <th className="p-4 font-bold text-[10px] uppercase text-gray-400">Tanggal Kirim</th>
+                        <th className="p-4 font-bold text-[10px] uppercase text-gray-400">Bukti Video</th>
+                        <th className="p-4 font-bold text-[10px] uppercase text-gray-400">Catatan</th>
+                        <th className="p-4 font-bold text-[10px] uppercase text-gray-400 text-right">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {questLogs.map((log: any) => (
+                        <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                          <td className="p-4">
+                            <div className="font-bold text-xs text-[#0F172A]">{log.member?.fullName || "Member"}</div>
+                            <div className="text-[10px] text-gray-400 mt-0.5">{log.member?.memberNumber || "-"}</div>
+                          </td>
+                          <td className="p-4">
+                            <div className="font-bold text-xs text-[#0F172A]">{log.quest?.title}</div>
+                            <span className="inline-block bg-blue-50 text-blue-600 text-[9px] font-bold px-2 py-0.5 rounded-full mt-1 uppercase tracking-wider">
+                              {log.quest?.category}
+                            </span>
+                          </td>
+                          <td className="p-4 text-xs text-gray-500">
+                            {log.completedAt ? new Date(log.completedAt).toLocaleDateString("id-ID") : new Date(log.assignedAt).toLocaleDateString("id-ID")}
+                          </td>
+                          <td className="p-4">
+                            {log.videoUrl ? (
+                              <a
+                                href={log.videoUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 bg-[#0052DC]/10 hover:bg-[#0052DC]/20 text-[#0052DC] px-3 py-1.5 rounded-lg font-bold text-[10px] transition-all"
+                              >
+                                <Eye className="w-3.5 h-3.5" /> Lihat Video
+                              </a>
+                            ) : (
+                              <span className="text-[10px] text-gray-400 italic">Tidak ada video</span>
+                            )}
+                          </td>
+                          <td className="p-4 text-xs text-gray-500 max-w-[200px] truncate" title={log.notes || "-"}>
+                            {log.notes || "-"}
+                          </td>
+                          <td className="p-4 text-right">
+                            {!log.completed ? (
+                              <div className="flex justify-end gap-1.5">
+                                <button
+                                  onClick={() => handleQuestApproval(log.id, "APPROVE")}
+                                  className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-bold text-[10px] transition-all cursor-pointer flex items-center gap-1"
+                                >
+                                  <Check className="w-3 h-3" /> Setuju
+                                </button>
+                                <button
+                                  onClick={() => handleQuestApproval(log.id, "REJECT")}
+                                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-bold text-[10px] transition-all cursor-pointer flex items-center gap-1"
+                                >
+                                  <XCircle className="w-3 h-3" /> Tolak
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-green-600 font-bold text-xs inline-flex items-center gap-1">
+                                <CheckCircle className="w-4 h-4" /> Terverifikasi
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           )}
 

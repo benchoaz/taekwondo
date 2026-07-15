@@ -1224,504 +1224,689 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     return const ProfileScreen();
   }
 
+  Widget _buildQuestExpandedContent(QuestLog log, dynamic quest, Color themeColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          quest.description,
+          style: GoogleFonts.hankenGrotesk(fontSize: 13, color: textGray),
+        ),
+        const SizedBox(height: 16),
+        
+        // A. JIKA MISI NONTON VIDEO (Punya videoUrl, bukan requireVideo)
+        if (quest.videoUrl != null && quest.videoUrl!.isNotEmpty && !quest.requireVideo) ...[
+          Builder(
+            builder: (context) {
+              final videoId = _getYoutubeId(quest.videoUrl!);
+              const isWeb = identical(0, 0.0);
+              
+              if (isWeb && videoId != null) {
+                registerYoutubeIframe(
+                  videoId,
+                  onVideoEnded: () {
+                    if (mounted && _watchedQuests[log.id] != true) {
+                      setState(() {
+                        _watchedQuests[log.id] = true;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          backgroundColor: Colors.green,
+                          content: Text('Video selesai ditonton! Silakan klaim reward Anda.'),
+                        ),
+                      );
+                    }
+                  },
+                );
+              }
+              
+              if (!isWeb && videoId != null && !_ytControllers.containsKey(log.id)) {
+                final controller = YoutubePlayerController.fromVideoId(
+                  videoId: videoId,
+                  autoPlay: false,
+                  params: const YoutubePlayerParams(
+                    showControls: true,
+                    mute: false,
+                    showFullscreenButton: true,
+                  ),
+                );
+                controller.listen((state) {
+                  if (state.playerState == PlayerState.ended) {
+                    if (mounted && _watchedQuests[log.id] != true) {
+                      setState(() {
+                        _watchedQuests[log.id] = true;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          backgroundColor: Colors.green,
+                          content: Text('Video selesai ditonton! Silakan klaim reward Anda.'),
+                        ),
+                      );
+                    }
+                  }
+                });
+                _ytControllers[log.id] = controller;
+              }
+
+              final isWatched = _watchedQuests[log.id] == true;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (isWeb && videoId != null) ...[
+                    Container(
+                      height: 240,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white10, width: 1.5),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: HtmlElementView(
+                          viewType: 'youtube-web-$videoId',
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ]
+                  else if (!isWeb && videoId != null && _ytControllers.containsKey(log.id)) ...[
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white10, width: 1.5),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: YoutubePlayer(
+                          controller: _ytControllers[log.id] as YoutubePlayerController,
+                          aspectRatio: 16 / 9,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  Row(
+                    children: [
+                      Icon(
+                        isWatched ? Icons.check_circle : Icons.info_outline,
+                        color: isWatched ? Colors.green : Colors.amber,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          isWatched 
+                              ? 'Video selesai ditonton! Tombol klaim aktif.' 
+                              : 'Tonton video di atas sampai selesai (100%) untuk klaim reward.',
+                          style: GoogleFonts.hankenGrotesk(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: isWatched ? Colors.green : Colors.amber,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: (!isWatched || _isQuestSubmitting)
+                          ? () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Silakan tonton video tutorial terlebih dahulu!')),
+                              );
+                            }
+                          : () async {
+                              setState(() => _isQuestSubmitting = true);
+                              try {
+                                await ref.read(questServiceProvider).completeQuest(log.id);
+                                ref.invalidate(questProvider);
+                                ref.invalidate(profileProvider);
+                                setState(() {
+                                  _expandedQuestId = null;
+                                  _isQuestSubmitting = false;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Misi berhasil diselesaikan!')),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error: $e')),
+                                );
+                                setState(() => _isQuestSubmitting = false);
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isWatched ? themeColor : Colors.grey,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: _isQuestSubmitting
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : Text(
+                              'KLAIM XP',
+                              style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
+                            ),
+                    ),
+                  ),
+                ],
+              );
+            }
+          ),
+        ]
+        
+        // B. JIKA MISI KUIS (Punya quizQuestions)
+        else if (quest.quizQuestions != null && quest.quizQuestions!.isNotEmpty) ...[
+          Builder(
+            builder: (context) {
+              final quiz = quest.quizQuestions!.first;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    quiz.question,
+                    style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: textWhite),
+                  ),
+                  const SizedBox(height: 12),
+                  ...quiz.options.map((option) {
+                    final isSelected = _selectedQuizOption == option;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: InkWell(
+                        onTap: _isQuestSubmitting ? null : () {
+                          setState(() {
+                            _selectedQuizOption = option;
+                          });
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isSelected ? themeColor.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.03),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? themeColor : Colors.white10,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Text(
+                            option,
+                            style: GoogleFonts.hankenGrotesk(
+                              fontSize: 13,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? themeColor : textWhite,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: (_selectedQuizOption == null || _isQuestSubmitting)
+                          ? null
+                          : () async {
+                              setState(() => _isQuestSubmitting = true);
+                              try {
+                                await ref.read(questServiceProvider).submitQuiz(
+                                  log.id,
+                                  [_selectedQuizOption!],
+                                );
+                                ref.invalidate(questProvider);
+                                ref.invalidate(profileProvider);
+                                setState(() {
+                                  _expandedQuestId = null;
+                                  _isQuestSubmitting = false;
+                                  _selectedQuizOption = null;
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    backgroundColor: Colors.green,
+                                    content: Text('Jawaban benar! Misi kuis berhasil diselesaikan.'),
+                                  ),
+                                );
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    backgroundColor: Color(0xFFBC000A),
+                                    content: Text('Jawaban salah! Silakan coba lagi.'),
+                                  ),
+                                );
+                                setState(() => _isQuestSubmitting = false);
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: themeColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: _isQuestSubmitting
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : Text(
+                              'KIRIM JAWABAN',
+                              style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
+                            ),
+                    ),
+                  ),
+                ],
+              );
+            }
+          ),
+        ]
+        
+        // C. JIKA MISI UPLOAD VIDEO (requireVideo true)
+        else if (quest.requireVideo) ...[
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _isUploadingVideo
+                  ? null
+                  : () async {
+                      fp.FilePickerResult? result = await fp.FilePicker.platform.pickFiles(
+                        type: fp.FileType.video,
+                        withData: true,
+                      );
+                      if (result != null && result.files.single.bytes != null) {
+                        setState(() => _isUploadingVideo = true);
+                        try {
+                          final fileBytes = result.files.single.bytes!;
+                          final fileName = result.files.single.name;
+                          
+                          final videoUrl = await ref.read(questServiceProvider).uploadVideo(fileBytes, fileName);
+                          await ref.read(questServiceProvider).completeQuest(log.id, videoUrl: videoUrl, notes: "Misi disetor lewat dashboard");
+                          
+                          ref.invalidate(questProvider);
+                          ref.invalidate(profileProvider);
+                          setState(() {
+                            _expandedQuestId = null;
+                            _isUploadingVideo = false;
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Video berhasil dikirim. Menunggu persetujuan pelatih!')),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Gagal upload: $e')),
+                          );
+                          setState(() => _isUploadingVideo = false);
+                        }
+                      }
+                    },
+              icon: Icon(
+                _isUploadingVideo ? Icons.hourglass_empty : Icons.upload_file,
+                color: Colors.white,
+              ),
+              label: Text(
+                _isUploadingVideo ? 'MENGUNGGAH...' : 'PILIH & UNGGAH VIDEO',
+                style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: themeColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+          ),
+        ]
+        
+        // D. TIPE HANYA KLAIM (CHECK-IN)
+        else ...[
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isQuestSubmitting
+                  ? null
+                  : () async {
+                      setState(() => _isQuestSubmitting = true);
+                      try {
+                        await ref.read(questServiceProvider).completeQuest(log.id);
+                        ref.invalidate(questProvider);
+                        ref.invalidate(profileProvider);
+                        setState(() {
+                          _expandedQuestId = null;
+                          _isQuestSubmitting = false;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Misi berhasil diselesaikan!')),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Gagal: $e')),
+                        );
+                        setState(() => _isQuestSubmitting = false);
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: themeColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: _isQuestSubmitting
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : Text(
+                      'KLAIM SEKARANG',
+                      style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
+                    ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
   Widget _buildDailyQuests(Color themeColor) {
     final questsAsync = ref.watch(questProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            'Misi Harian (Daily Quests)',
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: textWhite,
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Misi Harian (Daily Quests)',
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: textWhite,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              questsAsync.whenOrNull(
+                data: (logs) {
+                  final done = logs.where((l) => l.completed).length;
+                  final total = logs.length;
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: (done == total && total > 0) ? Colors.green.withValues(alpha: 0.15) : themeColor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: (done == total && total > 0) ? Colors.green.withValues(alpha: 0.4) : themeColor.withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Text(
+                      '$done/$total SELESAI',
+                      style: GoogleFonts.spaceGrotesk(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        color: (done == total && total > 0) ? Colors.green : themeColor,
+                      ),
+                    ),
+                  );
+                },
+              ) ?? const SizedBox(),
+            ],
           ),
         ),
         Expanded(
           child: questsAsync.when(
             data: (logs) {
               if (logs.isEmpty) {
-                return const Center(child: Text('Tidak ada misi hari ini.', style: TextStyle(color: Colors.white)));
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.inbox_outlined, color: Colors.white24, size: 64),
+                      const SizedBox(height: 12),
+                      Text('Tidak ada misi hari ini.', style: GoogleFonts.hankenGrotesk(color: Colors.white54, fontSize: 15)),
+                    ],
+                  ),
+                );
               }
-              return ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                itemCount: logs.length,
-                itemBuilder: (context, index) {
-                  final log = logs[index];
-                  final quest = log.quest;
-                  final isExpanded = _expandedQuestId == log.id;
-                  
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: log.completed ? Colors.white.withValues(alpha: 0.05) : cardBg,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: log.completed ? Colors.green.withValues(alpha: 0.3) : Colors.white10),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: log.completed ? Colors.green.withValues(alpha: 0.15) : goldAccent.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Icon(
-                                log.completed ? Icons.check_circle : Icons.assignment,
-                                color: log.completed ? Colors.green : goldAccent,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    quest.title,
-                                    style: GoogleFonts.hankenGrotesk(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color: textWhite,
-                                      decoration: log.completed ? TextDecoration.lineThrough : null,
-                                    ),
-                                  ),
-                                  Text(
-                                    '+${quest.baseXp} XP',
-                                    style: GoogleFonts.hankenGrotesk(
-                                      fontSize: 12,
-                                      color: textGray,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (!log.completed)
-                              GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _expandedQuestId = isExpanded ? null : log.id;
-                                    _selectedQuizOption = null;
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: isExpanded ? Colors.grey.withValues(alpha: 0.2) : themeColor,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: isExpanded ? Border.all(color: Colors.white24) : null,
-                                  ),
-                                  child: Text(
-                                    isExpanded ? 'Tutup' : 'Ambil',
-                                    style: GoogleFonts.hankenGrotesk(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
+              
+              return LayoutBuilder(builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 680;
+
+                // ── WEB LAYOUT (2 KOLOM) ──
+                if (isWide) {
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // KIRI: Daftar Quest Card Kecil
+                      SizedBox(
+                        width: 320,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 8, 100),
+                          itemCount: logs.length,
+                          itemBuilder: (context, index) {
+                            final log = logs[index];
+                            final quest = log.quest;
+                            final isExpanded = _expandedQuestId == log.id;
+                            
+                            return GestureDetector(
+                              onTap: !log.completed ? () {
+                                setState(() {
+                                  _expandedQuestId = isExpanded ? null : log.id;
+                                  _selectedQuizOption = null;
+                                });
+                              } : null,
+                              child: Container(
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  color: isExpanded
+                                      ? themeColor.withValues(alpha: 0.15)
+                                      : log.completed
+                                          ? Colors.white.withValues(alpha: 0.04)
+                                          : cardBg,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: isExpanded
+                                        ? themeColor.withValues(alpha: 0.6)
+                                        : log.completed
+                                            ? Colors.green.withValues(alpha: 0.3)
+                                            : Colors.white10,
+                                    width: isExpanded ? 1.5 : 1,
                                   ),
                                 ),
-                              ),
-                          ],
-                        ),
-                        
-                        // Panel Dropdown Interaktif yang Membuka Kebawah
-                        if (isExpanded && !log.completed) ...[
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            child: Divider(color: Colors.white10, height: 1),
-                          ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                quest.description,
-                                style: GoogleFonts.hankenGrotesk(fontSize: 13, color: textGray),
-                              ),
-                              const SizedBox(height: 16),
-                              
-
-
-                              // A. JIKA MISI NONTON VIDEO (Punya videoUrl, bukan requireVideo)
-                              if (quest.videoUrl != null && quest.videoUrl!.isNotEmpty && !quest.requireVideo) ...[
-                                Builder(
-                                  builder: (context) {
-                                    final videoId = _getYoutubeId(quest.videoUrl!);
-                                    const isWeb = identical(0, 0.0);
-                                    
-                                    // 1. INGET & DAFTAR UNTUK WEB (Mencegah inisialisasi controller yang crash)
-                                    if (isWeb && videoId != null) {
-                                      registerYoutubeIframe(
-                                        videoId,
-                                        onVideoEnded: () {
-                                          if (mounted && _watchedQuests[log.id] != true) {
-                                            setState(() {
-                                              _watchedQuests[log.id] = true;
-                                            });
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                backgroundColor: Colors.green,
-                                                content: Text('Video selesai ditonton! Silakan klaim reward Anda.'),
-                                              ),
-                                            );
-                                          }
-                                        },
-                                      );
-                                    }
-                                    
-                                    // 2. INGET & DAFTAR UNTUK MOBILE
-                                    if (!isWeb && videoId != null && !_ytControllers.containsKey(log.id)) {
-                                      final controller = YoutubePlayerController.fromVideoId(
-                                        videoId: videoId,
-                                        autoPlay: false,
-                                        params: const YoutubePlayerParams(
-                                          showControls: true,
-                                          mute: false,
-                                          showFullscreenButton: true,
-                                        ),
-                                      );
-                                      controller.listen((state) {
-                                        if (state.playerState == PlayerState.ended) {
-                                          if (mounted && _watchedQuests[log.id] != true) {
-                                            setState(() {
-                                              _watchedQuests[log.id] = true;
-                                            });
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(
-                                                backgroundColor: Colors.green,
-                                                content: Text('Video selesai ditonton! Silakan klaim reward Anda.'),
-                                              ),
-                                            );
-                                          }
-                                        }
-                                      });
-                                      _ytControllers[log.id] = controller;
-                                    }
-
-                                    final isWatched = _watchedQuests[log.id] == true;
-
-                                    return Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        // A. RENDER JIKA PLATFORM WEB (Bebas Crash 100% diputar di dalam App)
-                                        if (isWeb && videoId != null) ...[
-                                          Container(
-                                            height: 200,
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(16),
-                                              border: Border.all(color: Colors.white10, width: 1.5),
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(15),
-                                              child: HtmlElementView(
-                                                viewType: 'youtube-web-$videoId',
-                                              ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 42,
+                                      height: 42,
+                                      decoration: BoxDecoration(
+                                        color: log.completed ? Colors.green.withValues(alpha: 0.15) : goldAccent.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(13),
+                                      ),
+                                      child: Icon(
+                                        log.completed ? Icons.check_circle : Icons.assignment,
+                                        color: log.completed ? Colors.green : goldAccent,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            quest.title,
+                                            style: GoogleFonts.hankenGrotesk(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: textWhite,
+                                              decoration: log.completed ? TextDecoration.lineThrough : null,
                                             ),
                                           ),
-                                          const SizedBox(height: 12),
-                                        ]
-                                        // B. RENDER JIKA PLATFORM MOBILE (Render Player Tertanam)
-                                        else if (!isWeb && videoId != null && _ytControllers.containsKey(log.id)) ...[
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(16),
-                                              border: Border.all(color: Colors.white10, width: 1.5),
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(15),
-                                              child: YoutubePlayer(
-                                                controller: _ytControllers[log.id] as YoutubePlayerController,
-                                                aspectRatio: 16 / 9,
+                                          const SizedBox(height: 2),
+                                          Row(
+                                            children: [
+                                              Text(
+                                                '+${quest.baseXp} XP',
+                                                style: GoogleFonts.hankenGrotesk(fontSize: 11, color: goldAccent),
                                               ),
-                                            ),
+                                              if (quest.videoUrl != null && quest.videoUrl!.isNotEmpty && !quest.requireVideo) ...[
+                                                const SizedBox(width: 6),
+                                                Text('📹', style: const TextStyle(fontSize: 10)),
+                                              ]
+                                            ],
                                           ),
-                                          const SizedBox(height: 12),
                                         ],
-                                        Row(
-                                          children: [
-                                            Icon(
-                                              isWatched ? Icons.check_circle : Icons.info_outline,
-                                              color: isWatched ? Colors.green : Colors.amber,
-                                              size: 16,
-                                            ),
-                                            const SizedBox(width: 6),
-                                            Expanded(
-                                              child: Text(
-                                                isWatched 
-                                                    ? 'Video selesai ditonton! Tombol klaim aktif.' 
-                                                    : 'Tonton video di atas sampai selesai (100%) untuk klaim reward.',
-                                                style: GoogleFonts.hankenGrotesk(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w500,
-                                                  color: isWatched ? Colors.green : Colors.amber,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 16),
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: ElevatedButton(
-                                            onPressed: (!isWatched || _isQuestSubmitting)
-                                                ? () {
-                                                    ScaffoldMessenger.of(context).showSnackBar(
-                                                      const SnackBar(content: Text('Silakan tonton video tutorial terlebih dahulu!')),
-                                                    );
-                                                  }
-                                                : () async {
-                                                    setState(() => _isQuestSubmitting = true);
-                                                    try {
-                                                      await ref.read(questServiceProvider).completeQuest(log.id);
-                                                      ref.invalidate(questProvider);
-                                                      ref.invalidate(profileProvider);
-                                                      setState(() {
-                                                        _expandedQuestId = null;
-                                                        _isQuestSubmitting = false;
-                                                      });
-                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                        const SnackBar(content: Text('Misi berhasil diselesaikan!')),
-                                                      );
-                                                    } catch (e) {
-                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                        SnackBar(content: Text('Error: $e')),
-                                                      );
-                                                      setState(() => _isQuestSubmitting = false);
-                                                    }
-                                                  },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: isWatched ? themeColor : Colors.grey,
-                                              foregroundColor: Colors.white,
-                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                              padding: const EdgeInsets.symmetric(vertical: 14),
-                                            ),
-                                            child: _isQuestSubmitting
-                                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                                : Text(
-                                                    'KLAIM XP',
-                                                    style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
-                                                  ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  }
-                                ),
-                              ]
-                              
-                              // B. JIKA MISI KUIS (Punya quizQuestions)
-                              else if (quest.quizQuestions != null && quest.quizQuestions!.isNotEmpty) ...[
-                                Builder(
-                                  builder: (context) {
-                                    final quiz = quest.quizQuestions!.first;
-                                    return Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          quiz.question,
-                                          style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: textWhite),
-                                        ),
-                                        const SizedBox(height: 12),
-                                        ...quiz.options.map((option) {
-                                          final isSelected = _selectedQuizOption == option;
-                                          return Padding(
-                                            padding: const EdgeInsets.only(bottom: 8.0),
-                                            child: InkWell(
-                                              onTap: _isQuestSubmitting ? null : () {
-                                                setState(() {
-                                                  _selectedQuizOption = option;
-                                                });
-                                              },
-                                              child: Container(
-                                                width: double.infinity,
-                                                padding: const EdgeInsets.all(12),
-                                                decoration: BoxDecoration(
-                                                  color: isSelected ? themeColor.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.03),
-                                                  borderRadius: BorderRadius.circular(12),
-                                                  border: Border.all(
-                                                    color: isSelected ? themeColor : Colors.white10,
-                                                    width: 1.5,
-                                                  ),
-                                                ),
-                                                child: Text(
-                                                  option,
-                                                  style: GoogleFonts.hankenGrotesk(
-                                                    fontSize: 13,
-                                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                                    color: isSelected ? themeColor : textWhite,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        }).toList(),
-                                        const SizedBox(height: 12),
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: ElevatedButton(
-                                            onPressed: (_selectedQuizOption == null || _isQuestSubmitting)
-                                                ? null
-                                                : () async {
-                                                    setState(() => _isQuestSubmitting = true);
-                                                    try {
-                                                      await ref.read(questServiceProvider).submitQuiz(
-                                                        log.id,
-                                                        [_selectedQuizOption!],
-                                                      );
-                                                      ref.invalidate(questProvider);
-                                                      ref.invalidate(profileProvider);
-                                                      setState(() {
-                                                        _expandedQuestId = null;
-                                                        _isQuestSubmitting = false;
-                                                        _selectedQuizOption = null;
-                                                      });
-                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                        const SnackBar(
-                                                          backgroundColor: Colors.green,
-                                                          content: Text('Jawaban benar! Misi kuis berhasil diselesaikan.'),
-                                                        ),
-                                                      );
-                                                    } catch (e) {
-                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                        const SnackBar(
-                                                          backgroundColor: Color(0xFFBC000A),
-                                                          content: Text('Jawaban salah! Silakan coba lagi.'),
-                                                        ),
-                                                      );
-                                                      setState(() => _isQuestSubmitting = false);
-                                                    }
-                                                  },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: themeColor,
-                                              foregroundColor: Colors.white,
-                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                              padding: const EdgeInsets.symmetric(vertical: 14),
-                                            ),
-                                            child: _isQuestSubmitting
-                                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                                : Text(
-                                                    'KIRIM JAWABAN',
-                                                    style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
-                                                  ),
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  }
-                                ),
-                              ]
-                              
-                              // C. JIKA MISI UPLOAD VIDEO (requireVideo true)
-                              else if (quest.requireVideo) ...[
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton.icon(
-                                    onPressed: _isUploadingVideo
-                                        ? null
-                                        : () async {
-                                            fp.FilePickerResult? result = await fp.FilePicker.platform.pickFiles(
-                                              type: fp.FileType.video,
-                                              withData: true,
-                                            );
-                                            if (result != null && result.files.single.bytes != null) {
-                                              setState(() => _isUploadingVideo = true);
-                                              try {
-                                                final fileBytes = result.files.single.bytes!;
-                                                final fileName = result.files.single.name;
-                                                
-                                                final videoUrl = await ref.read(questServiceProvider).uploadVideo(fileBytes, fileName);
-                                                await ref.read(questServiceProvider).completeQuest(log.id, videoUrl: videoUrl, notes: "Misi disetor lewat dashboard");
-                                                
-                                                ref.invalidate(questProvider);
-                                                ref.invalidate(profileProvider);
-                                                setState(() {
-                                                  _expandedQuestId = null;
-                                                  _isUploadingVideo = false;
-                                                });
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  const SnackBar(content: Text('Video berhasil dikirim. Menunggu persetujuan pelatih!')),
-                                                );
-                                              } catch (e) {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(content: Text('Gagal upload: $e')),
-                                                );
-                                                setState(() => _isUploadingVideo = false);
-                                              }
-                                            }
-                                          },
-                                    icon: Icon(
-                                      _isUploadingVideo ? Icons.hourglass_empty : Icons.upload_file,
-                                      color: Colors.white,
+                                      ),
                                     ),
-                                    label: Text(
-                                      _isUploadingVideo ? 'MENGUNGGAH...' : 'PILIH & UNGGAH VIDEO',
-                                      style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
+                                    if (log.completed)
+                                      const Icon(Icons.check, color: Colors.green, size: 16)
+                                    else
+                                      Icon(
+                                        isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
+                                        color: isExpanded ? themeColor : Colors.white24,
+                                        size: 16,
+                                      )
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      
+                      // VERTICAL SPLITTER
+                      Container(width: 1, color: Colors.white10),
+                      
+                      // KANAN: Panel Detail/Pengerjaan Quest
+                      Expanded(
+                        child: _expandedQuestId == null
+                            ? Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.touch_app_outlined, color: Colors.white24, size: 48),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'Pilih misi di kiri untuk melihat detail',
+                                      style: GoogleFonts.hankenGrotesk(color: Colors.white38, fontSize: 13),
                                     ),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: themeColor,
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                  ],
+                                ),
+                              )
+                            : () {
+                                final logIdx = logs.indexWhere((l) => l.id == _expandedQuestId);
+                                if (logIdx == -1) return const SizedBox();
+                                final log = logs[logIdx];
+                                return SingleChildScrollView(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: cardBg,
+                                      borderRadius: BorderRadius.circular(24),
+                                      border: Border.all(color: Colors.white10),
+                                    ),
+                                    child: _buildQuestExpandedContent(log, log.quest, themeColor),
+                                  ),
+                                );
+                              }(),
+                      ),
+                    ],
+                  );
+                }
+
+                // ── MOBILE LAYOUT (1 KOLOM SEPERTI BIASA) ──
+                return ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                  itemCount: logs.length,
+                  itemBuilder: (context, index) {
+                    final log = logs[index];
+                    final quest = log.quest;
+                    final isExpanded = _expandedQuestId == log.id;
+                    
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: log.completed ? Colors.white.withValues(alpha: 0.05) : cardBg,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: log.completed ? Colors.green.withValues(alpha: 0.3) : Colors.white10),
+                      ),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: log.completed ? Colors.green.withValues(alpha: 0.15) : goldAccent.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Icon(
+                                  log.completed ? Icons.check_circle : Icons.assignment,
+                                  color: log.completed ? Colors.green : goldAccent,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      quest.title,
+                                      style: GoogleFonts.hankenGrotesk(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: textWhite,
+                                        decoration: log.completed ? TextDecoration.lineThrough : null,
+                                      ),
+                                    ),
+                                    Text(
+                                      '+${quest.baseXp} XP',
+                                      style: GoogleFonts.hankenGrotesk(
+                                        fontSize: 12,
+                                        color: textGray,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (!log.completed)
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _expandedQuestId = isExpanded ? null : log.id;
+                                      _selectedQuizOption = null;
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: isExpanded ? Colors.grey.withValues(alpha: 0.2) : themeColor,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: isExpanded ? Border.all(color: Colors.white24) : null,
+                                    ),
+                                    child: Text(
+                                      isExpanded ? 'Tutup' : 'Ambil',
+                                      style: GoogleFonts.hankenGrotesk(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ]
-                              
-                              // D. TIPE HANYA KLAIM (CHECK-IN)
-                              else ...[
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: _isQuestSubmitting
-                                        ? null
-                                        : () async {
-                                            setState(() => _isQuestSubmitting = true);
-                                            try {
-                                              await ref.read(questServiceProvider).completeQuest(log.id);
-                                              ref.invalidate(questProvider);
-                                              ref.invalidate(profileProvider);
-                                              setState(() {
-                                                _expandedQuestId = null;
-                                                _isQuestSubmitting = false;
-                                              });
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(content: Text('Misi berhasil diselesaikan!')),
-                                              );
-                                            } catch (e) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text('Gagal: $e')),
-                                              );
-                                              setState(() => _isQuestSubmitting = false);
-                                            }
-                                          },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: themeColor,
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                      padding: const EdgeInsets.symmetric(vertical: 14),
-                                    ),
-                                    child: _isQuestSubmitting
-                                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                                        : Text(
-                                            'KLAIM SEKARANG',
-                                            style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
-                                          ),
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
+                          if (isExpanded && !log.completed) ...[
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              child: Divider(color: Colors.white10, height: 1),
+                            ),
+                            _buildQuestExpandedContent(log, quest, themeColor),
+                          ],
                         ],
-                      ],
-                    ),
-                  );
-                },
-              );
+                      ),
+                    );
+                  },
+                );
+              });
             },
             loading: () => const Center(child: CircularProgressIndicator(color: Colors.red)),
             error: (e, s) => Center(child: Text('Gagal memuat misi: $e', style: const TextStyle(color: Colors.white))),

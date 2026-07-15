@@ -84,14 +84,32 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, data: [] });
     }
 
-    // Acak dan ambil 3 quest (1 per kategori jika memungkinkan)
-    const categories = ["FITNESS", "TECHNICAL", "DISCIPLINE", "THEORY"];
+    // Acak kategori agar bervariasi tiap hari
+    const categories = ["FITNESS", "TECHNICAL", "DISCIPLINE", "THEORY"].sort(() => 0.5 - Math.random());
     const selectedQuests: typeof eligibleQuests = [];
 
     for (const cat of categories) {
+      if (selectedQuests.length >= 3) break;
+
       const pool = eligibleQuests.filter(q => q.category === cat);
       if (pool.length > 0) {
-        selectedQuests.push(pool[Math.floor(Math.random() * pool.length)]);
+        // Cari quest di pool yang tipenya tidak menduplikasi tipe yang sudah terpilih
+        // Tipe: Nonton Video (videoUrl tidak null & requireVideo false)
+        const hasWatch = selectedQuests.some(s => s.videoUrl !== null && !s.requireVideo);
+        const hasQuiz = selectedQuests.some(s => s.quizQuestions !== null);
+
+        let filteredPool = pool;
+        if (hasWatch) {
+          filteredPool = filteredPool.filter(q => !(q.videoUrl !== null && !q.requireVideo));
+        }
+        if (hasQuiz) {
+          filteredPool = filteredPool.filter(q => q.quizQuestions === null);
+        }
+
+        // Jika pool ter-filter kosong, gunakan pool asal agar ada backup
+        const finalPool = filteredPool.length > 0 ? filteredPool : pool;
+        const chosen = finalPool[Math.floor(Math.random() * finalPool.length)];
+        selectedQuests.push(chosen);
       }
     }
 
@@ -180,7 +198,32 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Tandai selesai, tambah XP, +5 DC, dan catat ke log dalam satu transaksi
+    // Jika quest memerlukan upload video, jangan langsung tandai selesai (completed) dan jangan beri reward.
+    // Simpan videoUrl dan biarkan status pending menunggu approval pelatih.
+    if (existingLog.quest.requireVideo) {
+      if (!body.videoUrl) {
+        return NextResponse.json({ error: "videoUrl wajib disertakan untuk misi video" }, { status: 400 });
+      }
+
+      const updatedLog = await prisma.dailyQuestLog.update({
+        where: { id: logId },
+        data: {
+          completed: false,
+          videoUrl: body.videoUrl,
+          notes: body.notes || "Menunggu penilaian pelatih"
+        },
+        include: { quest: true }
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: updatedLog,
+        message: "Video berhasil diunggah. Menunggu persetujuan pelatih untuk mendapatkan reward.",
+        pendingApproval: true
+      });
+    }
+
+    // Tandai selesai, tambah XP, +5 DC, dan catat ke log dalam satu transaksi (untuk misi non-video)
     const DAILY_QUEST_COINS = 5;
     const [updatedLog, updatedMember] = await prisma.$transaction([
       prisma.dailyQuestLog.update({

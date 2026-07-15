@@ -7,6 +7,11 @@ on:
       - master
   workflow_dispatch:
 
+# Batalkan otomatis build sebelumnya jika ada commit baru di branch yang sama
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Build APK
@@ -42,12 +47,12 @@ jobs:
       - name: Generate Code Files
         run: |
           cd taekwondo_user_app
-          dart run build_runner build --delete-conflicting-outputs --verbose
+          dart run build_runner build --delete-conflicting-outputs
 
       - name: Build Release APK
         run: |
           cd taekwondo_user_app
-          flutter build apk --release --no-tree-shake-icons --verbose
+          flutter build apk --release --no-tree-shake-icons
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4

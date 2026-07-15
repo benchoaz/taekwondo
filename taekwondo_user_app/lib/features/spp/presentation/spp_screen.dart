@@ -208,7 +208,7 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                     Widget statusBadge = Container();
                     String amountText = '-';
 
-                    if (inv != null && inv.status != 'NOT_BILLED') {
+                    if (inv.status != 'NOT_BILLED') {
                       amountText = 'Rp. ${inv.amount.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}';
                       if (inv.status == 'PAID') {
                         cardBorderColor = Colors.white.withValues(alpha: 0.08);
@@ -361,7 +361,7 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  if (inv == null || inv.status == 'NOT_BILLED') ...[
+                                  if (inv.status == 'NOT_BILLED') ...[
                                     Center(
                                       child: Padding(
                                         padding: const EdgeInsets.symmetric(vertical: 12),

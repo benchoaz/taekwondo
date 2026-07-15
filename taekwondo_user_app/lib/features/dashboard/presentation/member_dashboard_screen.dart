@@ -3,6 +3,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/foundation.dart';
+
+import 'package:file_picker/file_picker.dart' as fp;
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'web_iframe_helper.dart';
 
 import '../../auth/domain/user_model.dart';
 import '../../auth/data/auth_provider.dart';
@@ -34,10 +39,51 @@ class MemberDashboardScreen extends ConsumerStatefulWidget {
   ConsumerState<MemberDashboardScreen> createState() => _MemberDashboardScreenState();
 }
 
+// Helper regex untuk mengekstrak Video ID YouTube secara aman di Web & Mobile tanpa load WebView class
+String? _getYoutubeId(String url) {
+  final regExp = RegExp(
+    r'^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*',
+    caseSensitive: false,
+    multiLine: false,
+  );
+  final match = regExp.firstMatch(url);
+  if (match != null && match.groupCount >= 2) {
+    return match.group(2);
+  }
+  return null;
+}
+
 class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
   int _currentTab = 0; // 0: Lobby, 1: Toko, 2: Misi, 3: SPP, 4: Atlet
   bool _isAbsenLoading = false;
   bool _isAbsenSuccess = false;
+
+  // States for expandable daily quests
+  String? _expandedQuestId;
+  final Map<String, bool> _watchedQuests = {};
+  String? _selectedQuizOption;
+  bool _isQuestSubmitting = false;
+  bool _isUploadingVideo = false;
+  final Map<String, dynamic> _ytControllers = {};
+
+  @override
+  void dispose() {
+    // Bersihkan controller mobile YouTube
+    for (var controller in _ytControllers.values) {
+      if (controller is YoutubePlayerController) {
+        controller.close();
+      }
+    }
+    // Bersihkan callback web iframe agar tidak memory leak
+    for (final id in _ytControllers.keys) {
+      unregisterYoutubeIframe(id);
+    }
+    // Juga bersihkan callback dari quest yang pernah di-watch di Web
+    for (final id in _watchedQuests.keys) {
+      unregisterYoutubeIframe(id);
+    }
+    super.dispose();
+  }
 
   String _getAbsoluteUrl(String? path) {
     if (path == null || path.isEmpty) return '';
@@ -58,8 +104,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       final shopData = shopDataAsync.value!;
       final equippedThemeId = shopData.active['themeId'];
       if (equippedThemeId != null) {
-        if (equippedThemeId == 'theme-gold') themeColor = const Color(0xFFEAB308);
-        else if (equippedThemeId == 'theme-diamond') themeColor = const Color(0xFF38BDF8);
+        if (equippedThemeId == 'theme-gold') {
+          themeColor = const Color(0xFFEAB308);
+        } else if (equippedThemeId == 'theme-diamond') themeColor = const Color(0xFF38BDF8);
         else if (equippedThemeId == 'theme-ruby') themeColor = const Color(0xFFEF4444);
         else if (equippedThemeId == 'theme-emerald') themeColor = const Color(0xFF10B981);
         else if (equippedThemeId == 'theme-amethyst') themeColor = const Color(0xFF8B5CF6);
@@ -112,7 +159,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       ? 'Silakan login kembali untuk memperbarui sesi Anda.' 
                       : 'Pastikan koneksi internet stabil atau hubungi admin.',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     fontSize: 14,
                   ),
                   textAlign: TextAlign.center,
@@ -185,7 +232,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: brandRed.withOpacity(0.15),
+                color: brandRed.withValues(alpha: 0.15),
               ),
             ),
           ),
@@ -197,7 +244,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF2A303F).withOpacity(0.2),
+                color: const Color(0xFF2A303F).withValues(alpha: 0.2),
               ),
             ),
           ),
@@ -280,8 +327,8 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: darkBg.withOpacity(0.95),
-        border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.05), width: 1)),
+        color: darkBg.withValues(alpha: 0.95),
+        border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05), width: 1)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -496,7 +543,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 decoration: BoxDecoration(
                   color: cardBg,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.05), width: 1.5),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1.5),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,12 +591,12 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     Container(
                       height: 14,
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white.withOpacity(0.1)),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.5),
+                            color: Colors.black.withValues(alpha: 0.5),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
@@ -570,7 +617,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFEAB308).withOpacity(0.6),
+                                  color: const Color(0xFFEAB308).withValues(alpha: 0.6),
                                   blurRadius: 12,
                                   offset: const Offset(0, 0),
                                 ),
@@ -603,18 +650,18 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 ),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2), 
+                  color: Colors.white.withValues(alpha: 0.2), 
                   width: 1.5,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: (_isAbsenSuccess ? Colors.green : brandRed).withOpacity(0.5),
+                    color: (_isAbsenSuccess ? Colors.green : brandRed).withValues(alpha: 0.5),
                     blurRadius: 20,
                     spreadRadius: 2,
                     offset: const Offset(0, 8),
                   ),
                   BoxShadow(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     blurRadius: 0,
                     offset: const Offset(0, 2),
                   ),
@@ -671,7 +718,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               decoration: BoxDecoration(
                 color: cardBg,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: brandRed.withOpacity(0.8), width: 1.5),
+                border: Border.all(color: brandRed.withValues(alpha: 0.8), width: 1.5),
               ),
               child: Row(
                 children: [
@@ -713,9 +760,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: brandRed.withOpacity(0.12),
+                      color: brandRed.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: brandRed.withOpacity(0.4), width: 1),
+                      border: Border.all(color: brandRed.withValues(alpha: 0.4), width: 1),
                     ),
                     child: Text(
                       '$completedQuests/$totalQuests SELSEAI',
@@ -805,9 +852,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: cardBg.withOpacity(0.6),
+                    color: cardBg.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withOpacity(0.03)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -818,9 +865,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: brandRed.withOpacity(0.1),
+                              color: brandRed.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: brandRed.withOpacity(0.2)),
+                              border: Border.all(color: brandRed.withValues(alpha: 0.2)),
                             ),
                             child: Text(
                               event.level.toUpperCase(),
@@ -935,7 +982,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF1E293B),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.05), width: 1.5),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1.5),
         ),
         child: Row(
           children: [
@@ -943,9 +990,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: color.withOpacity(0.2)),
+                border: Border.all(color: color.withValues(alpha: 0.2)),
               ),
               child: Icon(icon, color: color, size: 18),
             ),
@@ -992,9 +1039,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cardBg.withOpacity(0.5),
+        color: cardBg.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.03)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1079,7 +1126,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
+                          color: Colors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: item.itemUrl != null && item.itemUrl!.isNotEmpty
@@ -1205,71 +1252,471 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 itemBuilder: (context, index) {
                   final log = logs[index];
                   final quest = log.quest;
+                  final isExpanded = _expandedQuestId == log.id;
+                  
                   return Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: log.completed ? Colors.white.withOpacity(0.05) : cardBg,
+                      color: log.completed ? Colors.white.withValues(alpha: 0.05) : cardBg,
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: log.completed ? Colors.green.withOpacity(0.3) : Colors.white10),
+                      border: Border.all(color: log.completed ? Colors.green.withValues(alpha: 0.3) : Colors.white10),
                     ),
-                    child: Row(
+                    child: Column(
                       children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            color: log.completed ? Colors.green.withOpacity(0.15) : goldAccent.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Icon(
-                            log.completed ? Icons.check_circle : Icons.assignment,
-                            color: log.completed ? Colors.green : goldAccent,
-                          ),
+                        Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: log.completed ? Colors.green.withValues(alpha: 0.15) : goldAccent.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Icon(
+                                log.completed ? Icons.check_circle : Icons.assignment,
+                                color: log.completed ? Colors.green : goldAccent,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    quest.title,
+                                    style: GoogleFonts.hankenGrotesk(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: textWhite,
+                                      decoration: log.completed ? TextDecoration.lineThrough : null,
+                                    ),
+                                  ),
+                                  Text(
+                                    '+${quest.baseXp} XP',
+                                    style: GoogleFonts.hankenGrotesk(
+                                      fontSize: 12,
+                                      color: textGray,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (!log.completed)
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _expandedQuestId = isExpanded ? null : log.id;
+                                    _selectedQuizOption = null;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: isExpanded ? Colors.grey.withValues(alpha: 0.2) : themeColor,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: isExpanded ? Border.all(color: Colors.white24) : null,
+                                  ),
+                                  child: Text(
+                                    isExpanded ? 'Tutup' : 'Ambil',
+                                    style: GoogleFonts.hankenGrotesk(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
+                        
+                        // Panel Dropdown Interaktif yang Membuka Kebawah
+                        if (isExpanded && !log.completed) ...[
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            child: Divider(color: Colors.white10, height: 1),
+                          ),
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                quest.title,
-                                style: GoogleFonts.hankenGrotesk(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: textWhite,
-                                  decoration: log.completed ? TextDecoration.lineThrough : null,
-                                ),
+                                quest.description,
+                                style: GoogleFonts.hankenGrotesk(fontSize: 13, color: textGray),
                               ),
-                              Text(
-                                '+${quest.baseXp} XP',
-                                style: GoogleFonts.hankenGrotesk(
-                                  fontSize: 12,
-                                  color: textGray,
+                              const SizedBox(height: 16),
+                              
+
+
+                              // A. JIKA MISI NONTON VIDEO (Punya videoUrl, bukan requireVideo)
+                              if (quest.videoUrl != null && quest.videoUrl!.isNotEmpty && !quest.requireVideo) ...[
+                                Builder(
+                                  builder: (context) {
+                                    final videoId = _getYoutubeId(quest.videoUrl!);
+                                    const isWeb = identical(0, 0.0);
+                                    
+                                    // 1. INGET & DAFTAR UNTUK WEB (Mencegah inisialisasi controller yang crash)
+                                    if (isWeb && videoId != null) {
+                                      registerYoutubeIframe(
+                                        videoId,
+                                        onVideoEnded: () {
+                                          if (mounted && _watchedQuests[log.id] != true) {
+                                            setState(() {
+                                              _watchedQuests[log.id] = true;
+                                            });
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                backgroundColor: Colors.green,
+                                                content: Text('Video selesai ditonton! Silakan klaim reward Anda.'),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                      );
+                                    }
+                                    
+                                    // 2. INGET & DAFTAR UNTUK MOBILE
+                                    if (!isWeb && videoId != null && !_ytControllers.containsKey(log.id)) {
+                                      final controller = YoutubePlayerController.fromVideoId(
+                                        videoId: videoId,
+                                        autoPlay: false,
+                                        params: const YoutubePlayerParams(
+                                          showControls: true,
+                                          mute: false,
+                                          showFullscreenButton: true,
+                                        ),
+                                      );
+                                      controller.listen((state) {
+                                        if (state.playerState == PlayerState.ended) {
+                                          if (mounted && _watchedQuests[log.id] != true) {
+                                            setState(() {
+                                              _watchedQuests[log.id] = true;
+                                            });
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                backgroundColor: Colors.green,
+                                                content: Text('Video selesai ditonton! Silakan klaim reward Anda.'),
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      });
+                                      _ytControllers[log.id] = controller;
+                                    }
+
+                                    final isWatched = _watchedQuests[log.id] == true;
+
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // A. RENDER JIKA PLATFORM WEB (Bebas Crash 100% diputar di dalam App)
+                                        if (isWeb && videoId != null) ...[
+                                          Container(
+                                            height: 200,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(16),
+                                              border: Border.all(color: Colors.white10, width: 1.5),
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(15),
+                                              child: HtmlElementView(
+                                                viewType: 'youtube-web-$videoId',
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                        ]
+                                        // B. RENDER JIKA PLATFORM MOBILE (Render Player Tertanam)
+                                        else if (!isWeb && videoId != null && _ytControllers.containsKey(log.id)) ...[
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(16),
+                                              border: Border.all(color: Colors.white10, width: 1.5),
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(15),
+                                              child: YoutubePlayer(
+                                                controller: _ytControllers[log.id] as YoutubePlayerController,
+                                                aspectRatio: 16 / 9,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                        ],
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              isWatched ? Icons.check_circle : Icons.info_outline,
+                                              color: isWatched ? Colors.green : Colors.amber,
+                                              size: 16,
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Expanded(
+                                              child: Text(
+                                                isWatched 
+                                                    ? 'Video selesai ditonton! Tombol klaim aktif.' 
+                                                    : 'Tonton video di atas sampai selesai (100%) untuk klaim reward.',
+                                                style: GoogleFonts.hankenGrotesk(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: isWatched ? Colors.green : Colors.amber,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: ElevatedButton(
+                                            onPressed: (!isWatched || _isQuestSubmitting)
+                                                ? () {
+                                                    ScaffoldMessenger.of(context).showSnackBar(
+                                                      const SnackBar(content: Text('Silakan tonton video tutorial terlebih dahulu!')),
+                                                    );
+                                                  }
+                                                : () async {
+                                                    setState(() => _isQuestSubmitting = true);
+                                                    try {
+                                                      await ref.read(questServiceProvider).completeQuest(log.id);
+                                                      ref.invalidate(questProvider);
+                                                      ref.invalidate(profileProvider);
+                                                      setState(() {
+                                                        _expandedQuestId = null;
+                                                        _isQuestSubmitting = false;
+                                                      });
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        const SnackBar(content: Text('Misi berhasil diselesaikan!')),
+                                                      );
+                                                    } catch (e) {
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        SnackBar(content: Text('Error: $e')),
+                                                      );
+                                                      setState(() => _isQuestSubmitting = false);
+                                                    }
+                                                  },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: isWatched ? themeColor : Colors.grey,
+                                              foregroundColor: Colors.white,
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                              padding: const EdgeInsets.symmetric(vertical: 14),
+                                            ),
+                                            child: _isQuestSubmitting
+                                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                                : Text(
+                                                    'KLAIM XP',
+                                                    style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
+                                                  ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }
                                 ),
-                              ),
+                              ]
+                              
+                              // B. JIKA MISI KUIS (Punya quizQuestions)
+                              else if (quest.quizQuestions != null && quest.quizQuestions!.isNotEmpty) ...[
+                                Builder(
+                                  builder: (context) {
+                                    final quiz = quest.quizQuestions!.first;
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          quiz.question,
+                                          style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: textWhite),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        ...quiz.options.map((option) {
+                                          final isSelected = _selectedQuizOption == option;
+                                          return Padding(
+                                            padding: const EdgeInsets.only(bottom: 8.0),
+                                            child: InkWell(
+                                              onTap: _isQuestSubmitting ? null : () {
+                                                setState(() {
+                                                  _selectedQuizOption = option;
+                                                });
+                                              },
+                                              child: Container(
+                                                width: double.infinity,
+                                                padding: const EdgeInsets.all(12),
+                                                decoration: BoxDecoration(
+                                                  color: isSelected ? themeColor.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.03),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                    color: isSelected ? themeColor : Colors.white10,
+                                                    width: 1.5,
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  option,
+                                                  style: GoogleFonts.hankenGrotesk(
+                                                    fontSize: 13,
+                                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                                    color: isSelected ? themeColor : textWhite,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                        const SizedBox(height: 12),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: ElevatedButton(
+                                            onPressed: (_selectedQuizOption == null || _isQuestSubmitting)
+                                                ? null
+                                                : () async {
+                                                    setState(() => _isQuestSubmitting = true);
+                                                    try {
+                                                      await ref.read(questServiceProvider).submitQuiz(
+                                                        log.id,
+                                                        [_selectedQuizOption!],
+                                                      );
+                                                      ref.invalidate(questProvider);
+                                                      ref.invalidate(profileProvider);
+                                                      setState(() {
+                                                        _expandedQuestId = null;
+                                                        _isQuestSubmitting = false;
+                                                        _selectedQuizOption = null;
+                                                      });
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        const SnackBar(
+                                                          backgroundColor: Colors.green,
+                                                          content: Text('Jawaban benar! Misi kuis berhasil diselesaikan.'),
+                                                        ),
+                                                      );
+                                                    } catch (e) {
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        const SnackBar(
+                                                          backgroundColor: Color(0xFFBC000A),
+                                                          content: Text('Jawaban salah! Silakan coba lagi.'),
+                                                        ),
+                                                      );
+                                                      setState(() => _isQuestSubmitting = false);
+                                                    }
+                                                  },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: themeColor,
+                                              foregroundColor: Colors.white,
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                              padding: const EdgeInsets.symmetric(vertical: 14),
+                                            ),
+                                            child: _isQuestSubmitting
+                                                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                                : Text(
+                                                    'KIRIM JAWABAN',
+                                                    style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
+                                                  ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }
+                                ),
+                              ]
+                              
+                              // C. JIKA MISI UPLOAD VIDEO (requireVideo true)
+                              else if (quest.requireVideo) ...[
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    onPressed: _isUploadingVideo
+                                        ? null
+                                        : () async {
+                                            fp.FilePickerResult? result = await fp.FilePicker.platform.pickFiles(
+                                              type: fp.FileType.video,
+                                              withData: true,
+                                            );
+                                            if (result != null && result.files.single.bytes != null) {
+                                              setState(() => _isUploadingVideo = true);
+                                              try {
+                                                final fileBytes = result.files.single.bytes!;
+                                                final fileName = result.files.single.name;
+                                                
+                                                final videoUrl = await ref.read(questServiceProvider).uploadVideo(fileBytes, fileName);
+                                                await ref.read(questServiceProvider).completeQuest(log.id, videoUrl: videoUrl, notes: "Misi disetor lewat dashboard");
+                                                
+                                                ref.invalidate(questProvider);
+                                                ref.invalidate(profileProvider);
+                                                setState(() {
+                                                  _expandedQuestId = null;
+                                                  _isUploadingVideo = false;
+                                                });
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(content: Text('Video berhasil dikirim. Menunggu persetujuan pelatih!')),
+                                                );
+                                              } catch (e) {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(content: Text('Gagal upload: $e')),
+                                                );
+                                                setState(() => _isUploadingVideo = false);
+                                              }
+                                            }
+                                          },
+                                    icon: Icon(
+                                      _isUploadingVideo ? Icons.hourglass_empty : Icons.upload_file,
+                                      color: Colors.white,
+                                    ),
+                                    label: Text(
+                                      _isUploadingVideo ? 'MENGUNGGAH...' : 'PILIH & UNGGAH VIDEO',
+                                      style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
+                                    ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: themeColor,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                    ),
+                                  ),
+                                ),
+                              ]
+                              
+                              // D. TIPE HANYA KLAIM (CHECK-IN)
+                              else ...[
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: _isQuestSubmitting
+                                        ? null
+                                        : () async {
+                                            setState(() => _isQuestSubmitting = true);
+                                            try {
+                                              await ref.read(questServiceProvider).completeQuest(log.id);
+                                              ref.invalidate(questProvider);
+                                              ref.invalidate(profileProvider);
+                                              setState(() {
+                                                _expandedQuestId = null;
+                                                _isQuestSubmitting = false;
+                                              });
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text('Misi berhasil diselesaikan!')),
+                                              );
+                                            } catch (e) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('Gagal: $e')),
+                                              );
+                                              setState(() => _isQuestSubmitting = false);
+                                            }
+                                          },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: themeColor,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                    ),
+                                    child: _isQuestSubmitting
+                                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                                        : Text(
+                                            'KLAIM SEKARANG',
+                                            style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
+                                          ),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
-                        ),
-                        if (!log.completed)
-                          GestureDetector(
-                            onTap: () => _showCompleteQuestSheet(context, ref, log, themeColor),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: themeColor,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                'Ambil',
-                                style: GoogleFonts.hankenGrotesk(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ),
+                        ],
                       ],
                     ),
                   );
@@ -1288,11 +1735,11 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     return Container(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0B1326).withOpacity(0.95), // Deep obsidian
+        color: const Color(0xFF0B1326).withValues(alpha: 0.95), // Deep obsidian
         border: const Border(top: BorderSide(color: Colors.white12, width: 1)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -1332,7 +1779,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     width: 96,
                     height: 96,
                     fit: BoxFit.contain,
-                    color: isActive ? null : Colors.white.withOpacity(0.4),
+                    color: isActive ? null : Colors.white.withValues(alpha: 0.4),
                     colorBlendMode: isActive ? null : BlendMode.modulate,
                   ),
                 ),
@@ -1407,7 +1854,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: displayColor.withOpacity(0.15),
+                    color: displayColor.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: displayColor,
@@ -1415,7 +1862,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: displayColor.withOpacity(0.2),
+                        color: displayColor.withValues(alpha: 0.2),
                         blurRadius: 16,
                         spreadRadius: 2,
                       )
@@ -1454,7 +1901,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFD700).withOpacity(0.15),
+                      color: const Color(0xFFFFD700).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(color: const Color(0xFFFFD700), width: 1.5),
                     ),
@@ -1487,7 +1934,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: isSuccess ? Colors.green.withOpacity(0.2) : const Color(0xFFE10600).withOpacity(0.2),
+                          color: isSuccess ? Colors.green.withValues(alpha: 0.2) : const Color(0xFFE10600).withValues(alpha: 0.2),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         )
@@ -1648,87 +2095,5 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     }
   }
 
-  void _showCompleteQuestSheet(BuildContext context, WidgetRef ref, dynamic log, Color themeColor) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (c) {
-        bool isSubmitting = false;
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white30, borderRadius: BorderRadius.circular(2)))),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Klaim Misi Harian', 
-                    style: GoogleFonts.hankenGrotesk(fontSize: 20, fontWeight: FontWeight.bold, color: textWhite)
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Apakah kamu ingin menyelesaikan dan mengklaim misi ini?',
-                    style: GoogleFonts.hankenGrotesk(fontSize: 14, color: textGray),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  GestureDetector(
-                    onTap: isSubmitting ? null : () async {
-                      setModalState(() => isSubmitting = true);
-                      try {
-                        await ref.read(questServiceProvider).completeQuest(log.id);
-                        ref.invalidate(questProvider);
-                        ref.invalidate(profileProvider); // Refresh dashboard XP/progress
-                        if (context.mounted) {
-                          Navigator.pop(c);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Misi berhasil diselesaikan!')),
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Gagal menyelesaikan misi: $e')),
-                          );
-                        }
-                      } finally {
-                        setModalState(() => isSubmitting = false);
-                      }
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: isSubmitting ? Colors.grey : themeColor, 
-                        borderRadius: BorderRadius.circular(16)
-                      ),
-                      alignment: Alignment.center,
-                      child: isSubmitting
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                            )
-                          : Text(
-                              'Selesaikan & Klaim XP', 
-                              style: GoogleFonts.hankenGrotesk(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)
-                            ),
-                    ),
-                  ),
-                  SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 24),
-                ],
-              ),
-            );
-          }
-        );
-      }
-    );
-  }
+
 }

@@ -4,7 +4,7 @@ services:
   # Database PostgreSQL
   postgres:
     image: docker.io/library/postgres:17-alpine
-    container_name: taekwondo_db
+    container_name: taekwondo_db_v3
     environment:
       POSTGRES_USER: taekwondo_user
       POSTGRES_PASSWORD: taekwondo_password
@@ -25,7 +25,7 @@ services:
     build:
       context: ./taekwondo-app
       dockerfile: Containerfile
-    container_name: taekwondo_web
+    container_name: taekwondo_web_v3
     ports:
       - "127.0.0.1:8080:3030"
     volumes:
@@ -49,7 +49,7 @@ services:
   # WhatsApp Gateway (WAHA) - NoWeb Edition for low RAM usage
   waha:
     image: docker.io/devlikeapro/waha:noweb
-    container_name: taekwondo_waha
+    container_name: taekwondo_waha_v3
     restart: always
     environment:
       WHATSAPP_API_KEY: taekwondo_waha_key_2026_super_secure

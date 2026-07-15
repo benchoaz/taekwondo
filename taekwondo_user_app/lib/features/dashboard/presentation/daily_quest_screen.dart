@@ -41,8 +41,12 @@ class DailyQuestScreen extends ConsumerStatefulWidget {
 class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
   bool _isUploading = false;
   String? _uploadingQuestId;
+  final Map<String, bool> _watchedQuests = {};
 
-  Future<void> _launchURL(String urlString) async {
+  Future<void> _launchURL(String urlString, String questId) async {
+    setState(() {
+      _watchedQuests[questId] = true;
+    });
     final Uri url = Uri.parse(urlString);
     if (!await launchUrl(url)) {
       if (mounted) {
@@ -105,6 +109,13 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
 
   Future<void> _completeNormalQuest(QuestLog qLog) async {
     if (_isUploading) return;
+    
+    // Jika tipe kuis (memiliki pertanyaan kuis), tampilkan dialog popup kuis interaktif
+    if (qLog.quest.quizQuestions != null && qLog.quest.quizQuestions!.isNotEmpty) {
+      _showQuizDialog(qLog);
+      return;
+    }
+
     setState(() {
       _isUploading = true;
       _uploadingQuestId = qLog.id;
@@ -126,6 +137,162 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
         });
       }
     }
+  }
+
+  Future<void> _showQuizDialog(QuestLog qLog) async {
+    final quiz = qLog.quest.quizQuestions!.first; // Ambil pertanyaan pertama dari kuis
+    String? selectedOption;
+    bool isSubmittingQuiz = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: nbSurface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: nbBlack, width: 4),
+              ),
+              title: Text(
+                'KUIS HARIAN',
+                style: GoogleFonts.spaceGrotesk(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 20,
+                  color: nbPrimary,
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      quiz.question,
+                      style: GoogleFonts.hankenGrotesk(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: nbBlack,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ...quiz.options.map((option) {
+                      final isSelected = selectedOption == option;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: InkWell(
+                          onTap: isSubmittingQuiz ? null : () {
+                            setDialogState(() {
+                              selectedOption = option;
+                            });
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isSelected ? nbPrimaryFixed : Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: nbBlack, width: 2),
+                              boxShadow: isSelected ? null : const [
+                                BoxShadow(color: nbBlack, offset: Offset(2, 2))
+                              ],
+                            ),
+                            child: Text(
+                              option,
+                              style: GoogleFonts.hankenGrotesk(
+                                fontSize: 14,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                color: nbBlack,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmittingQuiz ? null : () => Navigator.pop(context),
+                  child: Text(
+                    'BATAL',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontWeight: FontWeight.bold,
+                      color: nbOutline,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: (selectedOption == null || isSubmittingQuiz)
+                      ? null
+                      : () async {
+                          setDialogState(() {
+                            isSubmittingQuiz = true;
+                          });
+                          try {
+                            await ref.read(questServiceProvider).submitQuiz(
+                              qLog.id,
+                              [selectedOption!],
+                            );
+                            ref.invalidate(questProvider);
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: Colors.green,
+                                  content: Text('Jawaban benar! Misi kuis berhasil diselesaikan.'),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: nbSecondary,
+                                  content: Text('Jawaban salah! Silakan coba lagi.'),
+                                ),
+                              );
+                            }
+                          } finally {
+                            setDialogState(() {
+                              isSubmittingQuiz = false;
+                            });
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: nbPrimary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: const BorderSide(color: nbBlack, width: 2),
+                    ),
+                    elevation: 2,
+                  ),
+                  child: isSubmittingQuiz
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          'KIRIM JAWABAN',
+                          style: GoogleFonts.spaceGrotesk(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -175,11 +342,11 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
   Widget _buildTopAppBar() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12).copyWith(top: 56),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16).copyWith(top: 24),
       decoration: const BoxDecoration(
         color: nbSurface,
         border: Border(bottom: BorderSide(color: nbBlack, width: 4)),
-        boxShadow: [BoxShadow(color: nbPrimary, offset: Offset(4, 4))],
+        boxShadow: [BoxShadow(color: nbBlack, offset: Offset(0, 4))],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -188,24 +355,22 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
             children: [
               GestureDetector(
                 onTap: () => context.pop(),
-                child: const Icon(Icons.arrow_back, color: nbPrimary),
+                child: const Icon(Icons.arrow_back, color: nbBlack, size: 24),
               ),
-              const SizedBox(width: 8),
-              const Icon(Icons.menu, color: nbPrimary),
               const SizedBox(width: 12),
               Text(
                 'DAILY QUESTS',
-                style: GoogleFonts.hankenGrotesk(fontSize: 20, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, color: nbPrimary),
+                style: GoogleFonts.spaceGrotesk(fontSize: 22, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic, color: nbPrimary, letterSpacing: 1.0),
               ),
             ],
           ),
           Container(
-            width: 40, height: 40,
+            width: 44, height: 44,
             decoration: BoxDecoration(
               color: nbSurfaceContainerHighest,
               shape: BoxShape.circle,
-              border: Border.all(color: nbPrimary, width: 2),
-              boxShadow: const [BoxShadow(color: nbBlack, offset: Offset(4, 4))],
+              border: Border.all(color: nbBlack, width: 3),
+              boxShadow: const [BoxShadow(color: nbBlack, offset: Offset(3, 3))],
               image: DecorationImage(
                 fit: BoxFit.cover,
                 image: NetworkImage('https://ui-avatars.com/api/?name=${widget.user.name}&background=0052dc&color=fff'),
@@ -222,9 +387,9 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: nbSurfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: nbBlack, width: 4),
-        boxShadow: const [BoxShadow(color: nbBlack, offset: Offset(4, 4))],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: nbBlack, width: 3),
+        boxShadow: const [BoxShadow(color: nbBlack, offset: Offset(6, 6))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,41 +402,44 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('PROGRES MISI', style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: nbOutline, letterSpacing: 1.5)),
-                  Text('Level Up!', style: GoogleFonts.hankenGrotesk(fontSize: 24, fontWeight: FontWeight.w900, color: nbBlack)),
+                  const SizedBox(height: 4),
+                  Text('Level Up!', style: GoogleFonts.spaceGrotesk(fontSize: 26, fontWeight: FontWeight.w900, color: nbBlack)),
                 ],
               ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  Text('250', style: GoogleFonts.hankenGrotesk(fontSize: 24, fontWeight: FontWeight.w900, color: nbPrimary)),
-                  Text('/500 XP', style: GoogleFonts.hankenGrotesk(fontSize: 20, fontWeight: FontWeight.bold, color: nbOutline)),
+                  Text('250', style: GoogleFonts.spaceGrotesk(fontSize: 26, fontWeight: FontWeight.w900, color: nbPrimary)),
+                  Text('/500 XP', style: GoogleFonts.spaceGrotesk(fontSize: 18, fontWeight: FontWeight.bold, color: nbOutline)),
                 ],
               )
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Container(
-            height: 32,
+            height: 24,
             width: double.infinity,
             decoration: BoxDecoration(
               color: nbSurfaceContainerHighest,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: nbBlack, width: 2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: nbBlack, width: 2.5),
             ),
-            child: FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: 0.5,
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(colors: [nbPrimary, nbPrimaryContainer]),
-                  border: Border(right: BorderSide(color: nbBlack, width: 2)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(9),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: 0.5,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(colors: [nbPrimary, nbPrimaryContainer]),
+                  ),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          Text('Lakukan 3 misi lagi untuk bonus harian!', style: GoogleFonts.hankenGrotesk(fontSize: 14, color: nbOutline)),
+          const SizedBox(height: 10),
+          Text('Lakukan 3 misi lagi untuk bonus harian!', style: GoogleFonts.hankenGrotesk(fontSize: 14, color: nbOutline, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -361,23 +529,23 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
     final bool isThisUploading = _isUploading && _uploadingQuestId == questLog.id;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isCompleted ? nbSurfaceContainer : nbSurfaceContainerLowest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isCompleted ? nbOutlineVariant : nbBlack, width: 4),
-        boxShadow: isCompleted ? null : const [BoxShadow(color: nbBlack, offset: Offset(4, 4))],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isCompleted ? nbOutlineVariant : nbBlack, width: 3),
+        boxShadow: isCompleted ? null : const [BoxShadow(color: nbBlack, offset: Offset(6, 6))],
       ),
       child: Row(
         children: [
           Container(
-            width: 56, height: 56,
+            width: 48, height: 48,
             decoration: BoxDecoration(
               color: iconBgColor,
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
               border: Border.all(color: isCompleted ? nbOutlineVariant : nbBlack, width: 2),
             ),
-            child: Icon(icon, color: iconColor, size: 28),
+            child: Icon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -408,11 +576,11 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
                 const SizedBox(height: 6),
                 if (videoUrl != null && videoUrl.isNotEmpty && !isCompleted) ...[
                   GestureDetector(
-                    onTap: () => _launchURL(videoUrl),
+                    onTap: () => _launchURL(videoUrl, questLog.id),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: nbSecondary,
+                        color: _watchedQuests[questLog.id] == true ? Colors.green : nbSecondary,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: nbBlack, width: 2),
                         boxShadow: const [BoxShadow(color: nbBlack, offset: Offset(2, 2))],
@@ -420,9 +588,16 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.play_circle_fill, color: Colors.white, size: 16),
+                          Icon(
+                            _watchedQuests[questLog.id] == true ? Icons.check_circle : Icons.play_circle_fill,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                           const SizedBox(width: 4),
-                          Text('TONTON', style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.0)),
+                          Text(
+                            _watchedQuests[questLog.id] == true ? 'SUDAH DITONTON' : 'TONTON',
+                            style: GoogleFonts.spaceGrotesk(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.0),
+                          ),
                         ],
                       ),
                     ),
@@ -431,6 +606,15 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
                 ],
                 GestureDetector(
                   onTap: isThisUploading ? null : () {
+                    if (videoUrl != null && videoUrl.isNotEmpty && _watchedQuests[questLog.id] != true) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          backgroundColor: nbSecondary,
+                          content: Text('Silakan tonton video tutorial terlebih dahulu untuk mengklaim reward!'),
+                        ),
+                      );
+                      return;
+                    }
                     if (requireVideo) {
                       _uploadAndCompleteQuest(questLog);
                     } else {
@@ -440,7 +624,11 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: isThisUploading ? nbOutline : nbPrimary,
+                      color: isThisUploading 
+                          ? nbOutline 
+                          : (videoUrl != null && videoUrl.isNotEmpty && _watchedQuests[questLog.id] != true)
+                              ? nbOutline
+                              : nbPrimary,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: nbBlack, width: 2),
                       boxShadow: isThisUploading ? null : const [BoxShadow(color: nbBlack, offset: Offset(2, 2))],

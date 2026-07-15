@@ -70,7 +70,7 @@ class _ImageAdjustDialogState extends State<ImageAdjustDialog> {
 
       // Viewport size on screen is 280x280
       const double viewportSize = 280.0;
-      final double ratio = targetSize / viewportSize;
+      const double ratio = targetSize / viewportSize;
 
       // Calculate base sizes
       double imgWidth = rawImage.width.toDouble();
@@ -205,7 +205,7 @@ class _ImageAdjustDialogState extends State<ImageAdjustDialog> {
                         height: 280,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.5), width: 2),
                         ),
                       ),
                     ),

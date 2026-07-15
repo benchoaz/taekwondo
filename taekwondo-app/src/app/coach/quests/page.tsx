@@ -386,7 +386,7 @@ function CoachQuestFormContent() {
             type="submit" 
             className="w-full flex justify-center items-center py-4 px-4 rounded-xl shadow-lg shadow-red-500/30 text-base font-black text-white bg-red-600 hover:bg-red-700 hover:shadow-red-600/40 focus:outline-none focus:ring-4 focus:ring-red-500/50 transition-all transform active:scale-95"
           >
-            SEBARKAN MISI SEKARANG
+            {editId ? "SIMPAN PERUBAHAN MISI" : "SEBARKAN MISI SEKARANG"}
           </button>
           
           {status && (

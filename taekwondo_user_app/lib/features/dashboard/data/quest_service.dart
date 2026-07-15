@@ -28,6 +28,29 @@ class QuestLog {
   }
 }
 
+class QuizQuestion {
+  final String question;
+  final List<String> options;
+  final String correctAnswer;
+  final String? explanation;
+
+  QuizQuestion({
+    required this.question,
+    required this.options,
+    required this.correctAnswer,
+    this.explanation,
+  });
+
+  factory QuizQuestion.fromJson(Map<String, dynamic> json) {
+    return QuizQuestion(
+      question: json['question'] ?? '',
+      options: List<String>.from(json['options'] ?? []),
+      correctAnswer: json['correctAnswer'] ?? json['correct_answer'] ?? '',
+      explanation: json['explanation'],
+    );
+  }
+}
+
 class QuestLibrary {
   final String title;
   final String description;
@@ -36,6 +59,7 @@ class QuestLibrary {
   final String? videoUrl;
   final bool requireVideo;
   final String? readingContent;
+  final List<QuizQuestion>? quizQuestions;
 
   QuestLibrary({
     required this.title,
@@ -45,6 +69,7 @@ class QuestLibrary {
     this.videoUrl,
     this.requireVideo = false,
     this.readingContent,
+    this.quizQuestions,
   });
 
   factory QuestLibrary.fromJson(Map<String, dynamic> json) {
@@ -56,6 +81,9 @@ class QuestLibrary {
       videoUrl: json['videoUrl'] ?? json['video_url'],
       requireVideo: json['requireVideo'] ?? json['require_video'] ?? false,
       readingContent: json['readingContent'] ?? json['reading_content'],
+      quizQuestions: json['quizQuestions'] != null
+          ? (json['quizQuestions'] as List).map((e) => QuizQuestion.fromJson(e)).toList()
+          : null,
     );
   }
 }
@@ -90,6 +118,16 @@ class QuestService {
     });
     if (response.statusCode != 200) {
       throw Exception(response.data['error'] ?? 'Gagal menyelesaikan misi');
+    }
+  }
+
+  Future<void> submitQuiz(String logId, List<String> answers) async {
+    final response = await dio.post('/quests/submit-quiz', data: {
+      'logId': logId,
+      'answers': answers,
+    });
+    if (response.statusCode != 200) {
+      throw Exception(response.data['error'] ?? 'Jawaban kuis salah atau gagal disimpan.');
     }
   }
 

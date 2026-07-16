@@ -134,7 +134,7 @@ class QuestService {
   Future<String> uploadVideo(List<int> bytes, String filename) async {
 
     final formData = FormData.fromMap({
-      'type': 'exam', // General type for videos
+      'type': 'video', // Direct to Cloudinary CDN for auto-compression
       'file': MultipartFile.fromBytes(bytes, filename: filename),
     });
 

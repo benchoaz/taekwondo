@@ -28,7 +28,10 @@ export async function GET(req: NextRequest) {
           include: {
             receiver: {
               select: {
-                name: true
+                name: true,
+                coach: {
+                  select: { fullName: true }
+                }
               }
             }
           }
@@ -40,7 +43,19 @@ export async function GET(req: NextRequest) {
       ]
     });
 
-    return NextResponse.json(invoices);
+    // Resolve validator name: prefer User.name, fallback to Coach.fullName
+    const resolved = invoices.map((inv: any) => {
+      if (inv.payment?.receiver) {
+        const r = inv.payment.receiver;
+        inv.payment.receiver = {
+          ...r,
+          name: r.name || r.coach?.fullName || null
+        };
+      }
+      return inv;
+    });
+
+    return NextResponse.json(resolved);
   } catch (error) {
     console.error("Error fetching SPP Invoices:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

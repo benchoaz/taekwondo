@@ -33,7 +33,8 @@ import {
   FileBadge,
   Activity,
   Eye,
-  EyeOff
+  EyeOff,
+  DollarSign
 } from "lucide-react";
 
 export default function CoachDashboard({ 
@@ -706,6 +707,7 @@ export default function CoachDashboard({
     { id: "grading", label: "Penilaian UKT", icon: <Calendar className="w-4 h-4" /> },
     { id: "history", label: "Progres Sabuk", icon: <Award className="w-4 h-4" /> },
     { id: "quests", label: "Misi Atlet", icon: <Activity className="w-4 h-4" /> },
+    { id: "finance", label: "Keuangan & SPP", icon: <DollarSign className="w-4 h-4" /> },
     { id: "schedule", label: "Jadwal Latihan", icon: <Clock className="w-4 h-4" /> },
     { id: "certificates", label: "Sertifikat", icon: <FileText className="w-4 h-4" /> },
     { id: "announcements", label: "Buat Pengumuman", icon: <Send className="w-4 h-4" /> },
@@ -1694,7 +1696,7 @@ export default function CoachDashboard({
                             {log.notes || "-"}
                           </td>
                           <td className="p-4 text-right">
-                            {!log.completed ? (
+                             {!log.completed ? (
                               <div className="flex justify-end gap-1.5">
                                 <button
                                   onClick={() => handleQuestApproval(log.id, "APPROVE")}
@@ -1721,6 +1723,24 @@ export default function CoachDashboard({
                   </table>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ══════════════ TAB: FINANCE (KEUANGAN & SPP) ══════════════ */}
+          {activeTab === "finance" && (
+            <div className="flex flex-col gap-8">
+              <div>
+                <h2 className="text-3xl font-black text-[#0F172A]">Keuangan & SPP</h2>
+                <p className="text-gray-400 text-xs mt-1">Kelola tagihan bulanan SPP murid, verifikasi pembayaran manual, dan pantau status transaksi.</p>
+              </div>
+
+              {/* SPP Management UI Container */}
+              <div className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm">
+                {(() => {
+                  const SppManagement = require("./SppManagement").default;
+                  return <SppManagement />;
+                })()}
+              </div>
             </div>
           )}
 

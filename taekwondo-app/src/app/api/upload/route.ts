@@ -15,6 +15,14 @@ if (process.env.CLOUDINARY_CLOUD_NAME) {
   });
 }
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '100mb',
+    },
+  },
+};
+
 export async function POST(request: Request) {
   try {
     const data = await request.formData();

@@ -63,7 +63,8 @@ export async function POST(req: Request) {
 
     let isAllCorrect = true;
     for (let i = 0; i < quizQuestions.length; i++) {
-      if (answers[i] !== quizQuestions[i].correctAnswer) {
+      const dbAnswer = quizQuestions[i].correctAnswer ?? quizQuestions[i].answer;
+      if (answers[i] !== dbAnswer) {
         isAllCorrect = false;
         break;
       }

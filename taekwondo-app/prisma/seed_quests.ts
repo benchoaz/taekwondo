@@ -566,6 +566,124 @@ const questSeeds: QuestSeed[] = [
     category: "DISCIPLINE", baseXp: 60, requireVideo: false, frequency: "WEEKLY",
     req: { minAge: 16, maxAge: 18, allowedBeltIds: [BELTS.G3, BELTS.G2, BELTS.G1, BELTS.D1, BELTS.D2, BELTS.D3] },
   },
+
+  // =========================================================================
+  // BANK SOAL KUIS TAMBAHAN (THEORY) - BERBAGAI USIA & TINGKATAN SABUK
+  // =========================================================================
+
+  // --- KELOMPOK USIA ANAK (4-6 TAHUN) & REMAJA (7-15 TAHUN) - PEMULA ---
+  {
+    title: "Kuis: Arti Kata TAEKWONDO",
+    description: "Uji pengetahuan tentang arti harfiah dari nama seni bela diri Taekwondo.",
+    category: "THEORY", baseXp: 20, requireVideo: false, frequency: "DAILY",
+    quizQuestions: [{
+      question: "Apakah arti dari kata 'TAE' dalam Taekwondo?",
+      options: ["Tangan", "Kepala", "Menendang dengan Kaki", "Jalan / Seni"],
+      answer: "Menendang dengan Kaki",
+      explanation: "Tae berarti menendang atau menghancurkan dengan kaki, Kwon berarti memukul dengan tangan, dan Do berarti seni atau jalan hidup."
+    }],
+    req: { minAge: 4, maxAge: 15, allowedBeltIds: BEGINNER_BELTS }
+  },
+  {
+    title: "Kuis: Negara Asal Taekwondo",
+    description: "Sejarah dasar mengenai dari negara mana seni bela diri Taekwondo berasal.",
+    category: "THEORY", baseXp: 20, requireVideo: false, frequency: "DAILY",
+    quizQuestions: [{
+      question: "Dari negara manakah seni bela diri Taekwondo berasal?",
+      options: ["Jepang", "Tiongkok", "Korea", "Thailand"],
+      answer: "Korea",
+      explanation: "Taekwondo adalah seni bela diri tradisional yang berasal dan berkembang dari semenanjung Korea."
+    }],
+    req: { minAge: 4, maxAge: 15, allowedBeltIds: BEGINNER_BELTS }
+  },
+  {
+    title: "Kuis: Tempat Latihan Taekwondo",
+    description: "Mengenal nama area tempat latihan Taekwondo secara resmi.",
+    category: "THEORY", baseXp: 20, requireVideo: false, frequency: "DAILY",
+    quizQuestions: [{
+      question: "Apa nama tempat atau aula resmi untuk berlatih Taekwondo?",
+      options: ["Stadium", "Dojang", "Ring", "Tatami"],
+      answer: "Dojang",
+      explanation: "Tempat berlatih Taekwondo disebut Dojang, sedangkan pakaiannya disebut Dobok."
+    }],
+    req: { minAge: 4, maxAge: 15, allowedBeltIds: BEGINNER_BELTS }
+  },
+
+  // --- KELOMPOK USIA REMAJA (7-15 TAHUN) & DEWASA (16+) - MENENGAH (SABUK HIJAU - BIRU) ---
+  {
+    title: "Kuis: Nama Pakaian Taekwondo",
+    description: "Materi pengetahuan dasar pakaian latihan resmi di Taekwondo.",
+    category: "THEORY", baseXp: 30, requireVideo: false, frequency: "DAILY",
+    quizQuestions: [{
+      question: "Pakaian seragam resmi Taekwondo disebut dengan istilah apa?",
+      options: ["Kimono", "Dobok", "Gi", "Hanbok"],
+      answer: "Dobok",
+      explanation: "Dobok adalah sebutan seragam latihan Taekwondo, terdiri dari celana, baju, dan sabuk (Ti)."
+    }],
+    req: { minAge: 7, maxAge: 99, allowedBeltIds: INTERMEDIATE_BELTS }
+  },
+  {
+    title: "Kuis: Poin Tendangan Kyorugi",
+    description: "Aturan poin pertandingan tarung (Kyorugi) untuk tendangan ke arah badan.",
+    category: "THEORY", baseXp: 30, requireVideo: false, frequency: "DAILY",
+    quizQuestions: [{
+      question: "Berapa poin yang didapat jika berhasil menendang protector badan (hogu) lawan dengan tendangan biasa?",
+      options: ["1 Poin", "2 Poin", "3 Poin", "4 Poin"],
+      answer: "2 Poin",
+      explanation: "Tendangan biasa ke pelindung badan (body protector) bernilai 2 poin. Jika dilakukan dengan memutar badan (turning kick), nilainya menjadi 4 poin."
+    }],
+    req: { minAge: 7, maxAge: 99, allowedBeltIds: INTERMEDIATE_BELTS }
+  },
+  {
+    title: "Kuis: Tangkisan Area Atas",
+    description: "Nama gerakan tangkisan ke arah kepala/atas dalam bahasa Korea.",
+    category: "THEORY", baseXp: 30, requireVideo: false, frequency: "DAILY",
+    quizQuestions: [{
+      question: "Apakah nama teknik tangkisan ke arah atas atau kepala?",
+      options: ["Araemakki", "Eolgulmakki", "Momtongmakki", "Anmakki"],
+      answer: "Eolgulmakki",
+      explanation: "Eolgulmakki adalah tangkisan atas. Momtongmakki adalah tangkisan tengah, dan Araemakki adalah tangkisan bawah."
+    }],
+    req: { minAge: 7, maxAge: 99, allowedBeltIds: INTERMEDIATE_BELTS }
+  },
+
+  // --- KELOMPOK USIA DEWASA & MAHIR (SABUK MERAH - HITAM) ---
+  {
+    title: "Kuis: Poin Tendangan Memutar Kepala",
+    description: "Aturan poin Kyorugi terbaru untuk serangan tingkat tinggi dengan putaran.",
+    category: "THEORY", baseXp: 40, requireVideo: false, frequency: "DAILY",
+    quizQuestions: [{
+      question: "Berapa poin yang didapat dari tendangan memutar yang mengenai pelindung kepala (head protector) lawan?",
+      options: ["3 Poin", "4 Poin", "5 Poin", "2 Poin"],
+      answer: "5 Poin",
+      explanation: "Tendangan biasa ke kepala bernilai 3 poin. Sedangkan tendangan memutar ke kepala (seperti Dwi Chagi / Dolyo Chagi putar) bernilai 5 poin."
+    }],
+    req: { minAge: 12, maxAge: 99, allowedBeltIds: ADVANCED_BELTS }
+  },
+  {
+    title: "Kuis: Induk Organisasi Dunia",
+    description: "Pengetahuan federasi Taekwondo resmi internasional.",
+    category: "THEORY", baseXp: 40, requireVideo: false, frequency: "DAILY",
+    quizQuestions: [{
+      question: "Apakah nama induk organisasi Taekwondo tingkat dunia yang resmi diakui Olimpiade?",
+      options: ["ITF (International Taekwon-Do Federation)", "WT (World Taekwondo)", "KTA (Korea Taekwondo Association)", "PBTI"],
+      answer: "WT (World Taekwondo)",
+      explanation: "World Taekwondo (WT) adalah badan pengatur resmi olahraga Taekwondo di dunia yang berafiliasi dengan Komite Olimpiade Internasional (IOC)."
+    }],
+    req: { minAge: 12, maxAge: 99, allowedBeltIds: ADVANCED_BELTS }
+  },
+  {
+    title: "Kuis: Istilah Pelanggaran Kyorugi",
+    description: "Aturan kartu hukuman pelanggaran dalam pertandingan taekwondo.",
+    category: "THEORY", baseXp: 40, requireVideo: false, frequency: "DAILY",
+    quizQuestions: [{
+      question: "Apa istilah hukuman penalti pengurangan poin (satu poin untuk lawan) dalam sistem pertandingan Kyorugi?",
+      options: ["Kyong-go", "Gam-jeom", "Jui", "Chil-sun"],
+      answer: "Gam-jeom",
+      explanation: "Dalam aturan pertandingan terbaru, semua pelanggaran langsung dihukum dengan Gam-jeom (pengurangan 1 poin / penalti poin untuk lawan)."
+    }],
+    req: { minAge: 12, maxAge: 99, allowedBeltIds: ADVANCED_BELTS }
+  },
 ];
 
 // ============================================================

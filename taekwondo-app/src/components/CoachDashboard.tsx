@@ -721,15 +721,24 @@ export default function CoachDashboard({
         <aside className="w-full md:w-64 bg-white border-r border-[#0F172A]/5 p-6 flex flex-col justify-between shrink-0">
           <div className="flex flex-col gap-8">
             {/* Coach Identity */}
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#E10600]">
-                <img src="https://images.unsplash.com/photo-1548690312-e3b507d8c110?auto=format&fit=crop&w=150&q=80" alt="Pelatih" className="w-full h-full object-cover" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-sm text-[#0F172A] leading-none">Master Ahmad</h3>
-                <span className="text-[10px] text-[#E10600] font-bold block mt-1 uppercase tracking-wider">6th Dan · Sabeum Nim</span>
-              </div>
-            </div>
+            {(() => {
+              const currentCoach = coaches.find((c: any) => c.user?.email.toLowerCase() === userEmail?.toLowerCase());
+              const displayName = currentCoach ? currentCoach.fullName : "Master Ahmad S.B.";
+              const displayRank = currentCoach ? currentCoach.danRank : "6th Dan · Sabeum Nim";
+              const displayPhoto = currentCoach?.photoUrl || "https://images.unsplash.com/photo-1548690312-e3b507d8c110?auto=format&fit=crop&w=150&q=80";
+
+              return (
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#E10600] shrink-0">
+                    <img src={displayPhoto} alt={displayName} className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm text-[#0F172A] leading-none">{displayName}</h3>
+                    <span className="text-[10px] text-[#E10600] font-bold block mt-1 uppercase tracking-wider">{displayRank}</span>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Nav */}
             <div className="flex flex-col gap-1.5">

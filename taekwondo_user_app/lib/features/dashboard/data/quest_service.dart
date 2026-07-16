@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/network/dio_client.dart';
 
 class QuestLog {
@@ -143,9 +144,12 @@ class QuestService {
       connectTimeout: dio.options.connectTimeout,
       receiveTimeout: dio.options.receiveTimeout,
     ));
-    // Copy Authorization header
-    if (dio.options.headers['Authorization'] != null) {
-      cleanDio.options.headers['Authorization'] = dio.options.headers['Authorization'];
+    
+    // Read JWT token directly from FlutterSecureStorage since main dio uses interceptor to set it at runtime
+    const storage = FlutterSecureStorage();
+    final token = await storage.read(key: 'auth_token');
+    if (token != null) {
+      cleanDio.options.headers['Authorization'] = 'Bearer $token';
     }
 
     final response = await cleanDio.post(

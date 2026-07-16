@@ -1,9 +1,8 @@
-import 'dart:math' as Math;
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter/foundation.dart';
 
 import 'package:file_picker/file_picker.dart' as fp;
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
@@ -108,10 +107,15 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       if (equippedThemeId != null) {
         if (equippedThemeId == 'theme-gold') {
           themeColor = const Color(0xFFEAB308);
-        } else if (equippedThemeId == 'theme-diamond') themeColor = const Color(0xFF38BDF8);
-        else if (equippedThemeId == 'theme-ruby') themeColor = const Color(0xFFEF4444);
-        else if (equippedThemeId == 'theme-emerald') themeColor = const Color(0xFF10B981);
-        else if (equippedThemeId == 'theme-amethyst') themeColor = const Color(0xFF8B5CF6);
+        } else if (equippedThemeId == 'theme-diamond') {
+          themeColor = const Color(0xFF38BDF8);
+        } else if (equippedThemeId == 'theme-ruby') {
+          themeColor = const Color(0xFFEF4444);
+        } else if (equippedThemeId == 'theme-emerald') {
+          themeColor = const Color(0xFF10B981);
+        } else if (equippedThemeId == 'theme-amethyst') {
+          themeColor = const Color(0xFF8B5CF6);
+        }
       }
       
       final emblemId = shopData.active['emblemId'];
@@ -524,7 +528,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
 
               while (true) {
                 // Formula Max XP level saat ini: 100 * (level)^1.5
-                final double multiplier = Math.pow(level, 1.5).toDouble();
+                final double multiplier = math.pow(level, 1.5).toDouble();
                 final int currentLevelMaxXp = (100 * multiplier).round();
                 
                 if (totalXp >= accumulatedXpForCurrentLevel + currentLevelMaxXp) {

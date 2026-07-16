@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../data/auth_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dio/dio.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/network/firebase_messaging_service.dart';
 
@@ -58,6 +59,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
       context.go('/');
     } else {
+      // Dapatkan data error dari provider
+      final userState = ref.read(authProvider);
+      String errorMessage = 'Username/ID atau kata sandi yang Anda masukkan salah. Silakan periksa kembali.';
+      
+      if (userState.hasError) {
+        final error = userState.error;
+        if (error is DioException) {
+          if (error.type == DioExceptionType.connectionTimeout ||
+              error.type == DioExceptionType.receiveTimeout ||
+              error.type == DioExceptionType.connectionError) {
+            errorMessage = 'Tidak dapat terhubung ke server. Silakan periksa koneksi internet Anda atau hubungi admin (Server Down).';
+          } else if (error.response != null && error.response!.data != null) {
+            final responseData = error.response!.data;
+            if (responseData is Map && responseData.containsKey('error')) {
+              errorMessage = responseData['error'].toString();
+            }
+          }
+        }
+      }
+
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -78,7 +99,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ],
           ),
           content: Text(
-            'Username/ID atau kata sandi yang Anda masukkan salah. Silakan periksa kembali.',
+            errorMessage,
             style: GoogleFonts.hankenGrotesk(
               color: Colors.white70,
               fontSize: 14,

@@ -92,7 +92,10 @@ export async function PUT(req: NextRequest) {
 
     const existingLog = await prisma.dailyQuestLog.findUnique({
       where: { id: logId },
-      include: { quest: true }
+      include: { 
+        quest: true,
+        member: true
+      }
     });
 
     if (!existingLog) {
@@ -102,6 +105,8 @@ export async function PUT(req: NextRequest) {
     if (existingLog.completed) {
       return NextResponse.json({ error: "Misi ini sudah disetujui sebelumnya" }, { status: 400 });
     }
+
+    const { notifyUser } = await import("@/lib/notify");
 
     if (action === 'APPROVE') {
       const DAILY_QUEST_COINS = 5;
@@ -143,6 +148,19 @@ export async function PUT(req: NextRequest) {
         })
       ]);
 
+      // Kirim Notifikasi Sukses Ke Murid
+      try {
+        await notifyUser({
+          title: "Misi Video Disetujui! 🎉",
+          message: `Selamat, video untuk misi "${existingLog.quest.title}" telah disetujui oleh Pelatih. Reward +${existingLog.quest.baseXp} XP dan +5 Dojang Coins ditambahkan!`,
+          type: "QUEST",
+          userId: existingLog.member.userId,
+          link: "/m/quests"
+        });
+      } catch (err) {
+        console.error("FCM Notify Error:", err);
+      }
+
       return NextResponse.json({
         success: true,
         message: "Misi berhasil disetujui, reward telah didistribusikan.",
@@ -158,6 +176,19 @@ export async function PUT(req: NextRequest) {
           notes: notes || "Ditolak oleh Pelatih. Silakan rekam ulang gerakan Anda."
         }
       });
+
+      // Kirim Notifikasi Penolakan Ke Murid
+      try {
+        await notifyUser({
+          title: "Misi Video Perlu Perbaikan ⚠️",
+          message: `Pelatih memberikan catatan pada misi "${existingLog.quest.title}": "${notes || 'Ditolak pelatih. Silakan rekam ulang.'}". Unggah video baru untuk mencoba lagi.`,
+          type: "QUEST",
+          userId: existingLog.member.userId,
+          link: "/m/quests"
+        });
+      } catch (err) {
+        console.error("FCM Notify Error:", err);
+      }
 
       return NextResponse.json({
         success: true,

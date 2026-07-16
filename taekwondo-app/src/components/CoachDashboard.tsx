@@ -707,6 +707,8 @@ export default function CoachDashboard({
     { id: "grading", label: "Penilaian UKT", icon: <Calendar className="w-4 h-4" /> },
     { id: "history", label: "Progres Sabuk", icon: <Award className="w-4 h-4" /> },
     { id: "quests", label: "Misi Atlet", icon: <Activity className="w-4 h-4" /> },
+    { id: "quest_builder", label: "Kelola Quest", icon: <Award className="w-4 h-4" /> },
+    { id: "curriculum_builder", label: "Kurikulum Builder", icon: <FileText className="w-4 h-4" /> },
     { id: "finance", label: "Keuangan & SPP", icon: <DollarSign className="w-4 h-4" /> },
     { id: "schedule", label: "Jadwal Latihan", icon: <Clock className="w-4 h-4" /> },
     { id: "certificates", label: "Sertifikat", icon: <FileText className="w-4 h-4" /> },
@@ -1723,6 +1725,37 @@ export default function CoachDashboard({
                   </table>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ══════════════ TAB: QUEST BUILDER ══════════════ */}
+          {activeTab === "quest_builder" && (
+            <div className="flex flex-col gap-6 animate-fade-in pb-12 h-[80vh] w-full">
+              <div>
+                <h2 className="text-3xl font-black text-[#0F172A]">Kelola Misi & Kuis</h2>
+                <p className="text-gray-400 text-xs mt-1">Buat misi latihan baru, atur pertanyaan kuis materi teori, dan verifikasi batas pencapaian umur/sabuk.</p>
+              </div>
+              <iframe 
+                src="/coach/quests" 
+                className="w-full h-full border border-slate-200 rounded-[24px] shadow-sm bg-white"
+                title="Daily Quests Builder"
+              />
+            </div>
+          )}
+
+          {/* ══════════════ TAB: CURRICULUM BUILDER ══════════════ */}
+          {activeTab === "curriculum_builder" && (
+            <div className="flex flex-col gap-6 animate-fade-in pb-12 w-full">
+              <div>
+                <h2 className="text-3xl font-black text-[#0F172A]">Kurikulum & Sabuk</h2>
+                <p className="text-gray-400 text-xs mt-1">Konfigurasi daftar tingkatan sabuk Dojang beserta video panduan jurus/poomsae.</p>
+              </div>
+              <div className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm">
+                {(() => {
+                  const CurriculumBuilder = require("./CurriculumBuilder").default;
+                  return <CurriculumBuilder />;
+                })()}
+              </div>
             </div>
           )}
 

@@ -47,7 +47,7 @@ export default function SppManagement() {
   // Modal konfirmasi lunas manual
   const [selectedInvoice, setSelectedInvoice] = useState<SppInvoice | null>(null);
   const [isMarkingPaid, setIsMarkingPaid] = useState(false);
-  const [catatanAdmin, setCatatanAdmin] = useState("");
+
 
   // Prepaid billing states
   const [members, setMembers] = useState<any[]>([]);
@@ -145,15 +145,13 @@ export default function SppManagement() {
         body: JSON.stringify({
           action: "update-status",
           id: selectedInvoice.paymentId,
-          status: "COMPLETED",
-          note: catatanAdmin || "Pembayaran tunai/transfer dicatat manual oleh admin"
+          status: "COMPLETED"
         })
       });
       const data = await res.json();
       if (res.ok) {
         alert(`✅ SPP ${monthNames[selectedInvoice.month - 1]} ${selectedInvoice.year} untuk ${selectedInvoice.member.fullName} telah dicatat sebagai LUNAS.`);
         setSelectedInvoice(null);
-        setCatatanAdmin("");
         fetchInvoices();
       } else {
         alert(data.error || "Gagal memperbarui status");
@@ -495,7 +493,7 @@ export default function SppManagement() {
                       <div className="flex items-center justify-center gap-1.5">
                         {inv.status !== "PAID" ? (
                           <button
-                            onClick={() => { setSelectedInvoice(inv); setCatatanAdmin(""); }}
+                            onClick={() => { setSelectedInvoice(inv); }}
                             className="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors"
                           >
                             <Banknote className="w-3.5 h-3.5" /> Tandai Lunas
@@ -553,16 +551,10 @@ export default function SppManagement() {
                 </div>
               </div>
 
-              {/* Catatan Admin */}
-              <div>
-                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Catatan Pembayaran (Opsional)</label>
-                <textarea
-                  value={catatanAdmin}
-                  onChange={e => setCatatanAdmin(e.target.value)}
-                  rows={3}
-                  placeholder="Contoh: Dibayar tunai ke pelatih Ahmad, Selasa 24 Juni 2026"
-                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-green-500 resize-none"
-                />
+              {/* Info Validasi Otomatis */}
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-[10px] text-blue-800 font-medium flex items-start gap-2">
+                <span className="text-base leading-none">ℹ️</span>
+                <span>Nama pelatih/admin yang memvalidasi akan <strong>otomatis tercatat</strong> berdasarkan akun yang sedang login, dan akan terlihat oleh member di APK maupun web.</span>
               </div>
 
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-[10px] text-yellow-800 font-medium">

@@ -1356,28 +1356,149 @@ export default function CoachDashboard({
           {/* ══════════════ TAB: JADWAL LATIHAN (KELOLA) ══════════════ */}
           {activeTab === "schedule" && (
             <div className="flex flex-col gap-6 animate-fade-in pb-12 w-full">
-              <div>
-                <h2 className="text-3xl font-black text-[#0F172A]">Kelola Jadwal Latihan</h2>
-                <p className="text-gray-400 text-xs mt-1">Konfigurasi jadwal kelas rutin dojang, edit waktu/lokasi latihan, dan tugaskan pelatih pengampu.</p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-3xl font-black text-[#0F172A]">Kelola Jadwal Latihan</h2>
+                  <p className="text-gray-400 text-xs mt-1">Konfigurasi jadwal kelas rutin dojang, edit waktu/lokasi latihan, dan tugaskan pelatih pengampu.</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    const day = prompt("Masukkan Hari (e.g. Senin):", "Senin");
+                    if (!day) return;
+                    const startTime = prompt("Jam Mulai (e.g. 16:00):", "16:00");
+                    if (!startTime) return;
+                    const endTime = prompt("Jam Selesai (e.g. 18:00):", "18:00");
+                    if (!endTime) return;
+                    const className = prompt("Nama Kelas (e.g. Kelas Pemula):", "Kelas Pemula");
+                    if (!className) return;
+                    const location = prompt("Lokasi (e.g. Dojang Pusat):", "Dojang Pusat");
+                    if (!location) return;
+
+                    const activeCoach = coaches.find(c => c.user?.email.toLowerCase() === userEmail?.toLowerCase());
+                    const coachId = activeCoach?.id;
+                    if (!coachId) {
+                      alert("Profil pelatih Anda tidak ditemukan. Harap hubungi admin.");
+                      return;
+                    }
+
+                    fetch("/api/schedules", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        dayOfWeek: day,
+                        startTime,
+                        endTime,
+                        className,
+                        location,
+                        coachId
+                      })
+                    }).then(res => {
+                      if (res.ok) {
+                        alert("Jadwal latihan berhasil ditambahkan!");
+                        fetchAllData();
+                      } else {
+                        alert("Gagal menambahkan jadwal.");
+                      }
+                    });
+                  }}
+                  className="bg-[#E10600] hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-[#E10600]/20 flex items-center gap-2 transition-all cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" /> Tambah Jadwal
+                </button>
               </div>
-              <div className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm">
-                {(() => {
-                  const AdminDashboard = require("./AdminDashboard").default;
-                  // We render the admin schedule editor view inside an iframe or simulate it
-                  // To provide identical UX, we'll embed the /mobile-simulator or dedicated component,
-                  // But rendering SppManagement was direct. Let's inspect if we can render schedules builder directly.
-                  // Since schedule edit in AdminDashboard depends on a lot of state, we can embed /mobile-simulator or
-                  // use the admin panel view by loading it or providing a simplified iframe to a route.
-                  // Wait, AdminDashboard has schedules config tab. Let's render a custom simplified scheduler or iframe to schedules page if exists,
-                  // Or direct iframe. Is there an admin route? Yes, but iframe /mobile-simulator? No, we can render the schedules directly.
-                  // Let's implement a clean self-contained schedule editor matching AdminDashboard design.
-                })()}
-                <iframe 
-                  src="/mobile-simulator?tab=schedules" 
-                  className="w-full h-[70vh] border border-slate-200 rounded-[18px] shadow-sm bg-white"
-                  title="Jadwal Latihan Builder"
-                />
-              </div>
+
+              {isLoading ? (
+                <div className="text-center text-gray-400 text-xs py-12">Memuat jadwal...</div>
+              ) : sortedSchedules.length === 0 ? (
+                <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-12 text-center shadow-sm">
+                  <Calendar className="w-12 h-12 text-slate-200 mx-auto mb-3" />
+                  <p className="font-bold text-gray-400 text-sm">Belum Ada Jadwal Latihan</p>
+                  <p className="text-gray-400 text-xs mt-2">Klik tombol "Tambah Jadwal" di atas untuk membuat kelas perdana.</p>
+                </div>
+              ) : (
+                <div className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50 border-b border-slate-100 text-gray-500 uppercase font-black">
+                        <tr>
+                          <th className="px-6 py-4">Hari & Waktu</th>
+                          <th className="px-6 py-4">Kelas</th>
+                          <th className="px-6 py-4">Pelatih</th>
+                          <th className="px-6 py-4">Lokasi</th>
+                          <th className="px-6 py-4 text-right">Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                        {sortedSchedules.map((schedule) => (
+                          <tr key={schedule.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="px-6 py-4 whitespace-nowrap font-bold text-[#0F172A]">
+                              {schedule.dayOfWeek}
+                              <span className="text-[10px] text-gray-400 block font-normal mt-0.5">{schedule.startTime} - {schedule.endTime}</span>
+                            </td>
+                            <td className="px-6 py-4 font-bold text-[#0F172A]">{schedule.className}</td>
+                            <td className="px-6 py-4 font-semibold text-gray-500">{schedule.coach?.fullName || "—"}</td>
+                            <td className="px-6 py-4 text-gray-400">{schedule.location}</td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  onClick={() => {
+                                    const newClass = prompt("Edit Nama Kelas:", schedule.className);
+                                    if (newClass === null) return;
+                                    const newLoc = prompt("Edit Lokasi:", schedule.location);
+                                    if (newLoc === null) return;
+                                    const newDay = prompt("Edit Hari:", schedule.dayOfWeek);
+                                    if (newDay === null) return;
+                                    const newStart = prompt("Edit Jam Mulai:", schedule.startTime);
+                                    if (newStart === null) return;
+                                    const newEnd = prompt("Edit Jam Selesai:", schedule.endTime);
+                                    if (newEnd === null) return;
+
+                                    fetch(`/api/schedules/${schedule.id}`, {
+                                      method: "PUT",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({
+                                        dayOfWeek: newDay,
+                                        startTime: newStart,
+                                        endTime: newEnd,
+                                        className: newClass,
+                                        location: newLoc,
+                                        coachId: schedule.coachId
+                                      })
+                                    }).then(res => {
+                                      if (res.ok) {
+                                        alert("Jadwal latihan diperbarui!");
+                                        fetchAllData();
+                                      }
+                                    });
+                                  }}
+                                  className="bg-blue-50 text-blue-600 px-2.5 py-1.5 rounded-lg font-bold text-[10px] cursor-pointer hover:bg-blue-100"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (!confirm("Hapus jadwal latihan ini?")) return;
+                                    fetch(`/api/schedules/${schedule.id}`, { method: "DELETE" })
+                                      .then(res => {
+                                        if (res.ok) {
+                                          alert("Jadwal berhasil dihapus!");
+                                          fetchAllData();
+                                        }
+                                      });
+                                  }}
+                                  className="bg-red-50 text-red-600 px-2.5 py-1.5 rounded-lg font-bold text-[10px] cursor-pointer hover:bg-red-100"
+                                >
+                                  Hapus
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

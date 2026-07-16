@@ -142,6 +142,7 @@ class QuestService {
       '/upload',
       data: formData,
       options: Options(
+        contentType: null, // Allow Dio to set correct boundary header
         headers: {
           'Content-Type': null,
         },

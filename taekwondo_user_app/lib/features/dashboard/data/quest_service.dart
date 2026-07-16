@@ -138,15 +138,19 @@ class QuestService {
       'file': MultipartFile.fromBytes(bytes, filename: filename),
     });
 
-    final response = await dio.post(
+    final cleanDio = Dio(BaseOptions(
+      baseUrl: dio.options.baseUrl,
+      connectTimeout: dio.options.connectTimeout,
+      receiveTimeout: dio.options.receiveTimeout,
+    ));
+    // Copy Authorization header
+    if (dio.options.headers['Authorization'] != null) {
+      cleanDio.options.headers['Authorization'] = dio.options.headers['Authorization'];
+    }
+
+    final response = await cleanDio.post(
       '/upload',
       data: formData,
-      options: Options(
-        contentType: null, // Allow Dio to set correct boundary header
-        headers: {
-          'Content-Type': null,
-        },
-      ),
     );
     if (response.statusCode == 200 && response.data['success'] == true) {
       return response.data['url'];

@@ -9,9 +9,9 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { questId, answers } = body;
+    const { questId, logId, answers } = body;
 
-    if (!questId || !Array.isArray(answers)) {
+    if ((!questId && !logId) || !Array.isArray(answers)) {
       return NextResponse.json({ error: "Data tidak valid" }, { status: 400 });
     }
 
@@ -20,31 +20,42 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Member tidak ditemukan" }, { status: 404 });
     }
 
-    // Ambil quest dari database
-    const quest = await prisma.questLibrary.findUnique({
-      where: { id: questId }
-    });
+    // Resolve dailyQuestLog and quest
+    let questLog = null;
+    let quest = null;
 
-    if (!quest || quest.category !== "THEORY") {
-      return NextResponse.json({ error: "Quest membaca tidak valid" }, { status: 404 });
+    if (logId) {
+      questLog = await prisma.dailyQuestLog.findUnique({
+        where: { id: logId },
+        include: { quest: true }
+      });
+      if (questLog) {
+        quest = questLog.quest;
+      }
     }
 
-    // Ambil log hari ini
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (!quest && questId) {
+      quest = await prisma.questLibrary.findUnique({
+        where: { id: questId }
+      });
+      if (quest) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
 
-    const questLog = await prisma.dailyQuestLog.findFirst({
-      where: {
-        memberId: member.id,
-        questId: quest.id,
-        assignedAt: { gte: today, lt: tomorrow }
+        questLog = await prisma.dailyQuestLog.findFirst({
+          where: {
+            memberId: member.id,
+            questId: quest.id,
+            assignedAt: { gte: today, lt: tomorrow }
+          }
+        });
       }
-    });
+    }
 
-    if (!questLog) {
-      return NextResponse.json({ error: "Quest ini belum ditugaskan untuk hari ini" }, { status: 400 });
+    if (!quest || !questLog) {
+      return NextResponse.json({ error: "Quest ini belum ditugaskan atau tidak ditemukan" }, { status: 404 });
     }
 
     if (questLog.completed) {

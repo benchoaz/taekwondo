@@ -248,10 +248,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               // Base Gradient border if no frame is equipped
               if (frameUrl == null || frameUrl.isEmpty)
                 Container(
-                  width: 110,
-                  height: 110,
+                  width: 100,
+                  height: 100,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(24),
                     gradient: LinearGradient(
                       colors: [themeColor, themeColorLight],
                       begin: Alignment.topLeft,
@@ -445,18 +445,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                profile.currentBelt.toUpperCase(),
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              Expanded(
+                child: Text(
+                  profile.currentBelt.toUpperCase(),
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
+              const SizedBox(width: 8),
               Text(
-                '${profile.progress}%',
+                '${profile.progress.clamp(0, 100)}%',
                 style: GoogleFonts.spaceGrotesk(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: themeColor,
                 ),
@@ -464,33 +468,41 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Stack(
-            children: [
-              Container(
-                height: 12,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              Container(
-                height: 12,
-                width: profile.progress.toDouble() * 3,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [themeColor, themeColorLight],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final double maxProgressWidth = constraints.maxWidth;
+              final double clampedProgress = profile.progress.clamp(0, 100).toDouble();
+              final double progressWidth = maxProgressWidth * (clampedProgress / 100.0);
+
+              return Stack(
+                children: [
+                  Container(
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: themeColor.withValues(alpha: 0.6),
-                      blurRadius: 10,
-                      spreadRadius: 1,
-                    )
-                  ],
-                ),
-              ),
-            ],
+                  Container(
+                    height: 12,
+                    width: progressWidth,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [themeColor, themeColorLight],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: themeColor.withValues(alpha: 0.6),
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                        )
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 8),
           Text(

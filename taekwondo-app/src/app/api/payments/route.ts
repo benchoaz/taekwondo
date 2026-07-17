@@ -238,6 +238,16 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
     
+    // Ambil identitas user dari Header Middleware
+    const userRole = request.headers.get("x-user-role");
+
+    if (userRole !== "ADMIN") {
+      return NextResponse.json(
+        { error: "Forbidden: Hanya Administrator yang berwenang menghapus transaksi keuangan." },
+        { status: 403 }
+      );
+    }
+
     if (!id) {
       return NextResponse.json({ error: "Missing payment ID" }, { status: 400 });
     }

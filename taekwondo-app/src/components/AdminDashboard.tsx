@@ -2658,10 +2658,10 @@ export default function AdminDashboard({
                                 )}
                                 <button 
                                   onClick={() => handleDeletePayment(p.id)}
-                                  className="p-1.5 bg-red-50 hover:bg-red-100 text-[#E10600] rounded-lg transition-all"
+                                  className="p-1.5 bg-red-50 hover:bg-[#E10600]/15 text-[#E10600] rounded-lg transition-all"
                                   title="Hapus Transaksi"
                                 >
-                                  <X className="w-3.5 h-3.5" />
+                                  <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             </div>

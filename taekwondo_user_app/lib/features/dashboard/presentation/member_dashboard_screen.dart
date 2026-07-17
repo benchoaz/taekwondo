@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 import 'dart:ui';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:video_compress/video_compress.dart';
 
 import 'package:file_picker/file_picker.dart' as fp;
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';

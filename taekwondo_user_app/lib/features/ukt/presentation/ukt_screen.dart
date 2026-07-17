@@ -41,32 +41,29 @@ class _UktScreenState extends ConsumerState<UktScreen> {
   }
 
   Future<void> _handleRegister(UktExam exam, String targetBelt) async {
-    setState(() {
-      _isRegistering = true;
-    });
+    setState(() => _isRegistering = true);
 
-    final success = await ref.read(uktRegisterProvider).register(
-          memberId: widget.user.id,
-          uktExamId: exam.id,
-          targetBelt: targetBelt,
-        );
+    final result = await ref.read(uktRegisterProvider).registerWithMessage(
+      memberId: widget.user.id,
+      uktExamId: exam.id,
+      targetBelt: targetBelt,
+    );
 
-    setState(() {
-      _isRegistering = false;
-    });
+    setState(() => _isRegistering = false);
 
     if (mounted) {
-      if (success) {
+      if (result['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Pendaftaran berhasil! Silakan cek tagihan UKT di menu SPP.'),
+            content: Text('✅ Pendaftaran berhasil! Silakan cek tagihan UKT di menu SPP.'),
             backgroundColor: Colors.green,
           ),
         );
+        ref.invalidate(uktStatusProvider(widget.user.id));
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gagal melakukan pendaftaran. Silakan coba lagi.'),
+          SnackBar(
+            content: Text(result['message'] ?? 'Gagal melakukan pendaftaran.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -80,61 +77,90 @@ class _UktScreenState extends ConsumerState<UktScreen> {
     final targetBelt = _getNextBelt(widget.user.currentBelt);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFF1E293B),
         elevation: 0,
         title: Text(
-          'Ujian Kenaikan Tingkat (UKT)',
-          style: GoogleFonts.outfit(
-            color: const Color(0xFF0F172A),
-            fontWeight: FontWeight.bold,
+          'Ujian Kenaikan Tingkat',
+          style: GoogleFonts.spaceGrotesk(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
             fontSize: 18,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.white54),
+            onPressed: () => ref.invalidate(uktStatusProvider(widget.user.id)),
+          ),
+        ],
       ),
       body: uktStatusAsync.when(
         data: (statusRes) {
           final exam = statusRes.exam;
           final reg = statusRes.registration;
+          final eligibility = statusRes.eligibility;
 
-          if (exam == null) {
-            return _buildNoExamView();
-          }
+          if (exam == null) return _buildNoExamView();
 
-          return ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              // Status Pendaftaran Banner
-              if (reg != null) _buildStatusBanner(reg),
-              const SizedBox(height: 20),
+          return RefreshIndicator(
+            onRefresh: () async => ref.invalidate(uktStatusProvider(widget.user.id)),
+            color: const Color(0xFFE10600),
+            backgroundColor: const Color(0xFF1E293B),
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                // Status Banner (jika sudah daftar)
+                if (reg != null) ...[_buildStatusBanner(reg), const SizedBox(height: 16)],
 
-              // Jadwal UKT Card
-              _buildExamDetailsCard(exam, targetBelt),
-              const SizedBox(height: 24),
+                // Info Jadwal Ujian
+                _buildExamDetailsCard(exam, targetBelt),
+                const SizedBox(height: 16),
 
-              // Conditional view based on registration
-              if (reg == null)
-                _buildRegistrationForm(exam, targetBelt)
-              else if (reg.status == 'GRADED')
-                _buildScoreSheetCard(reg)
-              else
-                _buildWaitingApprovalCard(reg),
-            ],
+                // Info Kelayakan Kehadiran (hanya tampil jika belum daftar & ada data eligibility)
+                if (reg == null && eligibility != null && eligibility.minAttendancePercent > 0) ...[  
+                  _buildEligibilityCard(eligibility),
+                  const SizedBox(height: 16),
+                ],
+
+                // Form Registrasi / Status
+                if (reg == null)
+                  _buildRegistrationForm(exam, targetBelt, eligibility)
+                else if (reg.status == 'APPROVED' || reg.status == 'GRADED')
+                  _buildScoreSheetCard(reg)
+                else
+                  _buildWaitingApprovalCard(reg),
+              ],
+            ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFE10600))),
         error: (err, stack) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
-            child: Text(
-              'Gagal memuat data UKT: $err',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(color: Colors.red),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  'Gagal memuat data UKT',
+                  style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Text(err.toString(), textAlign: TextAlign.center, style: GoogleFonts.inter(color: Colors.white54, fontSize: 12)),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () => ref.invalidate(uktStatusProvider(widget.user.id)),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE10600)),
+                  child: const Text('Coba Lagi'),
+                ),
+              ],
             ),
           ),
         ),
@@ -142,6 +168,9 @@ class _UktScreenState extends ConsumerState<UktScreen> {
     );
   }
 
+  // ─────────────────────────────────────────────────────
+  // WIDGET: Belum ada jadwal ujian
+  // ─────────────────────────────────────────────────────
   Widget _buildNoExamView() {
     return Center(
       child: Padding(
@@ -150,32 +179,18 @@ class _UktScreenState extends ConsumerState<UktScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                color: Colors.amber.shade50,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.info_outline, size: 48, color: Colors.amber),
+              width: 90, height: 90,
+              decoration: const BoxDecoration(color: Color(0xFF1E293B), shape: BoxShape.circle),
+              child: const Icon(Icons.emoji_events_outlined, size: 48, color: Colors.amber),
             ),
             const SizedBox(height: 24),
-            Text(
-              'Belum Ada Jadwal UKT Terdekat',
-              style: GoogleFonts.outfit(
-                fontSize: 20,
-                color: const Color(0xFF0F172A),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text('Belum Ada Jadwal UKT',
+              style: GoogleFonts.spaceGrotesk(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Text(
-              'Pelatih akan mengumumkan jadwal ujian kenaikan tingkat jika sudah dikonfigurasi di portal administrasi.',
+              'Pelatih akan mengumumkan jadwal ujian kenaikan tingkat melalui portal dojang.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                color: const Color(0xFF64748B),
-                fontSize: 14,
-                height: 1.5,
-              ),
+              style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 14, height: 1.5),
             ),
           ],
         ),
@@ -183,37 +198,35 @@ class _UktScreenState extends ConsumerState<UktScreen> {
     );
   }
 
+  // ─────────────────────────────────────────────────────
+  // WIDGET: Banner status pendaftaran
+  // ─────────────────────────────────────────────────────
   Widget _buildStatusBanner(UktParticipant reg) {
     Color bannerColor;
     String text;
     IconData icon;
-
     switch (reg.status) {
       case 'APPROVED':
         bannerColor = Colors.green;
-        text = 'Pendaftaran Disetujui! Siapkan fisik Anda untuk hari ujian.';
+        text = '✅ Pendaftaran Disetujui! Siapkan fisik Anda untuk hari ujian.';
         icon = Icons.check_circle_outline;
         break;
       case 'GRADED':
         final isPassed = reg.finalScore >= 70;
-        bannerColor = isPassed ? Colors.blue : Colors.red;
-        text = isPassed
-            ? 'Selamat! Anda dinyatakan LULUS ujian kenaikan tingkat.'
-            : 'Ujian Selesai. Anda direkomendasikan untuk REMEDIAL / Latihan Tambahan.';
-        icon = isPassed ? Icons.emoji_events : Icons.error_outline;
+        bannerColor = isPassed ? Colors.blue : Colors.orange;
+        text = isPassed ? '🏆 Selamat! Anda LULUS ujian kenaikan tingkat.' : '📋 Ujian Selesai. Direkomendasikan REMEDIAL / Latihan Tambahan.';
+        icon = isPassed ? Icons.emoji_events : Icons.refresh;
         break;
       case 'FAILED':
-      case 'REMEDIAL':
         bannerColor = Colors.red;
-        text = 'Status: Perlu perbaikan / remedial teknik dasar.';
-        icon = Icons.assignment_late_outlined;
+        text = '❌ Pendaftaran ditolak. Silakan hubungi pelatih untuk informasi lebih lanjut.';
+        icon = Icons.cancel_outlined;
         break;
       default:
         bannerColor = Colors.amber.shade800;
-        text = 'Pendaftaran Anda sedang menunggu verifikasi pembayaran & berkas oleh Admin.';
-        icon = Icons.hourglass_empty;
+        text = '⏳ Menunggu verifikasi dokumen & pembayaran oleh pelatih.';
+        icon = Icons.hourglass_top;
     }
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -226,76 +239,45 @@ class _UktScreenState extends ConsumerState<UktScreen> {
           Icon(icon, color: bannerColor, size: 24),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.inter(
-                color: bannerColor,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-                height: 1.4,
-              ),
-            ),
+            child: Text(text, style: GoogleFonts.inter(color: bannerColor, fontWeight: FontWeight.bold, fontSize: 13, height: 1.4)),
           ),
         ],
       ),
     );
   }
 
+  // ─────────────────────────────────────────────────────
+  // WIDGET: Card detail jadwal ujian
+  // ─────────────────────────────────────────────────────
   Widget _buildExamDetailsCard(UktExam exam, String targetBelt) {
     final formattedDate = DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(exam.date);
-
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          )
-        ],
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Text(
-                  exam.title,
-                  style: GoogleFonts.outfit(
-                    color: const Color(0xFF0F172A),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.redAccent.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  'Target: $targetBelt',
-                  style: GoogleFonts.inter(
-                    color: Colors.redAccent.shade700,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 11,
-                  ),
-                ),
-              )
+              const Icon(Icons.emoji_events, color: Colors.amber, size: 20),
+              const SizedBox(width: 8),
+              Text('EVENT UKT AKTIF', style: GoogleFonts.spaceGrotesk(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)),
             ],
           ),
-          const SizedBox(height: 16),
-          const Divider(color: Color(0xFFF1F5F9), height: 1),
-          const SizedBox(height: 16),
-          _buildInfoRow(Icons.calendar_month, 'Tanggal Ujian', formattedDate),
+          const SizedBox(height: 10),
+          Text(exam.title, style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
+          _buildInfoRow(Icons.calendar_month, 'Tanggal Ujian', formattedDate),
+          const SizedBox(height: 8),
           _buildInfoRow(Icons.location_on, 'Lokasi', exam.location),
+          const SizedBox(height: 8),
+          _buildInfoRow(Icons.people, 'Peserta Terdaftar', '${exam.participantCount} atlet'),
+          const SizedBox(height: 8),
+          _buildInfoRow(Icons.military_tech, 'Target Sabuk Anda', targetBelt),
         ],
       ),
     );
@@ -305,21 +287,15 @@ class _UktScreenState extends ConsumerState<UktScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: const Color(0xFF64748B), size: 20),
-        const SizedBox(width: 12),
+        Icon(icon, color: const Color(0xFF94A3B8), size: 18),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 11, fontWeight: FontWeight.bold),
-              ),
+              Text(label, style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.bold)),
               const SizedBox(height: 2),
-              Text(
-                value,
-                style: GoogleFonts.inter(color: const Color(0xFF1E293B), fontSize: 13, fontWeight: FontWeight.w600),
-              ),
+              Text(value, style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
             ],
           ),
         )
@@ -327,79 +303,147 @@ class _UktScreenState extends ConsumerState<UktScreen> {
     );
   }
 
-  Widget _buildRegistrationForm(UktExam exam, String targetBelt) {
+  // ─────────────────────────────────────────────────────
+  // WIDGET: Kartu kelayakan kehadiran
+  // ─────────────────────────────────────────────────────
+  Widget _buildEligibilityCard(UktEligibility el) {
+    final isOk = el.eligible;
+    final color = isOk ? Colors.green : Colors.orange;
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Formulir Registrasi UKT',
-            style: GoogleFonts.outfit(
-              color: const Color(0xFF0F172A),
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+          Row(
+            children: [
+              Icon(isOk ? Icons.check_circle : Icons.warning_amber, color: color, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                isOk ? 'Syarat Kehadiran Terpenuhi ✅' : 'Peringatan Syarat Kehadiran ⚠️',
+                style: GoogleFonts.spaceGrotesk(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: el.persentaseKehadiran / 100,
+              minHeight: 8,
+              backgroundColor: Colors.white12,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Dengan mendaftar ujian, Anda menyetujui persyaratan administrasi dan akan dikenakan tagihan biaya ujian sabuk secara otomatis.',
-            style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 13, height: 1.5),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _isRegistering ? null : () => _handleRegister(exam, targetBelt),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0F172A),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 0,
-            ),
-            child: _isRegistering
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                  )
-                : Text(
-                    'Daftar UKT Sekarang',
-                    style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
+            'Kehadiran ${el.persentaseKehadiran}% dari ${el.totalSesiTerjadwal} sesi (${el.totalHadir} hadir) dalam ${el.periodMonths} bulan terakhir\nMinimum: ${el.minAttendancePercent}% kehadiran',
+            style: GoogleFonts.inter(color: Colors.white70, fontSize: 11, height: 1.5),
           ),
         ],
       ),
     );
   }
 
+  // ─────────────────────────────────────────────────────
+  // WIDGET: Form Registrasi UKT
+  // ─────────────────────────────────────────────────────
+  Widget _buildRegistrationForm(UktExam exam, String targetBelt, UktEligibility? eligibility) {
+    final canRegister = eligibility == null || eligibility.eligible;
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF334155)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Formulir Pendaftaran UKT',
+            style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text(
+            'Dengan mendaftar, Anda menyetujui persyaratan administrasi dan tagihan biaya ujian sabuk akan dibuat secara otomatis.',
+            style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 13, height: 1.5),
+          ),
+          const SizedBox(height: 20),
+          // Ringkasan pendaftaran
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(12)),
+            child: Column(
+              children: [
+                _buildDetailRow('Sabuk Saat Ini', widget.user.currentBelt ?? 'Sabuk Putih'),
+                _buildDetailRow('Target Sabuk', targetBelt),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: (canRegister && !_isRegistering) ? () => _handleRegister(exam, targetBelt) : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: canRegister ? const Color(0xFFE10600) : Colors.grey,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                elevation: 0,
+              ),
+              child: _isRegistering
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : Text(
+                      canRegister ? 'Daftar UKT Sekarang' : 'Kehadiran Belum Memenuhi Syarat',
+                      style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────
+  // WIDGET: Card menunggu approval
+  // ─────────────────────────────────────────────────────
   Widget _buildWaitingApprovalCard(UktParticipant reg) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        color: const Color(0xFF1E293B),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF334155)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Detail Pendaftaran',
-            style: GoogleFonts.outfit(
-              color: const Color(0xFF0F172A),
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          Text('Detail Pendaftaran', style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-          _buildDetailRow('Nomor Registrasi', reg.id.split('-').first.toUpperCase()),
+          _buildDetailRow('No. Registrasi', reg.id.split('-').first.toUpperCase()),
           _buildDetailRow('Sabuk Saat Ini', widget.user.currentBelt ?? 'Sabuk Putih'),
           _buildDetailRow('Sabuk Target', reg.targetBelt),
           _buildDetailRow('Status Verifikasi', reg.status),
+          if (reg.uploadedDocs.isNotEmpty) ...[  
+            const SizedBox(height: 12),
+            const Divider(color: Color(0xFF334155)),
+            const SizedBox(height: 8),
+            Text('Dokumen Terupload', style: GoogleFonts.spaceGrotesk(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ...reg.uploadedDocs.entries.map((e) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.green, size: 14),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(e.key, style: GoogleFonts.inter(color: Colors.white70, fontSize: 12))),
+                ],
+              ),
+            )),
+          ],
         ],
       ),
     );
@@ -411,8 +455,12 @@ class _UktScreenState extends ConsumerState<UktScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 13)),
-          Text(value, style: GoogleFonts.inter(color: const Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 13)),
+          Text(label, style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 13)),
+          Flexible(
+            child: Text(value,
+              textAlign: TextAlign.end,
+              style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+          ),
         ],
       ),
     );

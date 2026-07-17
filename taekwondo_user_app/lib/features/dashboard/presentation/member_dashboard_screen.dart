@@ -11,6 +11,7 @@ import 'web_iframe_helper.dart';
 import '../../auth/domain/user_model.dart';
 import '../../auth/data/auth_provider.dart';
 import '../../spp/presentation/spp_screen.dart';
+import '../../ukt/presentation/ukt_screen.dart';
 import '../../../core/network/dio_client.dart';
 import '../data/member_attendance_service.dart';
 import '../data/quest_service.dart';
@@ -817,7 +818,14 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 color: Colors.amber,
                 label: 'UJIAN UKT',
                 subLabel: 'Progress',
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => UktScreen(user: widget.user),
+                    ),
+                  );
+                },
               ),
               _buildGridMenuButton(
                 icon: Icons.stars,

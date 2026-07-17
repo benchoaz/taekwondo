@@ -78,6 +78,28 @@ export async function GET(request: Request) {
 
       // Sertakan info kelayakan kehadiran jika ada setting
       const setting = await prisma.setting.findUnique({ where: { id: "default" } });
+      
+      // Dinamis normalisasi list dokumen murid agar sinkron dengan pengaturan admin terbaru
+      if (registration && setting) {
+        const uktReqs = (setting.uktRequirements as string[]) || [];
+        const currentDocs = (registration.uploadedDocs as Record<string, any>) || {};
+        const normalizedDocs: Record<string, any> = {};
+
+        // 1. Masukkan dokumen yang saat ini wajib di pengaturan dojang
+        for (const reqName of uktReqs) {
+          normalizedDocs[reqName] = currentDocs[reqName] || "";
+        }
+
+        // 2. Tetap pertahankan bukti upload dokumen lama jika murid sudah terlanjur mengunggahnya
+        for (const [docName, docUrl] of Object.entries(currentDocs)) {
+          if (docUrl && !normalizedDocs[docName]) {
+            normalizedDocs[docName] = docUrl;
+          }
+        }
+
+        registration.uploadedDocs = normalizedDocs;
+      }
+
       const req = (setting?.uktRequirements as Record<string, any>) || {};
       const periodMonths = req.periodMonths || 3;
       const minPercent = req.minAttendancePercent || 0;

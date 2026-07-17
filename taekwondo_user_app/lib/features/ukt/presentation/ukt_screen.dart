@@ -499,7 +499,6 @@ class _UktScreenState extends ConsumerState<UktScreen> {
   // WIDGET: Card menunggu approval & Upload Dokumen
   // ─────────────────────────────────────────────────────
   Widget _buildWaitingApprovalCard(UktParticipant reg) {
-    final reqsAsync = ref.watch(uktRequirementsProvider);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -524,11 +523,9 @@ class _UktScreenState extends ConsumerState<UktScreen> {
           Text('Dokumen Persyaratan', style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           
-          reqsAsync.when(
-            data: (reqList) {
-              return Column(
-                children: reqList.map((docName) {
-                  final fileUrl = reg.uploadedDocs[docName];
+          Column(
+            children: reg.uploadedDocs.keys.map((docName) {
+              final fileUrl = reg.uploadedDocs[docName];
                   final hasFile = fileUrl != null && fileUrl.isNotEmpty;
                   final isUploadingThis = _uploadingDocName == docName;
 
@@ -588,11 +585,7 @@ class _UktScreenState extends ConsumerState<UktScreen> {
                     ),
                   );
                 }).toList(),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFE10600))),
-            error: (e, s) => Text('Gagal memuat list syarat: $e', style: const TextStyle(color: Colors.red)),
-          ),
+              ),
           if (reg.status == 'FAILED') ...[
             const SizedBox(height: 20),
             const Divider(color: Color(0xFF334155)),

@@ -122,8 +122,21 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
         }
       } catch (e) {
         if (mounted) {
+          String errorMessage = 'Gagal mengirim video. Harap coba lagi.';
+          final errStr = e.toString().toLowerCase();
+          
+          if (errStr.contains('413') || errStr.contains('too large') || errStr.contains('connection abort') || errStr.contains('socketexception')) {
+            errorMessage = '⚠️ Ukuran video terlalu besar atau koneksi terputus. Harap gunakan video dengan durasi lebih pendek (maksimal 30 detik).';
+          } else {
+            errorMessage = 'Error: $e';
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e')),
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: const Color(0xFFE2241F),
+              duration: const Duration(seconds: 5),
+            ),
           );
         }
       } finally {

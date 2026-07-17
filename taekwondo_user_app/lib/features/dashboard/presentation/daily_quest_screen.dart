@@ -126,7 +126,7 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
           final errStr = e.toString().toLowerCase();
           
           if (errStr.contains('413') || errStr.contains('too large') || errStr.contains('connection abort') || errStr.contains('socketexception')) {
-            errorMessage = '⚠️ Ukuran video terlalu besar atau koneksi terputus. Harap gunakan video dengan durasi lebih pendek (maksimal 30 detik).';
+            errorMessage = '⚠️ File video terlalu besar atau koneksi terputus. Harap kompres video Anda terlebih dahulu atau gunakan resolusi perekaman yang lebih rendah.';
           } else {
             errorMessage = 'Error: $e';
           }

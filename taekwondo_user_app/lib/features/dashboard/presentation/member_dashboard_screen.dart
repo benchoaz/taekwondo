@@ -608,6 +608,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     final shopData = shopDataAsync.valueOrNull;
     
     String? frameUrl;
+    String? frameCss;
     String? titleName;
     
     if (shopData != null) {
@@ -615,6 +616,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       if (frameId != null) {
         final frameItem = shopData.items.where((i) => i.id == frameId).firstOrNull;
         frameUrl = frameItem?.itemUrl;
+        frameCss = frameItem?.cssValue;
       }
       
       final titleId = shopData.active['titleId'];
@@ -635,37 +637,56 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         children: [
           Row(
             children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  // 1. Base Profile Picture (Rounded Rect)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      color: const Color(0xFF1E293B),
-                      child: Image(
-                        image: profile?.profilePicture != null
-                            ? NetworkImage(_getAbsoluteUrl(profile!.profilePicture!))
-                            : const NetworkImage('https://api.dicebear.com/7.x/avataaars/png?seed=Taekwondo') as ImageProvider,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                  // 2. Frame Overlay (Rounded Rect)
-                  if (frameUrl != null && frameUrl.isNotEmpty)
-                    Container(
-                      width: 54, // Frame is slightly larger than the avatar
-                      height: 54,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        image: DecorationImage(
-                          image: NetworkImage(_getAbsoluteUrl(frameUrl)),
+              (() {
+                final cssStyles = CssValueParser.parseCss(frameCss);
+                final Color? parsedBorderColor = cssStyles['borderColor'];
+                final double parsedBorderWidth = cssStyles['borderWidth'] ?? 2.0;
+                final Color? parsedGlowColor = cssStyles['glowColor'];
+                final double parsedGlowBlurRadius = cssStyles['glowBlurRadius'] ?? 0.0;
+
+                return Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // 1. Base Profile Picture (Rounded Rect)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        color: const Color(0xFF1E293B),
+                        child: Image(
+                          image: profile?.profilePicture != null
+                              ? NetworkImage(_getAbsoluteUrl(profile!.profilePicture!))
+                              : const NetworkImage('https://api.dicebear.com/7.x/avataaars/png?seed=Taekwondo') as ImageProvider,
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
+                    // 2. Frame Overlay (Rounded Rect)
+                    if (frameUrl != null && frameUrl.isNotEmpty)
+                      Container(
+                        width: 54, // Frame is slightly larger than the avatar
+                        height: 54,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          image: DecorationImage(
+                            image: NetworkImage(_getAbsoluteUrl(frameUrl)),
+                            fit: BoxFit.cover,
+                          ),
+                          border: parsedBorderColor != null 
+                              ? Border.all(color: parsedBorderColor, width: parsedBorderWidth)
+                              : null,
+                          boxShadow: parsedGlowColor != null && parsedGlowBlurRadius > 0
+                              ? [
+                                  BoxShadow(
+                                    color: parsedGlowColor,
+                                    blurRadius: parsedGlowBlurRadius,
+                                    spreadRadius: 1,
+                                  )
+                                ]
+                              : null,
+                        ),
+                      ),
                   // 3. Default border if no frame (Rounded Rect)
                   if (frameUrl == null || frameUrl.isEmpty)
                     Container(
@@ -690,8 +711,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(width: 12),
+              );
+            })(),
+            const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

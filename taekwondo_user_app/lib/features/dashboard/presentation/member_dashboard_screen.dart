@@ -638,34 +638,41 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               Stack(
                 alignment: Alignment.center,
                 children: [
-                  // 1. Base Profile Picture
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: const Color(0xFF1E293B),
-                    backgroundImage: profile?.profilePicture != null
-                        ? NetworkImage(_getAbsoluteUrl(profile!.profilePicture!))
-                        : const NetworkImage('https://api.dicebear.com/7.x/avataaars/png?seed=Taekwondo') as ImageProvider,
+                  // 1. Base Profile Picture (Rounded Rect)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      color: const Color(0xFF1E293B),
+                      child: Image(
+                        image: profile?.profilePicture != null
+                            ? NetworkImage(_getAbsoluteUrl(profile!.profilePicture!))
+                            : const NetworkImage('https://api.dicebear.com/7.x/avataaars/png?seed=Taekwondo') as ImageProvider,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
-                  // 2. Frame Overlay
+                  // 2. Frame Overlay (Rounded Rect)
                   if (frameUrl != null && frameUrl.isNotEmpty)
                     Container(
                       width: 54, // Frame is slightly larger than the avatar
                       height: 54,
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(14),
                         image: DecorationImage(
                           image: NetworkImage(_getAbsoluteUrl(frameUrl)),
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
-                  // 3. Default border if no frame
+                  // 3. Default border if no frame (Rounded Rect)
                   if (frameUrl == null || frameUrl.isEmpty)
                     Container(
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: const Color(0xFF3B82F6), width: 2),
                       ),
                     ),

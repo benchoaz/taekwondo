@@ -268,35 +268,42 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               Stack(
                 alignment: Alignment.center,
                 children: [
-                    GestureDetector(
-                      onTap: _isUploading ? null : () => _pickAndUploadImage(frameUrl),
-                      child: CircleAvatar(
-                        radius: 45,
-                        backgroundColor: const Color(0xFF1E222D),
-                        backgroundImage: profile.profilePicture != null 
-                            ? NetworkImage(_getAbsoluteUrl(profile.profilePicture!))
-                            : const NetworkImage('https://api.dicebear.com/7.x/avataaars/png?seed=Taekwondo') as ImageProvider,
-                      ),
-                    ),
-                    if (_isUploading)
-                      const CircularProgressIndicator(color: Colors.white),
-                    if (!_isUploading)
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: GestureDetector(
-                          onTap: () => _pickAndUploadImage(frameUrl),
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.blueAccent,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.camera_alt, color: Colors.white, size: 14),
-                          ),
+                  GestureDetector(
+                    onTap: _isUploading ? null : () => _pickAndUploadImage(frameUrl),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        width: 90,
+                        height: 90,
+                        color: const Color(0xFF1E222D),
+                        child: Image(
+                          image: profile.profilePicture != null 
+                              ? NetworkImage(_getAbsoluteUrl(profile.profilePicture!))
+                              : const NetworkImage('https://api.dicebear.com/7.x/avataaars/png?seed=Taekwondo') as ImageProvider,
+                          fit: BoxFit.cover,
                         ),
                       ),
-                  ],
+                    ),
+                  ),
+                  if (_isUploading)
+                    const CircularProgressIndicator(color: Colors.white),
+                  if (!_isUploading)
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: () => _pickAndUploadImage(frameUrl),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.blueAccent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 14),
+                        ),
+                      ),
+                    ),
+                ],
               ),
               // Frame Overlay on top
               if (frameUrl != null && frameUrl.isNotEmpty)
@@ -305,7 +312,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     width: 130, // Frame is larger than avatar
                     height: 130,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                      borderRadius: BorderRadius.circular(28),
                       image: DecorationImage(
                         image: NetworkImage(_getAbsoluteUrl(frameUrl)),
                         fit: BoxFit.cover,

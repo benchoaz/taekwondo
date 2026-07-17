@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:file_picker/file_picker.dart' as fp;
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'web_iframe_helper.dart';
+import '../../../core/network/firebase_messaging_service.dart';
 
 import '../../auth/domain/user_model.dart';
 import '../../auth/data/auth_provider.dart';
@@ -66,6 +67,20 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
   bool _isQuestSubmitting = false;
   bool _isUploadingVideo = false;
   final Map<String, dynamic> _ytControllers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // Inisialisasi FCM token perangkat saat aplikasi dibuka agar server selalu memiliki token terbaru
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        final fcmService = FirebaseMessagingService(ref.read(dioProvider));
+        fcmService.initNotifications(widget.user);
+      } catch (e) {
+        debugPrint("FCM Init failed on dashboard startup: $e");
+      }
+    });
+  }
 
   @override
   void dispose() {

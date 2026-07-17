@@ -102,6 +102,278 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     super.dispose();
   }
 
+  void _showSubmissionOptionDialogFromDashboard(dynamic qLog, Color themeColor) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E293B),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Metode Pengumpulan Bukti',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _uploadAndCompleteQuestFromDashboard(qLog);
+                  },
+                  icon: const Icon(Icons.upload_file, color: Colors.white),
+                  label: const Text('Unggah File Video (Otomatis Kompres)'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: themeColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _showLinkInputDialogFromDashboard(qLog);
+                  },
+                  icon: const Icon(Icons.link, color: Colors.white),
+                  label: const Text('Tempel Link Video (YouTube / GDrive)'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Color(0xFF475569), width: 1.5),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLinkInputDialogFromDashboard(dynamic qLog) {
+    final TextEditingController linkController = TextEditingController();
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF1E293B),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+                side: const BorderSide(color: Color(0xFF334155), width: 1.5),
+              ),
+              title: Text(
+                'Tempel Link Video',
+                style: GoogleFonts.spaceGrotesk(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Pastikan link video (Google Drive / YouTube) dapat diakses publik oleh pelatih.',
+                    style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF94A3B8)),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: linkController,
+                    keyboardType: TextInputType.url,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText: 'https://youtube.com/watch?v=... atau link Drive',
+                      hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
+                      filled: true,
+                      fillColor: const Color(0xFF0F172A),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Color(0xFF334155)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.blue),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting ? null : () => Navigator.pop(context),
+                  child: const Text('Batal', style: TextStyle(color: Color(0xFF94A3B8))),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          final link = linkController.text.trim();
+                          if (link.isEmpty || !link.startsWith('http')) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Masukkan URL link video yang valid.')),
+                            );
+                            return;
+                          }
+                          setDialogState(() {
+                            isSubmitting = true;
+                          });
+                          try {
+                            final questService = ref.read(questServiceProvider);
+                            await questService.completeQuest(qLog.id, videoUrl: link, notes: 'Pengumpulan lewat link: $link');
+                            
+                            ref.invalidate(questProvider);
+                            ref.invalidate(profileProvider);
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Tautan video berhasil dikirim!')),
+                              );
+                              setState(() {
+                                _expandedQuestId = null;
+                              });
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Gagal mengirim link: $e')),
+                              );
+                            }
+                          } finally {
+                            setDialogState(() {
+                              isSubmitting = false;
+                            });
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: Text(isSubmitting ? 'Mengirim...' : 'Kirim'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _uploadAndCompleteQuestFromDashboard(dynamic qLog) async {
+    if (_isUploadingVideo) return;
+    
+    fp.FilePickerResult? result = await fp.FilePicker.platform.pickFiles(
+      type: fp.FileType.video,
+      withData: true,
+    );
+
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _isUploadingVideo = true;
+      });
+
+      try {
+        final String originalPath = result.files.single.path!;
+        final String originalName = result.files.single.name;
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Sedang mengompres video agar lebih ringan, harap tunggu...'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+
+        // 1. Kompresi Video on-device
+        final MediaInfo? mediaInfo = await VideoCompress.compressVideo(
+          originalPath,
+          quality: VideoQuality.MediumQuality,
+          deleteOrigin: false,
+          includeAudio: true,
+        );
+
+        if (mediaInfo == null || mediaInfo.file == null) {
+          throw Exception('Gagal mengompres video.');
+        }
+
+        final Uint8List compressedBytes = await mediaInfo.file!.readAsBytes();
+        final String finalFileName = 'compressed_${originalName.split('.').first}.mp4';
+
+        final questService = ref.read(questServiceProvider);
+        
+        // 2. Upload video yang sudah dikompres dengan timeout 3 menit
+        final videoUrl = await questService.uploadVideo(compressedBytes, finalFileName);
+        
+        // 3. Selesaikan misi
+        await questService.completeQuest(qLog.id, videoUrl: videoUrl, notes: "Misi disetor lewat dashboard");
+        
+        await VideoCompress.deleteAllCache();
+
+        ref.invalidate(questProvider);
+        ref.invalidate(profileProvider);
+        if (mounted) {
+          setState(() {
+            _expandedQuestId = null;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Misi berhasil diselesaikan!')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          String errorMessage = 'Gagal mengirim video. Harap coba lagi.';
+          final errStr = e.toString().toLowerCase();
+          
+          if (errStr.contains('413') || errStr.contains('too large') || errStr.contains('connection abort') || errStr.contains('socketexception')) {
+            errorMessage = '⚠️ File video terlalu besar. Anda bisa mengompres video terlebih dahulu, atau mengunggah tautan/link video (Drive/Youtube) pada catatan pengumpulan.';
+          } else {
+            errorMessage = 'Error: $e';
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: const Color(0xFFE2241F),
+              duration: const Duration(seconds: 5),
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isUploadingVideo = false;
+          });
+        }
+      }
+    }
+  }
+
   String _getAbsoluteUrl(String? path) {
     if (path == null || path.isEmpty) return '';
     if (path.startsWith('http')) return path;
@@ -1583,37 +1855,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
             child: ElevatedButton.icon(
               onPressed: _isUploadingVideo
                   ? null
-                  : () async {
-                      fp.FilePickerResult? result = await fp.FilePicker.platform.pickFiles(
-                        type: fp.FileType.video,
-                        withData: true,
-                      );
-                      if (result != null && result.files.single.bytes != null) {
-                        setState(() => _isUploadingVideo = true);
-                        try {
-                          final fileBytes = result.files.single.bytes!;
-                          final fileName = result.files.single.name;
-                          
-                          final videoUrl = await ref.read(questServiceProvider).uploadVideo(fileBytes, fileName);
-                          await ref.read(questServiceProvider).completeQuest(log.id, videoUrl: videoUrl, notes: "Misi disetor lewat dashboard");
-                          
-                          ref.invalidate(questProvider);
-                          ref.invalidate(profileProvider);
-                          setState(() {
-                            _expandedQuestId = null;
-                            _isUploadingVideo = false;
-                          });
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Video berhasil dikirim. Menunggu persetujuan pelatih!')),
-                          );
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Gagal upload: $e')),
-                          );
-                          setState(() => _isUploadingVideo = false);
-                        }
-                      }
-                    },
+                  : () => _showSubmissionOptionDialogFromDashboard(log, themeColor),
               icon: Icon(
                 _isUploadingVideo ? Icons.hourglass_empty : Icons.upload_file,
                 color: Colors.white,

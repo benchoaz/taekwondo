@@ -171,7 +171,8 @@ export default function CoachDashboard({
           basics: cand.basicTechScore || 0,
           physical: cand.physicalScore || 0,
           theory: cand.theoryScore || 0,
-          finalScore: cand.finalScore || 0
+          finalScore: cand.finalScore || 0,
+          uploadedDocs: cand.uploadedDocs || {}, // Dokumen syarat UKT
         }));
         setCandidates(formatted);
         if (formatted.length > 0) setSelectedCandidate(formatted[0]);
@@ -1190,36 +1191,50 @@ export default function CoachDashboard({
                       Belum ada peserta UKT yang mendaftar.
                     </div>
                   ) : (
-                    candidates.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.id.toLowerCase().includes(searchTerm.toLowerCase())).map((cand, idx) => (
-                      <div key={idx} onClick={() => handleSelectCandidate(cand)}
-                        className={`bg-white border rounded-2xl p-5 flex items-center justify-between gap-4 cursor-pointer hover:shadow-sm transition-all ${selectedCandidate?.dbId === cand.dbId ? "border-[#E10600] ring-1 ring-[#E10600]/10" : "border-[#0F172A]/5"}`}>
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center font-bold text-gray-400 text-xs shrink-0">
-                            {cand.name.charAt(0)}
+                    candidates.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.id.toLowerCase().includes(searchTerm.toLowerCase())).map((cand, idx) => {
+                      const docsUploaded = Object.keys(cand.uploadedDocs || {}).length;
+                      return (
+                        <div key={idx} onClick={() => handleSelectCandidate(cand)}
+                          className={`bg-white border rounded-2xl p-4 flex items-center justify-between gap-3 cursor-pointer hover:shadow-sm transition-all ${selectedCandidate?.dbId === cand.dbId ? "border-[#E10600] ring-1 ring-[#E10600]/10" : "border-[#0F172A]/5"}`}>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center font-bold text-gray-400 text-xs shrink-0">
+                              {cand.name.charAt(0)}
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-sm text-[#0F172A]">{cand.name}</h4>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[9px] text-gray-400 font-mono">ID: {cand.id}</span>
+                                {docsUploaded > 0 ? (
+                                  <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded text-[8px] font-black">
+                                    📎 {docsUploaded} Dok
+                                  </span>
+                                ) : (
+                                  <span className="px-1.5 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded text-[8px] font-black">
+                                    ⚠️ No Dok
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-bold text-sm text-[#0F172A]">{cand.name}</h4>
-                            <span className="text-[9px] text-gray-400 font-mono">ID: {cand.id}</span>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right hidden sm:block">
+                              <span className="text-[9px] text-gray-400 uppercase font-bold block">Target</span>
+                              <span className="text-[10px] font-bold text-[#E10600]">{cand.targetBelt?.split(" (")[0]}</span>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-[9px] text-gray-400 uppercase font-bold block">Skor</span>
+                              <span className="font-black text-sm text-[#0F172A]">{cand.finalScore > 0 ? cand.finalScore.toFixed(1) : "—"}</span>
+                            </div>
+                            <span className={`px-2.5 py-1 rounded-full font-black text-[9px] uppercase tracking-wider ${
+                              cand.status === "APPROVED" ? "bg-green-50 text-green-600 border border-green-100" :
+                              cand.status === "FAILED" ? "bg-red-50 text-[#E10600] border border-red-100" : "bg-amber-50 text-amber-600 border border-amber-100"
+                            }`}>
+                              {cand.status === "APPROVED" ? "LULUS" : cand.status === "FAILED" ? "REMEDIAL" : "PENDING"}
+                            </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right hidden sm:block">
-                            <span className="text-[9px] text-gray-400 uppercase font-bold block">Target</span>
-                            <span className="text-[10px] font-bold text-[#E10600]">{cand.targetBelt?.split(" (")[0]}</span>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-[9px] text-gray-400 uppercase font-bold block">Skor</span>
-                            <span className="font-black text-sm text-[#0F172A]">{cand.finalScore > 0 ? cand.finalScore.toFixed(1) : "—"}</span>
-                          </div>
-                          <span className={`px-2.5 py-1 rounded-full font-black text-[9px] uppercase tracking-wider ${
-                            cand.status === "APPROVED" ? "bg-green-50 text-green-600 border border-green-100" :
-                            cand.status === "FAILED" ? "bg-red-50 text-[#E10600] border border-red-100" : "bg-amber-50 text-amber-600 border border-amber-100"
-                          }`}>
-                            {cand.status === "APPROVED" ? "LULUS" : cand.status === "FAILED" ? "REMEDIAL" : "PENDING"}
-                          </span>
-                        </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
 
@@ -1231,6 +1246,7 @@ export default function CoachDashboard({
                   </div>
                   {selectedCandidate ? (
                     <div className="flex flex-col gap-5">
+                      {/* Candidate Header */}
                       <div className="flex items-center gap-3 bg-slate-50 rounded-xl p-3">
                         <div className="w-9 h-9 rounded-full bg-[#E10600]/10 border border-[#E10600]/20 flex items-center justify-center font-bold text-[#E10600] text-xs shrink-0">
                           {selectedCandidate.name.charAt(0)}
@@ -1240,6 +1256,96 @@ export default function CoachDashboard({
                           <span className="text-[9px] text-gray-400">Target: {selectedCandidate.targetBelt}</span>
                         </div>
                       </div>
+
+                      {/* ══ VERIFIKASI DOKUMEN SYARAT UKT ══ */}
+                      <div className="border border-slate-100 rounded-2xl p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-black text-xs text-[#0F172A] flex items-center gap-1.5">
+                            <span>📋</span> Verifikasi Dokumen
+                          </h4>
+                          {Object.keys(selectedCandidate.uploadedDocs || {}).length > 0 ? (
+                            <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
+                              {Object.keys(selectedCandidate.uploadedDocs).length} Dokumen
+                            </span>
+                          ) : (
+                            <span className="text-[8px] font-black text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
+                              Belum Ada Dokumen
+                            </span>
+                          )}
+                        </div>
+
+                        {Object.keys(selectedCandidate.uploadedDocs || {}).length === 0 ? (
+                          <p className="text-[10px] text-gray-400 text-center py-2">⚠️ Peserta belum mengupload dokumen syarat.</p>
+                        ) : (
+                          <div className="flex flex-col gap-2 mb-3">
+                            {Object.entries(selectedCandidate.uploadedDocs).map(([docName, docUrl]: [string, any]) => (
+                              <div key={docName} className="flex items-center justify-between gap-2 bg-slate-50 rounded-lg p-2">
+                                <div className="flex items-center gap-2">
+                                  {/* Thumbnail jika gambar */}
+                                  {String(docUrl).match(/\.(jpg|jpeg|png|webp|gif)$/i) ? (
+                                    <img
+                                      src={docUrl}
+                                      alt={docName}
+                                      className="w-8 h-8 object-cover rounded border border-slate-200 shrink-0"
+                                    />
+                                  ) : (
+                                    <div className="w-8 h-8 bg-slate-200 rounded border border-slate-200 flex items-center justify-center text-slate-400 text-[10px] shrink-0">📄</div>
+                                  )}
+                                  <span className="text-[9px] font-bold text-[#0F172A] leading-tight">{docName}</span>
+                                </div>
+                                <a
+                                  href={docUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[8px] font-black text-blue-600 hover:text-blue-800 underline shrink-0"
+                                >
+                                  Lihat ↗
+                                </a>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Tombol Approve/Reject Dokumen */}
+                        {selectedCandidate.status === "PENDING" && (
+                          <div className="grid grid-cols-2 gap-2 mt-2">
+                            <button
+                              onClick={async () => {
+                                if (confirm(`Tolak pendaftaran UKT ${selectedCandidate.name}? Peserta perlu melengkapi dokumen ulang.`)) {
+                                  try {
+                                    const res = await fetch("/api/ukt/candidates", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ id: selectedCandidate.dbId, status: "FAILED" }),
+                                    });
+                                    if (res.ok) { alert("Pendaftaran ditolak."); fetchAllData(); }
+                                    else { const e = await res.json(); alert(`Gagal: ${e.error}`); }
+                                  } catch { alert("Gagal terhubung ke server."); }
+                                }
+                              }}
+                              className="bg-red-50 hover:bg-red-100 text-[#E10600] border border-red-100 py-2 rounded-xl font-bold text-[9px] transition-all"
+                            >
+                              ✕ Tolak Dokumen
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (Object.keys(selectedCandidate.uploadedDocs || {}).length === 0) {
+                                  alert("Peserta belum mengupload dokumen apapun!");
+                                  return;
+                                }
+                                if (confirm(`Setujui dokumen dan lanjut ke penilaian ujian untuk ${selectedCandidate.name}?`)) {
+                                  alert("✅ Dokumen disetujui. Lakukan penilaian skor di bawah saat hari ujian.");
+                                }
+                              }}
+                              className="bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-xl font-bold text-[9px] transition-all shadow-sm shadow-emerald-500/20"
+                            >
+                              ✓ Dokumen OK
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Score inputs */}
                       <div className="flex flex-col gap-3">
                         {[
                           { field: "poomsae", title: "POOMSAE (30%)", sub: "Taegeuk / Koryo", hint: "Keakuratan gerakan, kuda-kuda, ritme" },

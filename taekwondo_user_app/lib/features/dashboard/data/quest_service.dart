@@ -141,8 +141,9 @@ class QuestService {
 
     final cleanDio = Dio(BaseOptions(
       baseUrl: dio.options.baseUrl,
-      connectTimeout: dio.options.connectTimeout,
-      receiveTimeout: dio.options.receiveTimeout,
+      connectTimeout: const Duration(minutes: 3),
+      sendTimeout: const Duration(minutes: 3),
+      receiveTimeout: const Duration(minutes: 3),
     ));
     
     // Read JWT token directly from FlutterSecureStorage since main dio uses interceptor to set it at runtime

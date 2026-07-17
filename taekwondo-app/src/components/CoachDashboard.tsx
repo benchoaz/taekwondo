@@ -2135,7 +2135,18 @@ export default function CoachDashboard({
                             )}
                           </td>
                           <td className="p-4 text-xs text-gray-500 max-w-[200px] truncate" title={log.notes || "-"}>
-                            {log.notes || "-"}
+                            {log.notes && (log.notes.startsWith("http://") || log.notes.startsWith("https://") || log.notes.includes("http")) ? (
+                               <a 
+                                 href={log.notes.match(/https?:\/\/[^\s]+/)?.[0] || log.notes}
+                                 target="_blank" 
+                                 rel="noopener noreferrer"
+                                 className="text-blue-600 hover:text-blue-800 underline font-semibold"
+                               >
+                                 Buka Link ↗
+                               </a>
+                             ) : (
+                               log.notes || "-"
+                             )}
                           </td>
                           <td className="p-4 text-right">
                              {!log.completed ? (

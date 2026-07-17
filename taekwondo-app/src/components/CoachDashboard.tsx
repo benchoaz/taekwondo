@@ -86,6 +86,13 @@ export default function CoachDashboard({
   const [announceSendWA, setAnnounceSendWA] = useState(false);
   const [isSubmittingAnnounce, setIsSubmittingAnnounce] = useState(false);
 
+  // States for Attendance monitoring in Schedule
+  const [showAttendanceModal, setShowAttendanceModal] = useState(false);
+  const [selectedScheduleForAttendance, setSelectedScheduleForAttendance] = useState<any>(null);
+  const [attendanceRecords, setAttendanceRecords] = useState<any[]>([]);
+  const [loadingAttendance, setLoadingAttendance] = useState(false);
+  const [attendanceDateFilter, setAttendanceDateFilter] = useState(new Date().toISOString().split("T")[0]);
+
   // Belt order for sorting
   const beltOrder = [
     "Sabuk Putih", "Sabuk Kuning", "Kuning Strip Hijau",
@@ -235,6 +242,86 @@ export default function CoachDashboard({
       console.error("Error fetching quest logs:", e);
     } finally {
       setIsLoadingQuests(false);
+    }
+  };
+
+  const loadAttendanceRecords = async (schedule: any, dateStr: string) => {
+    setLoadingAttendance(true);
+    try {
+      // 1. Fetch attendance for this date
+      const res = await fetch(`/api/attendances?date=${dateStr}`);
+      let attendanceData: any[] = [];
+      if (res.ok) {
+        attendanceData = await res.json();
+      }
+      
+      // Filter attendance records that belong to this schedule
+      const matchedMap = new Map();
+      attendanceData.forEach((att: any) => {
+        if (att.scheduleId === schedule.id || !att.scheduleId) { // Fallback if scheduleId not mapped
+          matchedMap.set(att.memberId, att);
+        }
+      });
+
+      // 2. Map all members to attendance status
+      const records = allMembers.map((m: any) => {
+        const att = matchedMap.get(m.id || m.memberId);
+        return {
+          memberId: m.id || m.memberId,
+          name: m.fullName || m.name,
+          memberNumber: m.memberNumber || "—",
+          isPresent: att ? att.present : false,
+          checkInTime: att?.checkInTime ? new Date(att.checkInTime).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : null,
+          latitude: att?.latitude,
+          longitude: att?.longitude,
+        };
+      });
+
+      setAttendanceRecords(records);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingAttendance(false);
+    }
+  };
+
+  const handleToggleAttendance = async (memberId: string, currentPresent: boolean) => {
+    if (!selectedScheduleForAttendance) return;
+    
+    // Optimistic UI update
+    setAttendanceRecords(prev => prev.map(r => r.memberId === memberId ? {
+      ...r,
+      isPresent: !currentPresent,
+      checkInTime: !currentPresent ? new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : null
+    } : r));
+
+    try {
+      // API expects records format: { date, records: [{ memberId, present }] }
+      const payloadRecords = attendanceRecords.map(r => {
+        if (r.memberId === memberId) {
+          return { memberId, present: !currentPresent };
+        }
+        return { memberId: r.memberId, present: r.isPresent };
+      });
+
+      const res = await fetch("/api/attendances", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: attendanceDateFilter,
+          records: payloadRecords
+        })
+      });
+
+      if (!res.ok) {
+        alert("Gagal memperbarui absensi.");
+        // Rollback on failure
+        loadAttendanceRecords(selectedScheduleForAttendance, attendanceDateFilter);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan koneksi.");
+      loadAttendanceRecords(selectedScheduleForAttendance, attendanceDateFilter);
     }
   };
 
@@ -1620,6 +1707,16 @@ export default function CoachDashboard({
                               <div className="flex justify-end gap-2">
                                 <button
                                   onClick={() => {
+                                    setSelectedScheduleForAttendance(schedule);
+                                    setShowAttendanceModal(true);
+                                    loadAttendanceRecords(schedule, attendanceDateFilter);
+                                  }}
+                                  className="bg-emerald-50 text-emerald-600 px-2.5 py-1.5 rounded-lg font-bold text-[10px] cursor-pointer hover:bg-emerald-100"
+                                >
+                                  Absensi
+                                </button>
+                                <button
+                                  onClick={() => {
                                     const newClass = prompt("Edit Nama Kelas:", schedule.className);
                                     if (newClass === null) return;
                                     const newLoc = prompt("Edit Lokasi:", schedule.location);
@@ -2027,6 +2124,96 @@ export default function CoachDashboard({
 
         </main>
       </div>
+
+      {/* Modal: Kelola Absensi Latihan Murid */}
+      {showAttendanceModal && selectedScheduleForAttendance && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[28px] w-full max-w-xl p-6 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200 max-h-[85vh] flex flex-col">
+            <button 
+              onClick={() => setShowAttendanceModal(false)}
+              className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 cursor-pointer"
+            >
+              <XCircle className="w-5 h-5" />
+            </button>
+
+            <div className="mb-4">
+              <h3 className="text-lg font-black text-[#0F172A]">Kehadiran Murid</h3>
+              <p className="text-gray-400 text-xs mt-0.5">Kelas: <span className="text-[#E10600] font-bold">{selectedScheduleForAttendance.className}</span> ({selectedScheduleForAttendance.startTime} - {selectedScheduleForAttendance.endTime})</p>
+            </div>
+
+            {/* Date Filter */}
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-xl p-2.5 mb-4 w-fit">
+              <span className="text-[10px] font-bold uppercase text-gray-400">Tanggal:</span>
+              <input
+                type="date"
+                value={attendanceDateFilter}
+                onChange={(e) => {
+                  setAttendanceDateFilter(e.target.value);
+                  loadAttendanceRecords(selectedScheduleForAttendance, e.target.value);
+                }}
+                className="bg-transparent text-xs font-bold text-[#0F172A] outline-none"
+              />
+            </div>
+
+            {/* List Absensi */}
+            <div className="flex-1 overflow-y-auto min-h-[300px] border border-slate-100 rounded-2xl">
+              {loadingAttendance ? (
+                <div className="text-center text-gray-400 text-xs py-20 flex flex-col items-center gap-2">
+                  <RefreshCw className="w-5 h-5 animate-spin text-[#E10600]" />
+                  Memuat rekaman absensi...
+                </div>
+              ) : attendanceRecords.length === 0 ? (
+                <div className="text-center text-gray-400 text-xs py-20">Belum ada data siswa aktif.</div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {attendanceRecords.map((record) => (
+                    <div key={record.memberId} className="flex items-center justify-between p-3.5 hover:bg-slate-50/50 transition-colors">
+                      <div>
+                        <h4 className="font-bold text-xs text-[#0F172A]">{record.name}</h4>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[9px] text-gray-400 font-mono">No: {record.memberNumber}</span>
+                          {record.isPresent && record.checkInTime && (
+                            <span className="text-[8px] bg-slate-100 text-slate-500 font-bold px-1.5 py-0.5 rounded">
+                              ⏰ Check-in: {record.checkInTime}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {record.isPresent ? (
+                          <button
+                            onClick={() => handleToggleAttendance(record.memberId, true)}
+                            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-xl font-bold text-[10px] transition-all flex items-center gap-1 shadow-sm"
+                          >
+                            ✓ Hadir
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleToggleAttendance(record.memberId, false)}
+                            className="bg-slate-100 hover:bg-slate-200 text-gray-400 px-3 py-1.5 rounded-xl font-bold text-[10px] transition-all flex items-center gap-1"
+                          >
+                            ✗ Tidak Hadir
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-slate-100 text-right">
+              <button
+                onClick={() => setShowAttendanceModal(false)}
+                className="bg-[#E10600] text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-[#E10600]/15"
+              >
+                Selesai
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal: Tambah Siswa Baru */}
       {isAddMemberOpen && (

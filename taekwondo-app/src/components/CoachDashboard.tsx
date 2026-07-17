@@ -84,6 +84,7 @@ export default function CoachDashboard({
   const [announceTitle, setAnnounceTitle] = useState("");
   const [announceMessage, setAnnounceMessage] = useState("");
   const [announceSendWA, setAnnounceSendWA] = useState(false);
+  const [announceExpiryDate, setAnnounceExpiryDate] = useState("");
   const [isSubmittingAnnounce, setIsSubmittingAnnounce] = useState(false);
 
   // States for Attendance monitoring in Schedule
@@ -1986,6 +1987,18 @@ export default function CoachDashboard({
                   />
                 </div>
 
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-[#0F172A]">Tanggal Kadaluarsa Pengumuman (Opsional)</label>
+                  <input
+                    type="date"
+                    value={announceExpiryDate}
+                    onChange={(e) => setAnnounceExpiryDate(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                    className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600] w-full"
+                  />
+                  <p className="text-[10px] text-gray-400">Jika dikosongkan, pengumuman akan tampil selamanya di aplikasi murid sampai dihapus manual.</p>
+                </div>
+
                 <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-xl p-4">
                   <input
                     type="checkbox"
@@ -2016,13 +2029,15 @@ export default function CoachDashboard({
                         body: JSON.stringify({
                           title: announceTitle,
                           message: announceMessage,
-                          sendWhatsApp: announceSendWA
+                          sendWhatsApp: announceSendWA,
+                          expiresAt: announceExpiryDate ? new Date(announceExpiryDate).toISOString() : null
                         })
                       });
                       if (res.ok) {
                         alert("Pengumuman berhasil disebarkan!");
                         setAnnounceTitle("");
                         setAnnounceMessage("");
+                        setAnnounceExpiryDate("");
                         setAnnounceSendWA(false);
                       } else {
                         const err = await res.json();

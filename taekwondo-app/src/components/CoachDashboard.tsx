@@ -1377,6 +1377,74 @@ export default function CoachDashboard({
                           })()}
                         </div>
 
+                        {/* Status Pembayaran UKT Terintegrasi */}
+                        {(() => {
+                          const candidatePayment = payments.find(p => 
+                            p.memberId === selectedCandidate.dbId && 
+                            p.purpose?.toLowerCase().includes("ukt")
+                          ) || payments.find(p => 
+                            p.member?.fullName === selectedCandidate.name && 
+                            p.purpose?.toLowerCase().includes("ukt")
+                          );
+
+                          if (!candidatePayment) return null;
+
+                          return (
+                            <div className="mb-3 p-3 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between gap-3">
+                              <div>
+                                <span className="text-[8px] font-bold text-gray-400 uppercase block">Tagihan Pembayaran UKT</span>
+                                <span className="text-[10px] font-extrabold text-[#0F172A] block mt-0.5">Rp {candidatePayment.amount.toLocaleString("id-ID")}</span>
+                                {candidatePayment.paymentProofUrl && (
+                                  <a 
+                                    href={candidatePayment.paymentProofUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="text-[9px] text-blue-600 font-bold hover:underline mt-1 inline-block"
+                                  >
+                                    Lihat Bukti Bayar ↗
+                                  </a>
+                                )}
+                              </div>
+                              <div>
+                                {candidatePayment.status === "COMPLETED" ? (
+                                  <span className="px-2.5 py-1 bg-green-50 text-green-600 border border-green-100 rounded-full text-[9px] font-black uppercase">
+                                    LUNAS
+                                  </span>
+                                ) : (
+                                  <div className="flex flex-col items-end gap-1.5">
+                                    <span className="px-2 py-0.5 bg-amber-50 text-amber-600 border border-amber-100 rounded-full text-[8px] font-black uppercase">
+                                      Belum Valid
+                                    </span>
+                                    <button
+                                      onClick={async () => {
+                                        if (confirm(`Validasi pembayaran UKT Rp ${candidatePayment.amount.toLocaleString("id-ID")} untuk ${selectedCandidate.name}?`)) {
+                                          try {
+                                            const res = await fetch(`/api/payments/${candidatePayment.id}/validate`, {
+                                              method: "POST"
+                                            });
+                                            if (res.ok) {
+                                              alert("✅ Pembayaran UKT berhasil diverifikasi!");
+                                              fetchAllData();
+                                            } else {
+                                              const errData = await res.json();
+                                              alert(`Gagal memverifikasi: ${errData.error || "Kesalahan tidak dikenal"}`);
+                                            }
+                                          } catch {
+                                            alert("Gagal menghubungi server.");
+                                          }
+                                        }
+                                      }}
+                                      className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[9px] px-2.5 py-1 rounded-lg shadow transition-all cursor-pointer"
+                                    >
+                                      Sahkan ✓
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })()}
+
                         {/* Checklist persyaratan dinamis */}
                         <div className="flex flex-col gap-1.5 mb-3">
                           {uktDocRequirements.length === 0 ? (
@@ -1479,50 +1547,77 @@ export default function CoachDashboard({
                         )}
                       </div>
 
-                      {/* Score inputs */}
-                      <div className="flex flex-col gap-3">
-                        {[
-                          { field: "poomsae", title: "POOMSAE (30%)", sub: "Taegeuk / Koryo", hint: "Keakuratan gerakan, kuda-kuda, ritme" },
-                          { field: "kyorugi", title: "KYORUGI (30%)", sub: "Pertarungan Bebas", hint: "Refleks, taktik, variasi tendangan" },
-                          { field: "basics", title: "TEKNIK DASAR (20%)", sub: "Kibon Dongjak", hint: "Ketepatan, kekuatan, kelenturan" },
-                          { field: "physical", title: "FISIK (10%)", sub: "Push-up, Sit-up, Fleksibilitas", hint: "Stamina dan kondisi fisik umum" },
-                          { field: "theory", title: "TEORI (10%)", sub: "Terminologi & Etika", hint: "Hafalan, kosakata, sikap hormat" },
-                        ].map((item) => (
-                          <div key={item.field} className="border border-slate-100 rounded-xl p-3.5 flex items-center justify-between gap-3">
-                            <div className="flex-grow">
-                              <span className="block font-bold text-[9px] text-slate-700 uppercase tracking-wide">{item.title}</span>
-                              <span className="text-[8px] text-gray-400 block">{item.sub}</span>
+                      {/* Score inputs - Blocked if UKT payment not completed */}
+                      {(() => {
+                        const candidatePayment = payments.find(p => 
+                          p.memberId === selectedCandidate.dbId && 
+                          p.purpose?.toLowerCase().includes("ukt")
+                        ) || payments.find(p => 
+                          p.member?.fullName === selectedCandidate.name && 
+                          p.purpose?.toLowerCase().includes("ukt")
+                        );
+                        
+                        const isPaid = !candidatePayment || candidatePayment.status === "COMPLETED";
+
+                        if (!isPaid) {
+                          return (
+                            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 text-center">
+                              <span className="text-amber-500 text-base block">⚠️ Pembayaran Belum Lunas</span>
+                              <p className="text-[10px] text-amber-600 mt-1 leading-normal">
+                                Nilai ujian belum dapat diinput karena pembayaran UKT peserta ini belum diverifikasi/lunas. Harap sahkan bukti pembayaran di atas terlebih dahulu.
+                              </p>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <input
-                                type="number" min="0" max="100"
-                                value={selectedCandidate[item.field]}
-                                onChange={(e) => handleScoreChange(item.field, Number(e.target.value))}
-                                className="bg-white border border-[#0F172A]/10 rounded-lg px-2 py-1.5 text-xs font-bold text-[#0F172A] w-14 text-center outline-none focus:ring-2 focus:ring-[#E10600]"
-                              />
-                              <span className="text-[9px] text-gray-400">/100</span>
+                          );
+                        }
+
+                        return (
+                          <>
+                            <div className="flex flex-col gap-3">
+                              {[
+                                { field: "poomsae", title: "POOMSAE (30%)", sub: "Taegeuk / Koryo", hint: "Keakuratan gerakan, kuda-kuda, ritme" },
+                                { field: "kyorugi", title: "KYORUGI (30%)", sub: "Pertarungan Bebas", hint: "Refleks, taktik, variasi tendangan" },
+                                { field: "basics", title: "TEKNIK DASAR (20%)", sub: "Kibon Dongjak", hint: "Ketepatan, kekuatan, kelenturan" },
+                                { field: "physical", title: "FISIK (10%)", sub: "Push-up, Sit-up, Fleksibilitas", hint: "Stamina dan kondisi fisik umum" },
+                                { field: "theory", title: "TEORI (10%)", sub: "Terminologi & Etika", hint: "Hafalan, kosakata, sikap hormat" },
+                              ].map((item) => (
+                                <div key={item.field} className="border border-slate-100 rounded-xl p-3.5 flex items-center justify-between gap-3">
+                                  <div className="flex-grow">
+                                    <span className="block font-bold text-[9px] text-slate-700 uppercase tracking-wide">{item.title}</span>
+                                    <span className="text-[8px] text-gray-400 block">{item.sub}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <input
+                                      type="number" min="0" max="100"
+                                      value={selectedCandidate[item.field]}
+                                      onChange={(e) => handleScoreChange(item.field, Number(e.target.value))}
+                                      className="bg-white border border-[#0F172A]/10 rounded-lg px-2 py-1.5 text-xs font-bold text-[#0F172A] w-14 text-center outline-none focus:ring-2 focus:ring-[#E10600]"
+                                    />
+                                    <span className="text-[9px] text-gray-400">/100</span>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="pt-4 border-t border-slate-100 text-center">
-                        <span className="text-[9px] text-gray-400 uppercase font-bold tracking-wider">Nilai Akhir (Berbobot)</span>
-                        <span className={`font-black text-4xl block my-2 ${calculatedScore >= 70 ? "text-green-600" : calculatedScore >= 50 ? "text-amber-600" : "text-[#E10600]"}`}>
-                          {calculatedScore.toFixed(1)}
-                        </span>
-                        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-1">
-                          <div className={`h-full rounded-full transition-all ${calculatedScore >= 70 ? "bg-green-500" : calculatedScore >= 50 ? "bg-amber-500" : "bg-[#E10600]"}`} style={{ width: `${calculatedScore}%` }} />
-                        </div>
-                        <p className="text-[9px] text-gray-400 mb-5">Nilai kelulusan minimum: 70.0</p>
-                        <div className="grid grid-cols-2 gap-3">
-                          <button onClick={() => handleSubmitGrading("FAILED")} className="bg-slate-100 hover:bg-slate-200 text-gray-600 py-3 rounded-xl font-bold text-xs transition-all">
-                            Remedial / Gagal
-                          </button>
-                          <button onClick={() => handleSubmitGrading("APPROVED")} className="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold text-xs transition-all shadow-md shadow-green-500/20">
-                            ✓ Nyatakan Lulus
-                          </button>
-                        </div>
-                      </div>
+                            <div className="pt-4 border-t border-slate-100 text-center">
+                              <span className="text-[9px] text-gray-400 uppercase font-bold tracking-wider">Nilai Akhir (Berbobot)</span>
+                              <span className={`font-black text-4xl block my-2 ${calculatedScore >= 70 ? "text-green-600" : calculatedScore >= 50 ? "text-amber-600" : "text-[#E10600]"}`}>
+                                {calculatedScore.toFixed(1)}
+                              </span>
+                              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mb-1">
+                                <div className={`h-full rounded-full transition-all ${calculatedScore >= 70 ? "bg-green-500" : calculatedScore >= 50 ? "bg-amber-500" : "bg-[#E10600]"}`} style={{ width: `${calculatedScore}%` }} />
+                              </div>
+                              <p className="text-[9px] text-gray-400 mb-5">Nilai kelulusan minimum: 70.0</p>
+                              <div className="grid grid-cols-2 gap-3">
+                                <button onClick={() => handleSubmitGrading("FAILED")} className="bg-slate-100 hover:bg-slate-200 text-gray-600 py-3 rounded-xl font-bold text-xs transition-all">
+                                  Remedial / Gagal
+                                </button>
+                                <button onClick={() => handleSubmitGrading("APPROVED")} className="bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold text-xs transition-all shadow-md shadow-green-500/20">
+                                  ✓ Nyatakan Lulus
+                                </button>
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   ) : (
                     <div className="text-center py-12 text-gray-400 text-xs">Pilih peserta dari daftar untuk mulai menilai.</div>

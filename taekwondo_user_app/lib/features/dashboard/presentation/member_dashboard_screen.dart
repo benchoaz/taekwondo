@@ -507,9 +507,16 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       completedQuests = questsAsync.value!.where((q) => q.completed).length;
     }
 
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(profileProvider);
+        ref.invalidate(shopDataProvider);
+      },
+      color: themeColor,
+      backgroundColor: cardBg,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -971,8 +978,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildGridMenuButton({
     required IconData icon,
@@ -1454,7 +1462,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                           ),
                         ),
                       );
-                    }).toList(),
+                    }),
                   ] else ...[
                     // Tipe Kuis Isian/Tulis Teks
                     Container(
@@ -1792,7 +1800,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                               ),
                                               if (quest.videoUrl != null && quest.videoUrl!.isNotEmpty && !quest.requireVideo) ...[
                                                 const SizedBox(width: 6),
-                                                Text('📹', style: const TextStyle(fontSize: 10)),
+                                                const Text('📹', style: TextStyle(fontSize: 10)),
                                               ]
                                             ],
                                           ),

@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../auth/domain/user_model.dart';
 import '../data/quest_service.dart';
+import '../../profile/data/profile_service.dart';
 
 // Neo-Brutalism Theme Colors
 const Color nbSurface = Color(0xFFF8F9FA);
@@ -83,8 +84,9 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
         // 2. Complete quest
         await questService.completeQuest(qLog.id, videoUrl: videoUrl);
         
-        // Refresh provider
+        // Refresh quest & profile (coins/XP update)
         ref.invalidate(questProvider);
+        ref.invalidate(profileProvider);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Misi berhasil diselesaikan!')),
@@ -123,6 +125,7 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
     try {
       await ref.read(questServiceProvider).completeQuest(qLog.id);
       ref.invalidate(questProvider);
+      ref.invalidate(profileProvider); // Update XP & coins setelah misi selesai
     } catch (e) {
        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -210,7 +213,7 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
                           ),
                         ),
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               ),
@@ -238,6 +241,7 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
                               [selectedOption!],
                             );
                             ref.invalidate(questProvider);
+                            ref.invalidate(profileProvider); // Update XP & coins setelah kuis selesai
                             if (context.mounted) {
                               Navigator.pop(context);
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -250,7 +254,7 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
                           } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
+                                const SnackBar(
                                   backgroundColor: nbSecondary,
                                   content: Text('Jawaban salah! Silakan coba lagi.'),
                                 ),

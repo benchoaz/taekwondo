@@ -593,6 +593,62 @@ class _UktScreenState extends ConsumerState<UktScreen> {
             loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFE10600))),
             error: (e, s) => Text('Gagal memuat list syarat: $e', style: const TextStyle(color: Colors.red)),
           ),
+          if (reg.status == 'FAILED') ...[
+            const SizedBox(height: 20),
+            const Divider(color: Color(0xFF334155)),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  // Konfirmasi pembatalan & daftar ulang
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: const Color(0xFF1E293B),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: const BorderSide(color: Color(0xFF334155), width: 1.5),
+                      ),
+                      title: Text('Daftar Ulang UKT', style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold)),
+                      content: Text('Apakah Anda ingin membatalkan pendaftaran yang ditolak ini dan melakukan pendaftaran ulang?', style: GoogleFonts.inter(color: const Color(0xFF94A3B8))),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: Text('Batal', style: GoogleFonts.spaceGrotesk(color: const Color(0xFF94A3B8))),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE10600)),
+                          child: Text('Ya, Daftar Ulang', style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirm == true && mounted) {
+                    final res = await ref.read(uktRegisterProvider).cancelRegistration(memberId: widget.user.id);
+                    if (res['success'] == true && mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Pendaftaran sebelumnya dibatalkan. Silakan lakukan daftar ulang.'), backgroundColor: Colors.green),
+                      );
+                    } else if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(res['message'] ?? 'Gagal memproses pendaftaran ulang.'), backgroundColor: Colors.red),
+                      );
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFE10600),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                label: Text('Daftar Ulang UKT', style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
         ],
       ),
     );

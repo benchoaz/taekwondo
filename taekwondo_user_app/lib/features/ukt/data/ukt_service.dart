@@ -88,6 +88,28 @@ class UktRegistrationService {
       return false;
     }
   }
+
+  /// Membatalkan pendaftaran UKT yang FAILED agar murid bisa mendaftar ulang
+  Future<Map<String, dynamic>> cancelRegistration({
+    required String memberId,
+  }) async {
+    try {
+      final response = await dio.post('/ukt/cancel', data: {
+        'memberId': memberId,
+      });
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        ref.invalidate(uktStatusProvider(memberId));
+        return {'success': true, 'message': response.data['message']};
+      }
+      return {'success': false, 'message': response.data['error'] ?? 'Gagal membatalkan pendaftaran.'};
+    } on DioException catch (e) {
+      final msg = e.response?.data?['error'] ?? 'Gagal membatalkan pendaftaran. Coba lagi.';
+      return {'success': false, 'message': msg};
+    } catch (e) {
+      return {'success': false, 'message': 'Terjadi kesalahan: $e'};
+    }
+  }
 }
 
 /// Provider untuk mengambil list persyaratan dokumen dari setting dojang

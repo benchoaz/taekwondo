@@ -43,13 +43,13 @@ export async function GET(req: NextRequest) {
       ]
     });
 
-    // Resolve validator name: prefer User.name, fallback to Coach.fullName
+    // Resolve validator name: prefer Coach.fullName, fallback to User.name
     const resolved = invoices.map((inv: any) => {
       if (inv.payment?.receiver) {
         const r = inv.payment.receiver;
         inv.payment.receiver = {
           ...r,
-          name: r.name || r.coach?.fullName || null
+          name: r.coach?.fullName || r.name || "Pelatih / Admin"
         };
       }
       return inv;

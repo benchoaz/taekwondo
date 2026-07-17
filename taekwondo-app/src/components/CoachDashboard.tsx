@@ -902,8 +902,8 @@ export default function CoachDashboard({
                 <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-6 shadow-sm lg:col-span-2 flex flex-col gap-6">
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-black text-sm text-[#0F172A]">⚠️ Verifikasi Pembayaran SPP (Manual)</h3>
-                      <span className="text-[10px] text-gray-400 font-bold">{pendingPayments.length} pending</span>
+                      <h3 className="font-black text-sm text-[#0F172A]">⚠️ Verifikasi Pembayaran (SPP & UKT)</h3>
+                      <span className="text-[10px] text-gray-400 font-bold">{pendingPayments.length} menunggu validasi</span>
                     </div>
                     {pendingPayments.length === 0 ? (
                       <div className="bg-green-50/50 border border-green-100 rounded-2xl p-4 text-center">
@@ -915,48 +915,73 @@ export default function CoachDashboard({
                           <thead>
                             <tr className="text-gray-400 font-bold uppercase border-b border-slate-100">
                               <th className="pb-2 text-left">Siswa</th>
-                              <th className="pb-2 text-left">Jenis Tagihan</th>
+                              <th className="pb-2 text-left">Jenis</th>
                               <th className="pb-2 text-left">Nominal</th>
-                              <th className="pb-2 text-left">Status</th>
+                              <th className="pb-2 text-left">Bukti</th>
                               <th className="pb-2 text-right">Aksi</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {pendingPayments.slice(0, 5).map((p, idx) => (
-                              <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50/50">
-                                <td className="py-2.5 font-bold text-[#0F172A]">{p.member?.fullName || "—"}</td>
-                                <td className="py-2.5 text-gray-500">{p.purpose}</td>
-                                <td className="py-2.5 font-bold text-[#0F172A]">Rp {(p.amount || 0).toLocaleString("id-ID")}</td>
-                                <td className="py-2.5">
-                                  <span className="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full font-black text-[9px] uppercase">Menunggu</span>
-                                </td>
-                                <td className="py-2.5 text-right">
-                                  <button
-                                    onClick={async () => {
-                                      if (confirm(`Apakah Anda yakin ingin memvalidasi pembayaran SPP untuk ${p.member?.fullName || "murid"} sebesar Rp ${(p.amount || 0).toLocaleString("id-ID")} secara manual? Tindakan ini akan dicatat atas nama Anda.`)) {
-                                        try {
-                                          const res = await fetch(`/api/payments/${p.id}/validate`, {
-                                            method: "POST"
-                                          });
-                                          if (res.ok) {
-                                            alert("Pembayaran berhasil diverifikasi secara manual!");
-                                            fetchAllData();
-                                          } else {
-                                            const errData = await res.json();
-                                            alert(`Gagal memverifikasi: ${errData.error || "Kesalahan tidak dikenal"}`);
+                            {pendingPayments.slice(0, 10).map((p, idx) => {
+                              const isUKT = (p.purpose || "").toLowerCase().includes("ukt");
+                              const isSPP = (p.purpose || "").toLowerCase().includes("spp");
+                              const badgeClass = isUKT
+                                ? "bg-purple-50 text-purple-700 border border-purple-100"
+                                : isSPP
+                                ? "bg-blue-50 text-blue-700 border border-blue-100"
+                                : "bg-slate-50 text-slate-500 border border-slate-100";
+                              const badgeLabel = isUKT ? "UKT" : isSPP ? "SPP" : "Lainnya";
+                              return (
+                                <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50/50">
+                                  <td className="py-2.5 font-bold text-[#0F172A]">{p.member?.fullName || "—"}</td>
+                                  <td className="py-2.5">
+                                    <span className={`px-2 py-0.5 rounded-full font-black text-[9px] uppercase ${badgeClass}`}>
+                                      {badgeLabel}
+                                    </span>
+                                  </td>
+                                  <td className="py-2.5 font-bold text-[#0F172A]">Rp {(p.amount || 0).toLocaleString("id-ID")}</td>
+                                  <td className="py-2.5">
+                                    {p.paymentProofUrl ? (
+                                      <a
+                                        href={p.paymentProofUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 underline font-bold text-[9px] hover:text-blue-800"
+                                      >
+                                        Lihat Bukti ↗
+                                      </a>
+                                    ) : (
+                                      <span className="text-gray-300 text-[9px]">Belum upload</span>
+                                    )}
+                                  </td>
+                                  <td className="py-2.5 text-right">
+                                    <button
+                                      onClick={async () => {
+                                        if (confirm(`Validasi pembayaran ${badgeLabel} untuk ${p.member?.fullName || "murid"} sebesar Rp ${(p.amount || 0).toLocaleString("id-ID")}?\n\nTindakan ini akan dicatat atas nama Anda.`)) {
+                                          try {
+                                            const res = await fetch(`/api/payments/${p.id}/validate`, {
+                                              method: "POST"
+                                            });
+                                            if (res.ok) {
+                                              alert(`✅ Pembayaran ${badgeLabel} berhasil diverifikasi!`);
+                                              fetchAllData();
+                                            } else {
+                                              const errData = await res.json();
+                                              alert(`Gagal memverifikasi: ${errData.error || "Kesalahan tidak dikenal"}`);
+                                            }
+                                          } catch (e) {
+                                            alert(`Gagal menghubungi server: ${e}`);
                                           }
-                                        } catch (e) {
-                                          alert(`Gagal menghubungi server: ${e}`);
                                         }
-                                      }
-                                    }}
-                                    className="bg-green-600 hover:bg-green-700 text-white font-extrabold text-[9px] uppercase px-2.5 py-1.5 rounded-lg inline-flex items-center gap-1.5 transition-all shadow-sm shadow-green-600/10 cursor-pointer"
-                                  >
-                                    <Check className="w-3 h-3" /> Tandai Lunas
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
+                                      }}
+                                      className="bg-green-600 hover:bg-green-700 text-white font-extrabold text-[9px] uppercase px-2.5 py-1.5 rounded-lg inline-flex items-center gap-1.5 transition-all shadow-sm shadow-green-600/10 cursor-pointer"
+                                    >
+                                      <Check className="w-3 h-3" /> Tandai Lunas
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>

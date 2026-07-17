@@ -67,7 +67,7 @@ export default function SppManagement() {
 
   const fetchProfile = async () => {
     try {
-      const res = await fetch("/api/profile");
+      const res = await fetch("/api/users/me");
       if (res.ok) {
         const data = await res.json();
         if (data && data.role) {

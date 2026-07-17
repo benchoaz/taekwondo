@@ -65,4 +65,45 @@ class UktRegistrationService {
       return {'success': false, 'message': 'Terjadi kesalahan: $e'};
     }
   }
+
+  /// Memperbarui dokumen yang sudah diunggah di database
+  Future<bool> updateUktDocument({
+    required String memberId,
+    required String docName,
+    required String docUrl,
+  }) async {
+    try {
+      final response = await dio.post('/ukt/upload-doc', data: {
+        'memberId': memberId,
+        'docName': docName,
+        'docUrl': docUrl,
+      });
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        ref.invalidate(uktStatusProvider(memberId));
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
 }
+
+/// Provider untuk mengambil list persyaratan dokumen dari setting dojang
+final uktRequirementsProvider = FutureProvider<List<String>>((ref) async {
+  final dio = ref.watch(dioProvider);
+  try {
+    final response = await dio.get('/settings');
+    if (response.statusCode == 200) {
+      final reqs = response.data['uktRequirements'];
+      if (reqs is List) {
+        return reqs.map((e) => e.toString()).toList();
+      }
+    }
+  } catch (e) {
+    // Fallback jika gagal
+  }
+  return ["Surat Izin Orang Tua", "Foto Selfie 3x4"];
+});
+

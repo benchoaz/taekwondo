@@ -5,6 +5,9 @@ import 'package:intl/intl.dart';
 import '../../auth/domain/user_model.dart';
 import '../data/ukt_service.dart';
 import '../domain/ukt_model.dart';
+import 'package:file_picker/file_picker.dart' as fp;
+import 'package:http_parser/http_parser.dart';
+import 'package:dio/dio.dart';
 
 class UktScreen extends ConsumerStatefulWidget {
   final UserModel user;
@@ -67,6 +70,92 @@ class _UktScreenState extends ConsumerState<UktScreen> {
             backgroundColor: Colors.red,
           ),
         );
+      }
+    }
+  }
+
+  // State untuk melacak berkas yang sedang di-upload
+  String? _uploadingDocName;
+
+  Future<void> _pickAndUploadDocument(String docName) async {
+    setState(() {
+      _uploadingDocName = docName;
+    });
+
+    try {
+      fp.FilePickerResult? result = await fp.FilePicker.platform.pickFiles(
+        type: fp.FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        final filePath = result.files.single.path!;
+        final fileName = result.files.single.name;
+        
+        // 1. Upload file ke endpoint /profile/upload untuk mendapatkan URL
+        final dio = Dio(BaseOptions(baseUrl: widget.user.token != null ? '' : '')); // dynamic URL
+        // We reuse request settings from global dio client
+        final uploadDio = Dio();
+        // Set authorization token if exists
+        if (widget.user.token != null) {
+          uploadDio.options.headers['Authorization'] = 'Bearer ${widget.user.token}';
+        }
+        
+        // Local base URL fallback logic
+        final base = widget.user.token != null ? 'https://whitetigerkraksaan.com/api' : 'http://10.0.2.2:3030/api'; 
+        
+        String ext = fileName.split('.').last.toLowerCase();
+        String mimeType = ext == 'pdf' ? 'application/pdf' : 'image/jpeg';
+        if (ext == 'png') mimeType = 'image/png';
+
+        FormData formData = FormData.fromMap({
+          'file': await MultipartFile.fromFile(
+            filePath,
+            filename: fileName,
+            contentType: MediaType.parse(mimeType),
+          ),
+        });
+
+        final uploadRes = await uploadDio.post(
+          '$base/profile/upload',
+          data: formData,
+          options: Options(
+            headers: {'Content-Type': 'multipart/form-data'},
+          ),
+        );
+
+        if (uploadRes.statusCode == 200 && uploadRes.data['url'] != null) {
+          final fileUrl = uploadRes.data['url'].toString();
+
+          // 2. Kirim URL berkas ke API UKT
+          final success = await ref.read(uktRegisterProvider).updateUktDocument(
+            memberId: widget.user.id,
+            docName: docName,
+            docUrl: fileUrl,
+          );
+
+          if (success && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('✅ Dokumen "$docName" berhasil diunggah!'), backgroundColor: Colors.green),
+            );
+          } else if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('❌ Gagal menyimpan data dokumen.'), backgroundColor: Colors.red),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('❌ Terjadi kesalahan: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _uploadingDocName = null;
+        });
       }
     }
   }
@@ -408,9 +497,11 @@ class _UktScreenState extends ConsumerState<UktScreen> {
   }
 
   // ─────────────────────────────────────────────────────
-  // WIDGET: Card menunggu approval
+  // WIDGET: Card menunggu approval & Upload Dokumen
   // ─────────────────────────────────────────────────────
   Widget _buildWaitingApprovalCard(UktParticipant reg) {
+    final reqsAsync = ref.watch(uktRequirementsProvider);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -427,23 +518,82 @@ class _UktScreenState extends ConsumerState<UktScreen> {
           _buildDetailRow('Sabuk Saat Ini', widget.user.currentBelt ?? 'Sabuk Putih'),
           _buildDetailRow('Sabuk Target', reg.targetBelt),
           _buildDetailRow('Status Verifikasi', reg.status),
-          if (reg.uploadedDocs.isNotEmpty) ...[  
-            const SizedBox(height: 12),
-            const Divider(color: Color(0xFF334155)),
-            const SizedBox(height: 8),
-            Text('Dokumen Terupload', style: GoogleFonts.spaceGrotesk(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            ...reg.uploadedDocs.entries.map((e) => Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: Row(
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.green, size: 14),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text(e.key, style: GoogleFonts.inter(color: Colors.white70, fontSize: 12))),
-                ],
-              ),
-            )),
-          ],
+          const SizedBox(height: 12),
+          const Divider(color: Color(0xFF334155)),
+          const SizedBox(height: 8),
+          
+          Text('Dokumen Persyaratan', style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          
+          reqsAsync.when(
+            data: (reqList) {
+              return Column(
+                children: reqList.map((docName) {
+                  final fileUrl = reg.uploadedDocs[docName];
+                  final hasFile = fileUrl != null && fileUrl.isNotEmpty;
+                  final isUploadingThis = _uploadingDocName == docName;
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0F172A),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: hasFile ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.1)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.between,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(docName, style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 3),
+                              Text(
+                                hasFile ? 'Sudah diunggah' : 'Belum diunggah',
+                                style: GoogleFonts.inter(color: hasFile ? Colors.green : Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isUploadingThis)
+                          const SizedBox(
+                            width: 20, height: 20,
+                            child: CircularProgressIndicator(color: Color(0xFFE10600), strokeWidth: 2),
+                          )
+                        else if (hasFile)
+                          Row(
+                            children: [
+                              const Icon(Icons.check_circle, color: Colors.green, size: 16),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.replay, color: Colors.white54, size: 16),
+                                onPressed: () => _pickAndUploadDocument(docName),
+                                tooltip: 'Unggah Ulang',
+                              )
+                            ],
+                          )
+                        else
+                          ElevatedButton.icon(
+                            onPressed: () => _pickAndUploadDocument(docName),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFE10600),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            icon: const Icon(Icons.upload, color: Colors.white, size: 12),
+                            label: Text('Upload', style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFE10600))),
+            error: (e, s) => Text('Gagal memuat list syarat: $e', style: const TextStyle(color: Colors.red)),
+          ),
         ],
       ),
     );

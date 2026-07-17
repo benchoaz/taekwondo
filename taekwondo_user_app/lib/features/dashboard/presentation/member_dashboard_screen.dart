@@ -350,10 +350,14 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
           String errorMessage = 'Gagal mengirim video. Harap coba lagi.';
           final errStr = e.toString().toLowerCase();
           
-          if (errStr.contains('413') || errStr.contains('too large') || errStr.contains('connection abort') || errStr.contains('socketexception')) {
-            errorMessage = '⚠️ File video terlalu besar. Anda bisa mengompres video terlebih dahulu, atau mengunggah tautan/link video (Drive/Youtube) pada catatan pengumpulan.';
+          if (errStr.contains('timeout')) {
+            errorMessage = '⚠️ Waktu unggah habis (Timeout). Koneksi internet Anda tidak stabil atau lambat. Silakan gunakan link video Drive/YouTube saja.';
+          } else if (errStr.contains('413') || errStr.contains('too large')) {
+            errorMessage = '⚠️ Ukuran file video terlalu besar bagi server. Silakan gunakan link video Drive/YouTube saja.';
+          } else if (errStr.contains('connection abort') || errStr.contains('socketexception') || errStr.contains('network_error')) {
+            errorMessage = '⚠️ Koneksi internet terputus di tengah jalan. Silakan periksa jaringan internet Anda atau kumpulkan lewat link video.';
           } else {
-            errorMessage = 'Error: $e';
+            errorMessage = '⚠️ Gagal: $e. Coba kumpulkan menggunakan link video.';
           }
 
           ScaffoldMessenger.of(context).showSnackBar(

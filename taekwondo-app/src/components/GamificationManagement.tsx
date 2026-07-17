@@ -474,7 +474,7 @@ export default function GamificationManagement() {
 
                   <div className="col-span-2 space-y-1.5">
                     <label className="text-sm font-bold text-slate-700">CSS Injector (Penerapan Gaya di App)</label>
-                    <input type="text" placeholder="Contoh: border: 3px solid #3b82f6; box-shadow: 0 0 10px #3b82f6;" value={formData.cssValue} onChange={e => setFormData({...formData, cssValue: e.target.value})} className="w-full bg-slate-900 border border-slate-800 text-slate-300 font-mono rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none transition-all" />
+                    <input type="text" placeholder="Contoh: border: 3px solid #3b82f6; border-radius: 12px; box-shadow: 0 0 10px #3b82f6;" value={formData.cssValue} onChange={e => setFormData({...formData, cssValue: e.target.value})} className="w-full bg-slate-900 border border-slate-800 text-slate-300 font-mono rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none transition-all" />
                     <p className="text-xs text-slate-500 mt-1.5">Sintaks CSS yang akan dirender langsung oleh aplikasi (*engine* profil).</p>
                   </div>
                 </div>

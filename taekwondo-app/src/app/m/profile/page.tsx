@@ -114,7 +114,8 @@ export default function ProfilePage() {
                   style={{
                     border: `2px solid rgba(255,255,255,0.2)`,
                     boxShadow: `0 0 16px ${beltColor}40`,
-                    ...customStyle
+                    ...customStyle,
+                    borderRadius: '1rem', // Selalu kunci ke sudut tumpul kotak dojang 16px
                   }}
                 >
                   <User className="w-8 h-8 text-white drop-shadow" />

@@ -96,6 +96,36 @@ export async function POST(request: Request) {
             updated.amount
           );
         }
+
+        // Kirim Push Notification ke HP Siswa
+        try {
+          const { notifyUser } = await import("@/lib/notify");
+          const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+          const monthName = monthNames[updated.sppInvoice.month - 1];
+          await notifyUser({
+            title: "Pembayaran SPP Lunas! ✅",
+            message: `Pembayaran SPP untuk bulan ${monthName} ${updated.sppInvoice.year} sebesar Rp ${updated.amount.toLocaleString("id-ID")} telah dikonfirmasi oleh pelatih. Terima kasih!`,
+            type: "SPP",
+            userId: updated.member.userId,
+            link: "/m/spp"
+          });
+        } catch (err) {
+          console.error("FCM SPP notify error:", err);
+        }
+      } else if (status === "COMPLETED") {
+        // Kirim Push Notification untuk Pembayaran Non-SPP (UKT / dll)
+        try {
+          const { notifyUser } = await import("@/lib/notify");
+          await notifyUser({
+            title: "Pembayaran Dikonfirmasi! ✅",
+            message: `Pembayaran untuk "${updated.purpose || 'Tagihan UKT/Iuran'}" sebesar Rp ${updated.amount.toLocaleString("id-ID")} telah divalidasi oleh pelatih.`,
+            type: "UKT",
+            userId: updated.member.userId,
+            link: "/m/ukt"
+          });
+        } catch (err) {
+          console.error("FCM Payment notify error:", err);
+        }
       }
 
       return NextResponse.json(updated);

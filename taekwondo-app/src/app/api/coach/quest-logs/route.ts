@@ -30,6 +30,13 @@ export async function GET(req: NextRequest) {
     whereClause.quest = {
       requireVideo: true
     };
+    
+    // Jika mencari yang pending (belum selesai), pastikan video sudah dikirim oleh murid
+    if (completed === "false") {
+      whereClause.videoUrl = {
+        not: null
+      };
+    }
 
     if (startDate || endDate) {
       whereClause.assignedAt = {};
@@ -168,11 +175,12 @@ export async function PUT(req: NextRequest) {
       });
 
     } else {
-      // REJECT: Tandai log notes alasan penolakan, siswa bisa upload ulang video.
+      // REJECT: Tandai log notes alasan penolakan, reset videoUrl agar disembunyikan dari coach sampai siswa upload ulang video.
       const updatedLog = await prisma.dailyQuestLog.update({
         where: { id: logId },
         data: {
           completed: false,
+          videoUrl: null, // Reset agar hilang dari daftar pending pelatih
           notes: notes || "Ditolak oleh Pelatih. Silakan rekam ulang gerakan Anda."
         }
       });

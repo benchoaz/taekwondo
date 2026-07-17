@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { DollarSign, Send, CheckCircle, Clock, AlertCircle, X, Banknote, Filter } from "lucide-react";
+import { DollarSign, Send, CheckCircle, Clock, AlertCircle, X, Banknote, Filter, Trash2 } from "lucide-react";
 
 interface Member {
   id: string;
@@ -524,7 +524,7 @@ export default function SppManagement() {
                             className="p-1.5 bg-red-50 hover:bg-red-100 text-[#E10600] rounded-lg transition-colors"
                             title="Hapus Tagihan"
                           >
-                            <X className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>

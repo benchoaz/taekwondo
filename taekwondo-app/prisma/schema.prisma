@@ -146,15 +146,17 @@ model BeltHistory {
 }
 
 model UktExam {
-  id           String   @id @default(uuid())
-  title        String
-  date         DateTime
-  location     String
-  examinerId   String?  @map("examiner_id")
-  examiner     Coach?   @relation(fields: [examinerId], references: [id], onDelete: SetNull)
-  status       String   @default("UPCOMING") // "UPCOMING", "ONGOING", "COMPLETED"
-  createdAt    DateTime @default(now())
-  participants UktParticipant[]
+  id                String   @id @default(uuid())
+  title             String
+  date              DateTime
+  location          String
+  registrationStart DateTime @default(now()) @map("registration_start")
+  registrationEnd   DateTime @default(now()) @map("registration_end")
+  examinerId        String?  @map("examiner_id")
+  examiner          Coach?   @relation(fields: [examinerId], references: [id], onDelete: SetNull)
+  status            String   @default("UPCOMING") // "UPCOMING", "ONGOING", "COMPLETED"
+  createdAt         DateTime @default(now())
+  participants      UktParticipant[]
 }
 
 model UktParticipant {

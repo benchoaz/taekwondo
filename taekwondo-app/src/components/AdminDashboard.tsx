@@ -401,6 +401,19 @@ export default function AdminDashboard({
   const [tournamentLink, setTournamentLink] = useState("");
   const [isSavingTournament, setIsSavingTournament] = useState(false);
 
+  // UKT Exams State
+  const [uktExams, setUktExams] = useState<any[]>([]);
+  const [isLoadingUktExams, setIsLoadingUktExams] = useState(false);
+  const [showUktExamModal, setShowUktExamModal] = useState(false);
+  const [editingUktExam, setEditingUktExam] = useState<any | null>(null);
+  const [uktExamTitle, setUktExamTitle] = useState("");
+  const [uktExamDate, setUktExamDate] = useState("");
+  const [uktExamLocation, setUktExamLocation] = useState("");
+  const [uktExamRegStart, setUktExamRegStart] = useState("");
+  const [uktExamRegEnd, setUktExamRegEnd] = useState("");
+  const [uktExamStatus, setUktExamStatus] = useState("UPCOMING");
+  const [isSavingUktExam, setIsSavingUktExam] = useState(false);
+
   // Coach Management State
   const [coaches, setCoaches] = useState<CoachData[]>([]);
   const [isLoadingCoaches, setIsLoadingCoaches] = useState(false);
@@ -541,6 +554,9 @@ export default function AdminDashboard({
       fetchCoaches();
     } else if (activeTab === "gallery") {
       fetchGallery();
+    } else if (activeTab === "ukt_schedule") {
+      fetchUktExams();
+      fetchSettings(); // Agar data syarat/biaya terbaru di form terisi
     }
   }, [activeTab]);
 
@@ -660,6 +676,116 @@ export default function AdminDashboard({
       alert("Terjadi kesalahan.");
     } finally {
       setIsSavingTournament(false);
+    }
+  };
+
+  const fetchUktExams = async () => {
+    setIsLoadingUktExams(true);
+    try {
+      const res = await fetch("/api/admin/ukt/exams");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          setUktExams(data.data);
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching UKT exams:", e);
+    } finally {
+      setIsLoadingUktExams(false);
+    }
+  };
+
+  const handleOpenUktExamModal = (exam: any = null) => {
+    if (exam) {
+      setEditingUktExam(exam);
+      setUktExamTitle(exam.title);
+      setUktExamLocation(exam.location);
+      // Format to yyyy-MM-dd
+      setUktExamDate(exam.date ? new Date(exam.date).toISOString().split('T')[0] : "");
+      setUktExamRegStart(exam.registrationStart ? new Date(exam.registrationStart).toISOString().split('T')[0] : "");
+      setUktExamRegEnd(exam.registrationEnd ? new Date(exam.registrationEnd).toISOString().split('T')[0] : "");
+      setUktExamStatus(exam.status || "UPCOMING");
+    } else {
+      setEditingUktExam(null);
+      setUktExamTitle("");
+      setUktExamLocation("");
+      setUktExamDate("");
+      setUktExamRegStart("");
+      setUktExamRegEnd("");
+      setUktExamStatus("UPCOMING");
+    }
+    setShowUktExamModal(true);
+  };
+
+  const handleSaveUktExam = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingUktExam(true);
+    
+    const isEdit = !!editingUktExam;
+    const url = "/api/admin/ukt/exams";
+    const method = isEdit ? "PUT" : "POST";
+    
+    const payload: any = {
+      title: uktExamTitle,
+      date: uktExamDate,
+      location: uktExamLocation,
+      registrationStart: uktExamRegStart,
+      registrationEnd: uktExamRegEnd,
+    };
+
+    if (isEdit) {
+      payload.id = editingUktExam.id;
+      payload.status = uktExamStatus;
+    } else {
+      payload.uktRequirements = settings.uktRequirements;
+      payload.uktFee = settings.uktFee;
+      payload.uktFees = settings.uktFees;
+    }
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        alert(isEdit ? "Jadwal Ujian UKT berhasil diperbarui!" : "Jadwal Ujian UKT baru berhasil dibuat!");
+        setShowUktExamModal(false);
+        setEditingUktExam(null);
+        setUktExamTitle("");
+        setUktExamLocation("");
+        setUktExamDate("");
+        setUktExamRegStart("");
+        setUktExamRegEnd("");
+        fetchUktExams();
+      } else {
+        const err = await res.json();
+        alert("Error: " + (err.error || "Gagal menyimpan jadwal UKT"));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan.");
+    } finally {
+      setIsSavingUktExam(false);
+    }
+  };
+
+  const handleDeleteUktExam = async (id: string) => {
+    if (!confirm("Hapus jadwal ujian UKT ini? Seluruh data calon pendaftar terkait juga akan ikut terhapus.")) return;
+    try {
+      const res = await fetch(`/api/admin/ukt/exams?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        alert("Jadwal Ujian UKT berhasil dihapus!");
+        fetchUktExams();
+      } else {
+        const err = await res.json();
+        alert("Error: " + (err.error || "Gagal menghapus jadwal UKT"));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan koneksi.");
     }
   };
 
@@ -1822,6 +1948,7 @@ export default function AdminDashboard({
   const NAV_TABS = [
     { id: "payments", label: "Administrasi Keuangan", icon: <CreditCard className="w-4 h-4" /> },
     { id: "ukt_candidates", label: "Pendaftar Ujian UKT", icon: <UserCheck className="w-4 h-4" /> },
+    { id: "ukt_schedule", label: "Kelola Jadwal UKT", icon: <Calendar className="w-4 h-4" /> },
     { id: "analytics", label: "Dashboard Analytics", icon: <TrendingUp className="w-4 h-4" /> },
     { id: "curriculum", label: "Curriculum Builder", icon: <BookOpen className="w-4 h-4" /> },
     { id: "exercises", label: "Daily Quests", icon: <Edit className="w-4 h-4" /> },
@@ -2678,95 +2805,87 @@ export default function AdminDashboard({
             <SppManagement />
           )}
 
-          {activeTab === "ukt_candidates" && (
-            <div className="flex flex-col gap-8">
-              <div>
-                <h2 className="text-3xl font-black text-[#0F172A] font-display">Pendaftar Ujian UKT</h2>
-                <p className="text-gray-400 text-xs mt-1">Verifikasi kelayakan pendaftar ujian kenaikan tingkat berdasarkan kelengkapan berkas dokumen dinamis yang mereka unggah.</p>
+          {activeTab === "ukt_schedule" && (
+            <div className="flex flex-col gap-6">
+              <div className="flex justify-between items-center gap-4">
+                <div>
+                  <h2 className="text-3xl font-black text-[#0F172A] font-display">Kelola Jadwal &amp; Biaya UKT</h2>
+                  <p className="text-gray-400 text-xs mt-1">Buat jadwal ujian UKT baru, atur biaya flat/dinamis per sabuk, dan kelola kelengkapan dokumen pendaftaran murid.</p>
+                </div>
+                <button 
+                  onClick={() => handleOpenUktExamModal()}
+                  className="bg-[#E10600] hover:bg-[#C00500] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                >
+                  <Plus className="w-4 h-4" /> Atur Jadwal UKT Baru
+                </button>
               </div>
 
-              {/* Candidates Ledger Table */}
-              <div className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse min-w-[700px]">
-                  <thead>
-                    <tr className="bg-slate-50 text-gray-500 font-bold uppercase border-b border-[#0F172A]/5">
-                      <th className="p-4">Anggota</th>
-                      <th className="p-4">Target Sabuk</th>
-                      <th className="p-4">Syarat Dokumen</th>
-                      <th className="p-4">Status Kelayakan</th>
-                      <th className="p-4 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {isLoadingCandidates ? (
-                      <tr>
-                        <td colSpan={5} className="p-8 text-center text-gray-400">Loading daftar pendaftar UKT...</td>
+              {/* Histori UKT Exam List */}
+              <div className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-[#0F172A]/5 bg-slate-50/50">
+                  <h3 className="font-extrabold text-sm text-[#0F172A]">Histori Agenda Ujian UKT</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse min-w-[800px]">
+                    <thead>
+                      <tr className="bg-slate-50 text-gray-500 font-bold uppercase border-b border-[#0F172A]/5">
+                        <th className="p-4">Nama Agenda</th>
+                        <th className="p-4">Tanggal Ujian</th>
+                        <th className="p-4">Tempat Ujian</th>
+                        <th className="p-4">Pendaftaran Dibuka</th>
+                        <th className="p-4">Batas Pendaftaran</th>
+                        <th className="p-4">Total Peserta</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4 text-right">Aksi</th>
                       </tr>
-                    ) : candidates.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="p-8 text-center text-gray-400">Belum ada anggota yang mendaftar UKT.</td>
-                      </tr>
-                    ) : candidates.map((cand, idx) => {
-                      const docs = cand.uploadedDocs || {};
-                      const docKeys = Object.keys(docs);
-                      
-                      return (
-                        <tr key={idx} className="border-b border-[#0F172A]/5 hover:bg-slate-50/50">
+                    </thead>
+                    <tbody>
+                      {isLoadingUktExams ? (
+                        <tr>
+                          <td colSpan={8} className="p-8 text-center text-gray-400">Loading daftar jadwal UKT...</td>
+                        </tr>
+                      ) : uktExams.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="p-8 text-center text-gray-400">Belum ada agenda ujian UKT yang dibuat. Klik tombol di atas untuk membuat jadwal baru.</td>
+                        </tr>
+                      ) : uktExams.map((ex) => (
+                        <tr key={ex.id} className="border-b border-[#0F172A]/5 hover:bg-slate-50/50">
+                          <td className="p-4 font-extrabold text-[#0F172A]">{ex.title}</td>
+                          <td className="p-4 font-bold text-slate-700">{new Date(ex.date).toLocaleDateString("id-ID", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td>
+                          <td className="p-4 text-slate-600 font-medium">{ex.location}</td>
+                          <td className="p-4 text-gray-500">{new Date(ex.registrationStart || ex.createdAt).toLocaleDateString("id-ID")}</td>
+                          <td className="p-4 text-red-500 font-bold">{new Date(ex.registrationEnd || ex.date).toLocaleDateString("id-ID")}</td>
+                          <td className="p-4 text-center font-black text-slate-700">{ex.participants?.length || 0} Atlet</td>
                           <td className="p-4">
-                            <span className="font-extrabold text-[#0F172A] block">{cand.member?.fullName}</span>
-                            <span className="text-[10px] text-gray-400">{cand.member?.memberNumber}</span>
-                          </td>
-                          <td className="p-4 font-bold text-[#E10600]">{cand.targetBelt}</td>
-                          <td className="p-4 text-gray-500">
-                            {docKeys.length === 0 ? (
-                              <span className="text-red-500 font-bold">0 Dokumen Terunggah</span>
-                            ) : (
-                              <button 
-                                onClick={() => setSelectedCandidate(cand)}
-                                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg font-bold transition-all text-[10px]"
-                              >
-                                Lihat {docKeys.length} Dokumen Syarat
-                              </button>
-                            )}
-                          </td>
-                          <td className="p-4">
-                            <span className={`px-2.5 py-1 rounded-full font-bold text-[9px] uppercase ${
-                              cand.status === "APPROVED" 
-                                ? "bg-green-50 text-green-600" 
-                                : cand.status === "PENDING"
-                                ? "bg-amber-50 text-amber-600"
-                                : "bg-red-50 text-red-600"
+                            <span className={`px-2 py-0.5 rounded-full font-bold text-[9px] uppercase ${
+                              ex.status === "UPCOMING" ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600"
                             }`}>
-                              {cand.status === "APPROVED" ? "LAYAK" : cand.status === "PENDING" ? "VERIFIKASI BERKAS" : "DITOLAK"}
+                              {ex.status}
                             </span>
                           </td>
                           <td className="p-4 text-right">
-                            {cand.status === "PENDING" ? (
-                              <div className="flex justify-end gap-1.5">
-                                <button 
-                                  onClick={() => handleVerifyCandidate(cand.id, true)}
-                                  className="p-1.5 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition-all"
-                                  title="Approve Eligibility"
-                                >
-                                  <Check className="w-3.5 h-3.5" />
-                                </button>
-                                <button 
-                                  onClick={() => handleVerifyCandidate(cand.id, false)}
-                                  className="p-1.5 bg-red-50 hover:bg-red-100 text-[#E10600] rounded-lg transition-all"
-                                  title="Reject Eligibility"
-                                >
-                                  <X className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            ) : (
-                              <span className="text-gray-400 text-[10px] font-bold">Telah Diverifikasi</span>
-                            )}
+                            <div className="flex justify-end gap-1.5">
+                              <button
+                                onClick={() => handleOpenUktExamModal(ex)}
+                                className="p-1.5 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all"
+                                title="Sunting Agenda UKT"
+                              >
+                                <Edit className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteUktExam(ex.id)}
+                                className="p-1.5 border border-red-100 rounded-lg text-[#E10600] hover:bg-red-50 transition-all"
+                                title="Hapus Agenda UKT"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -5344,6 +5463,236 @@ export default function AdminDashboard({
                 </div>
               </form>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* UKT Scheduling Modal */}
+      {showUktExamModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/80 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-3xl w-full max-w-lg my-8 overflow-hidden shadow-2xl border border-gray-100 flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 flex-shrink-0">
+              <div>
+                <h3 className="font-black text-[#0F172A] text-xl font-display">Atur Jadwal UKT Baru</h3>
+                <p className="text-xs text-gray-500 mt-1">Jadwal ini akan otomatis mempublikasikan form pendaftaran interaktif di HP murid.</p>
+              </div>
+              <button 
+                onClick={() => setShowUktExamModal(false)} 
+                className="text-gray-400 hover:text-[#E10600] transition-colors p-2 hover:bg-red-50 rounded-full"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveUktExam} className="overflow-y-auto flex-grow p-6 space-y-6">
+              {/* Detail Jadwal */}
+              <div className="space-y-4">
+                <h4 className="font-extrabold text-xs uppercase text-[#E10600] tracking-wider border-b border-slate-100 pb-1">1. Informasi Ujian</h4>
+                
+                <div>
+                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1">Judul Agenda UKT</label>
+                  <input
+                    type="text"
+                    value={uktExamTitle}
+                    onChange={(e) => setUktExamTitle(e.target.value)}
+                    placeholder="Contoh: UKT Periode Semester Ganjil 2026"
+                    required
+                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1">Tanggal Pelaksanaan</label>
+                    <input
+                      type="date"
+                      value={uktExamDate}
+                      onChange={(e) => setUktExamDate(e.target.value)}
+                      required
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1">Tempat / Lokasi</label>
+                    <input
+                      type="text"
+                      value={uktExamLocation}
+                      onChange={(e) => setUktExamLocation(e.target.value)}
+                      placeholder="Contoh: Gedung Olahraga Kraksaan"
+                      required
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1">Pendaftaran Dibuka</label>
+                    <input
+                      type="date"
+                      value={uktExamRegStart}
+                      onChange={(e) => setUktExamRegStart(e.target.value)}
+                      required
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1">Batas Pendaftaran</label>
+                    <input
+                      type="date"
+                      value={uktExamRegEnd}
+                      onChange={(e) => setUktExamRegEnd(e.target.value)}
+                      required
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    />
+                  </div>
+                </div>
+
+                {editingUktExam && (
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1">Status Ujian</label>
+                    <select
+                      value={uktExamStatus}
+                      onChange={(e) => setUktExamStatus(e.target.value)}
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    >
+                      <option value="UPCOMING">Upcoming (Segera Hadir)</option>
+                      <option value="ONGOING">Ongoing (Sedang Berjalan)</option>
+                      <option value="COMPLETED">Completed (Selesai)</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              {!editingUktExam && (
+                <>
+                  {/* Syarat Dokumen Dinamis */}
+                  <div className="space-y-3 pt-2">
+                    <h4 className="font-extrabold text-xs uppercase text-[#E10600] tracking-wider border-b border-slate-100 pb-1">2. Syarat Dokumen (Dinamis)</h4>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        id="newUktReqInput"
+                        placeholder="Contoh: Akte Kelahiran / Foto Sabuk Terakhir"
+                        className="flex-1 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2 text-xs outline-none"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const val = e.currentTarget.value.trim();
+                            if (val) {
+                              setSettings(prev => ({
+                                ...prev,
+                                uktRequirements: [...(prev.uktRequirements || []), val]
+                              }));
+                              e.currentTarget.value = "";
+                            }
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const input = document.getElementById("newUktReqInput") as HTMLInputElement;
+                          const val = input?.value.trim();
+                          if (val) {
+                            setSettings(prev => ({
+                              ...prev,
+                              uktRequirements: [...(prev.uktRequirements || []), val]
+                            }));
+                            input.value = "";
+                          }
+                        }}
+                        className="bg-[#0F172A] text-white text-xs font-bold px-4 py-2 rounded-xl"
+                      >
+                        Tambah
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {(settings.uktRequirements || []).map((req, idx) => (
+                        <span key={idx} className="bg-slate-100 text-slate-800 text-[10px] font-extrabold pl-2.5 pr-1 py-1 rounded-lg flex items-center gap-1">
+                          {req}
+                          <button 
+                            type="button" 
+                            onClick={() => handleRemoveRequirement(idx)} 
+                            className="text-red-500 p-0.5 hover:bg-red-50 rounded"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Pengaturan Biaya */}
+                  <div className="space-y-4 pt-2">
+                    <h4 className="font-extrabold text-xs uppercase text-[#E10600] tracking-wider border-b border-slate-100 pb-1">3. Biaya Pendaftaran UKT</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1">Biaya Flat (Umum)</label>
+                        <input
+                          type="number"
+                          value={settings.uktFee || 0}
+                          onChange={(e) => setSettings({ ...settings, uktFee: parseFloat(e.target.value) || 0 })}
+                          className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs outline-none"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-400 mt-5 leading-normal">Gunakan kolom biaya flat di samping kiri sebagai harga pendaftaran dasar. Atau masukkan biaya per sabuk di bawah ini jika harganya berbeda-beda.</p>
+                      </div>
+                    </div>
+
+                    {/* Biaya per Sabuk */}
+                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                      <span className="block text-xs font-black text-[#0F172A] mb-3">Biaya Berdasarkan Sabuk Sasaran</span>
+                      <div className="grid grid-cols-2 gap-3">
+                        {beltRanks.filter(b => b.level > 1).map((belt) => {
+                          const currentVal = settings.uktFees?.[belt.name] || "";
+                          return (
+                            <div key={belt.id} className="flex flex-col gap-1">
+                              <label className="text-[10px] font-bold text-slate-500 truncate">{belt.name}</label>
+                              <input
+                                type="number"
+                                value={currentVal}
+                                placeholder="Sama dengan flat"
+                                onChange={(e) => {
+                                  const updatedFees = { ...(settings.uktFees || {}) };
+                                  const val = e.target.value.trim();
+                                  if (val) {
+                                    updatedFees[belt.name] = parseFloat(val);
+                                  } else {
+                                    delete updatedFees[belt.name];
+                                  }
+                                  setSettings({ ...settings, uktFees: updatedFees });
+                                }}
+                                className="bg-white border border-[#0F172A]/10 rounded-lg px-2.5 py-1.5 text-xs outline-none focus:ring-1 focus:ring-[#E10600]"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Submit Buttons */}
+              <div className="flex-shrink-0 pt-4 border-t border-slate-100 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowUktExamModal(false)}
+                  className="px-5 py-3 border border-slate-200 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-50"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingUktExam}
+                  className="px-5 py-3 bg-[#E10600] hover:bg-[#C00500] text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
+                >
+                  {isSavingUktExam ? "Menyimpan..." : "Simpan Agenda Ujian"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

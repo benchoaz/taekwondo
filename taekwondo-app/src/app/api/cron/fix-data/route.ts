@@ -4,21 +4,19 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: Request) {
   let messages = [];
   try {
-    const updatedBelts = await prisma.member.updateMany({
-      where: { currentBelt: 'Sabuk Sabuk Merah (2 Geup)' },
-      data: { currentBelt: 'Sabuk Merah (2 Geup)' }
-    });
-    messages.push(`Updated ${updatedBelts.count} duplicate belt names.`);
+    // 1. Tambah kolom registration_start jika belum ada
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE "UktExam" 
+      ADD COLUMN IF NOT EXISTS "registration_start" TIMESTAMP NOT NULL DEFAULT NOW()
+    `);
+    messages.push("Added registration_start column if not exists.");
 
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const deletedLogs = await prisma.dailyQuestLog.deleteMany({
-      where: { assignedAt: { gte: today, lt: tomorrow } }
-    });
-    messages.push(`Deleted ${deletedLogs.count} empty quest logs for today.`);
+    // 2. Tambah kolom registration_end jika belum ada
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE "UktExam" 
+      ADD COLUMN IF NOT EXISTS "registration_end" TIMESTAMP NOT NULL DEFAULT NOW()
+    `);
+    messages.push("Added registration_end column if not exists.");
 
     return NextResponse.json({ success: true, messages });
   } catch (error: any) {

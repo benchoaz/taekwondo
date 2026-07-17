@@ -54,6 +54,8 @@ export default function CoachDashboard({
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [memberSearchTerm, setMemberSearchTerm] = useState("");
+  // Persyaratan dokumen UKT dinamis (dari settings admin)
+  const [uktDocRequirements, setUktDocRequirements] = useState<string[]>(["Surat Izin Orang Tua", "Foto Selfie 3x4"]);
 
   // States for Quest monitoring
   const [questLogs, setQuestLogs] = useState<any[]>([]);
@@ -204,6 +206,14 @@ export default function CoachDashboard({
       if (resCoaches.ok) {
         const coachData = await resCoaches.json();
         setCoaches(Array.isArray(coachData) ? coachData : []);
+      }
+      // Fetch settings (untuk persyaratan dokumen UKT dinamis)
+      const resSettings = await fetch("/api/settings");
+      if (resSettings.ok) {
+        const settingsData = await resSettings.json();
+        if (settingsData.uktRequirements && Array.isArray(settingsData.uktRequirements)) {
+          setUktDocRequirements(settingsData.uktRequirements);
+        }
       }
     } catch (err) {
       console.error("Error fetching coach data:", err);
@@ -1261,54 +1271,89 @@ export default function CoachDashboard({
                       <div className="border border-slate-100 rounded-2xl p-4">
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="font-black text-xs text-[#0F172A] flex items-center gap-1.5">
-                            <span>📋</span> Verifikasi Dokumen
+                            <span>📋</span> Verifikasi Dokumen Syarat
                           </h4>
-                          {Object.keys(selectedCandidate.uploadedDocs || {}).length > 0 ? (
-                            <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
-                              {Object.keys(selectedCandidate.uploadedDocs).length} Dokumen
-                            </span>
+                          {/* Hitung kelengkapan berdasarkan persyaratan dinamis */}
+                          {(() => {
+                            const uploaded = selectedCandidate.uploadedDocs || {};
+                            const fulfilled = uktDocRequirements.filter(req => uploaded[req]);
+                            const allOk = fulfilled.length === uktDocRequirements.length && uktDocRequirements.length > 0;
+                            return allOk ? (
+                              <span className="text-[8px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full">
+                                ✅ Lengkap ({fulfilled.length}/{uktDocRequirements.length})
+                              </span>
+                            ) : (
+                              <span className="text-[8px] font-black text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
+                                ⚠️ {fulfilled.length}/{uktDocRequirements.length} Terpenuhi
+                              </span>
+                            );
+                          })()}
+                        </div>
+
+                        {/* Checklist persyaratan dinamis */}
+                        <div className="flex flex-col gap-1.5 mb-3">
+                          {uktDocRequirements.length === 0 ? (
+                            <p className="text-[10px] text-gray-400 text-center py-1">Tidak ada persyaratan dokumen dikonfigurasi.</p>
                           ) : (
-                            <span className="text-[8px] font-black text-amber-600 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">
-                              Belum Ada Dokumen
-                            </span>
+                            uktDocRequirements.map((req) => {
+                              const uploaded = selectedCandidate.uploadedDocs || {};
+                              const docUrl = uploaded[req];
+                              const hasDoc = !!docUrl;
+                              return (
+                                <div key={req} className={`flex items-center justify-between gap-2 rounded-lg p-2 ${hasDoc ? "bg-emerald-50/60" : "bg-red-50/60"}`}>
+                                  <div className="flex items-center gap-2">
+                                    {hasDoc ? (
+                                      String(docUrl).match(/\.(jpg|jpeg|png|webp|gif)$/i) ? (
+                                        <img src={docUrl} alt={req} className="w-8 h-8 object-cover rounded border border-slate-200 shrink-0" />
+                                      ) : (
+                                        <div className="w-8 h-8 bg-emerald-100 rounded border border-emerald-200 flex items-center justify-center text-emerald-600 text-[10px] shrink-0">📄</div>
+                                      )
+                                    ) : (
+                                      <div className="w-8 h-8 bg-red-100 rounded border border-red-200 flex items-center justify-center text-red-400 text-[10px] shrink-0">✗</div>
+                                    )}
+                                    <div>
+                                      <span className="text-[9px] font-bold text-[#0F172A] leading-tight block">{req}</span>
+                                      <span className={`text-[8px] font-bold ${hasDoc ? "text-emerald-600" : "text-red-500"}`}>
+                                        {hasDoc ? "✅ Sudah diupload" : "❌ Belum diupload"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  {hasDoc && (
+                                    <a
+                                      href={docUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[8px] font-black text-blue-600 hover:text-blue-800 underline shrink-0"
+                                    >
+                                      Lihat ↗
+                                    </a>
+                                  )}
+                                </div>
+                              );
+                            })
                           )}
                         </div>
 
-                        {Object.keys(selectedCandidate.uploadedDocs || {}).length === 0 ? (
-                          <p className="text-[10px] text-gray-400 text-center py-2">⚠️ Peserta belum mengupload dokumen syarat.</p>
-                        ) : (
-                          <div className="flex flex-col gap-2 mb-3">
-                            {Object.entries(selectedCandidate.uploadedDocs).map(([docName, docUrl]: [string, any]) => (
-                              <div key={docName} className="flex items-center justify-between gap-2 bg-slate-50 rounded-lg p-2">
-                                <div className="flex items-center gap-2">
-                                  {/* Thumbnail jika gambar */}
-                                  {String(docUrl).match(/\.(jpg|jpeg|png|webp|gif)$/i) ? (
-                                    <img
-                                      src={docUrl}
-                                      alt={docName}
-                                      className="w-8 h-8 object-cover rounded border border-slate-200 shrink-0"
-                                    />
-                                  ) : (
-                                    <div className="w-8 h-8 bg-slate-200 rounded border border-slate-200 flex items-center justify-center text-slate-400 text-[10px] shrink-0">📄</div>
-                                  )}
-                                  <span className="text-[9px] font-bold text-[#0F172A] leading-tight">{docName}</span>
+                        {/* Dokumen tambahan di luar persyaratan */}
+                        {(() => {
+                          const uploaded = selectedCandidate.uploadedDocs || {};
+                          const extras = Object.entries(uploaded).filter(([k]) => !uktDocRequirements.includes(k));
+                          return extras.length > 0 ? (
+                            <div className="border-t border-slate-100 pt-2 mt-1">
+                              <p className="text-[8px] text-gray-400 font-bold uppercase mb-1.5">Dokumen Tambahan</p>
+                              {extras.map(([docName, docUrl]: [string, any]) => (
+                                <div key={docName} className="flex items-center justify-between gap-2 bg-slate-50 rounded-lg p-1.5 mb-1">
+                                  <span className="text-[9px] font-bold text-[#0F172A]">{docName}</span>
+                                  <a href={String(docUrl)} target="_blank" rel="noopener noreferrer" className="text-[8px] font-black text-blue-600 underline">Lihat ↗</a>
                                 </div>
-                                <a
-                                  href={docUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-[8px] font-black text-blue-600 hover:text-blue-800 underline shrink-0"
-                                >
-                                  Lihat ↗
-                                </a>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                              ))}
+                            </div>
+                          ) : null;
+                        })()}
 
                         {/* Tombol Approve/Reject Dokumen */}
                         {selectedCandidate.status === "PENDING" && (
-                          <div className="grid grid-cols-2 gap-2 mt-2">
+                          <div className="grid grid-cols-2 gap-2 mt-3">
                             <button
                               onClick={async () => {
                                 if (confirm(`Tolak pendaftaran UKT ${selectedCandidate.name}? Peserta perlu melengkapi dokumen ulang.`)) {
@@ -1329,12 +1374,14 @@ export default function CoachDashboard({
                             </button>
                             <button
                               onClick={async () => {
-                                if (Object.keys(selectedCandidate.uploadedDocs || {}).length === 0) {
-                                  alert("Peserta belum mengupload dokumen apapun!");
+                                const uploaded = selectedCandidate.uploadedDocs || {};
+                                const missing = uktDocRequirements.filter(req => !uploaded[req]);
+                                if (missing.length > 0) {
+                                  alert(`❌ Dokumen belum lengkap!\nMasih kurang:\n• ${missing.join("\n• ")}`);
                                   return;
                                 }
-                                if (confirm(`Setujui dokumen dan lanjut ke penilaian ujian untuk ${selectedCandidate.name}?`)) {
-                                  alert("✅ Dokumen disetujui. Lakukan penilaian skor di bawah saat hari ujian.");
+                                if (confirm(`Semua dokumen lengkap. Setujui pendaftaran UKT ${selectedCandidate.name}?`)) {
+                                  alert("✅ Dokumen disetujui. Lakukan penilaian skor saat hari ujian.");
                                 }
                               }}
                               className="bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-xl font-bold text-[9px] transition-all shadow-sm shadow-emerald-500/20"

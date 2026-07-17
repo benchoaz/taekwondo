@@ -37,7 +37,22 @@ async function getAttendanceStats(memberId: string, periodMonths: number) {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const memberId = searchParams.get("memberId");
+    let memberId = searchParams.get("memberId");
+
+    // Resolusi otomatis jika memberId yang dikirim adalah userId
+    if (memberId) {
+      const resolvedMember = await prisma.member.findFirst({
+        where: {
+          OR: [
+            { id: memberId },
+            { userId: memberId }
+          ]
+        }
+      });
+      if (resolvedMember) {
+        memberId = resolvedMember.id;
+      }
+    }
 
     const exam = await prisma.uktExam.findFirst({
       where: { status: "UPCOMING" },
@@ -95,11 +110,26 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { memberId, uktExamId, targetBelt, uploadedDocs } = body;
+    let { memberId, uktExamId, targetBelt, uploadedDocs } = body;
 
     if (!memberId || !uktExamId || !targetBelt) {
       return NextResponse.json({ error: "Data registrasi tidak lengkap." }, { status: 400 });
     }
+
+    // Resolusi otomatis jika memberId yang dikirim adalah userId
+    const resolvedMember = await prisma.member.findFirst({
+      where: {
+        OR: [
+          { id: memberId },
+          { userId: memberId }
+        ]
+      }
+    });
+
+    if (!resolvedMember) {
+      return NextResponse.json({ error: "Data siswa tidak ditemukan." }, { status: 404 });
+    }
+    memberId = resolvedMember.id;
 
     // --------------------------------------------------------
     // Cek apakah sudah terdaftar di UKT ini

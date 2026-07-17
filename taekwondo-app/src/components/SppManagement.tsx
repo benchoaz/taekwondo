@@ -57,10 +57,27 @@ export default function SppManagement() {
   const [prepaidAmount, setPrepaidAmount] = useState(100000);
   const [isSubmittingPrepaid, setIsSubmittingPrepaid] = useState(false);
 
+  const [userRole, setUserRole] = useState<string>("COACH"); // Default to coach to be secure
+
   useEffect(() => {
     fetchInvoices();
     fetchMembers();
+    fetchProfile();
   }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch("/api/profile");
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.role) {
+          setUserRole(data.role);
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching user profile:", e);
+    }
+  };
 
   const fetchMembers = async () => {
     try {
@@ -501,13 +518,15 @@ export default function SppManagement() {
                         ) : (
                           <span className="text-[10px] text-green-500 font-bold">✓ Sudah Lunas</span>
                         )}
-                        <button
-                          onClick={() => handleDeleteInvoice(inv.id)}
-                          className="p-1.5 bg-red-50 hover:bg-red-100 text-[#E10600] rounded-lg transition-colors"
-                          title="Hapus Tagihan"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
+                        {userRole === "ADMIN" && (
+                          <button
+                            onClick={() => handleDeleteInvoice(inv.id)}
+                            className="p-1.5 bg-red-50 hover:bg-red-100 text-[#E10600] rounded-lg transition-colors"
+                            title="Hapus Tagihan"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

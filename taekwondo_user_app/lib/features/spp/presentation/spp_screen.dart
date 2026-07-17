@@ -425,7 +425,7 @@ class _SppScreenState extends ConsumerState<SppScreen> {
                                           ),
                                         ),
                                         Text(
-                                          inv.status == 'PAID' ? (inv.validatedBy ?? 'Sistem / Admin') : '-',
+                                          inv.status == 'PAID' ? (inv.validatedBy ?? 'Pelatih') : '-',
                                           style: GoogleFonts.spaceGrotesk(
                                             fontSize: 9,
                                             fontWeight: FontWeight.w900,

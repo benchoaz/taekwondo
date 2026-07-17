@@ -110,12 +110,11 @@ export default function ProfilePage() {
             return (
               <div className="relative w-16 h-16 shrink-0">
                 <div
-                  className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center shadow-xl overflow-hidden"
+                  className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center shadow-xl overflow-hidden"
                   style={{
                     border: `2px solid rgba(255,255,255,0.2)`,
                     boxShadow: `0 0 16px ${beltColor}40`,
                     ...customStyle,
-                    borderRadius: '1rem', // Selalu kunci ke sudut tumpul kotak dojang 16px
                   }}
                 >
                   <User className="w-8 h-8 text-white drop-shadow" />

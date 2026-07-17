@@ -248,10 +248,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               // Base Gradient border if no frame is equipped
               if (frameUrl == null || frameUrl.isEmpty)
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: 110,
+                  height: 110,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
+                    shape: BoxShape.circle,
                     gradient: LinearGradient(
                       colors: [themeColor, themeColorLight],
                       begin: Alignment.topLeft,
@@ -272,12 +272,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   GestureDetector(
                     onTap: _isUploading ? null : () => _pickAndUploadImage(frameUrl),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        width: 90,
-                        height: 90,
-                        color: const Color(0xFF1E222D),
+                    child: Container(
+                      width: 90,
+                      height: 90,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF1E222D),
+                      ),
+                      child: ClipOval(
                         child: Image(
                           image: profile.profilePicture != null 
                               ? NetworkImage(_getAbsoluteUrl(profile.profilePicture!))
@@ -322,7 +324,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       width: 130, // Frame is larger than avatar
                       height: 130,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(28),
+                        shape: BoxShape.circle,
                         image: DecorationImage(
                           image: NetworkImage(_getAbsoluteUrl(frameUrl)),
                           fit: BoxFit.cover,

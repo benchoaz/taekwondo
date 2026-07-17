@@ -647,13 +647,15 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 return Stack(
                   alignment: Alignment.center,
                   children: [
-                    // 1. Base Profile Picture (Rounded Rect)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        color: const Color(0xFF1E293B),
+                    // 1. Base Profile Picture (Circle)
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF1E293B),
+                      ),
+                      child: ClipOval(
                         child: Image(
                           image: profile?.profilePicture != null
                               ? NetworkImage(_getAbsoluteUrl(profile!.profilePicture!))
@@ -662,13 +664,13 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                         ),
                       ),
                     ),
-                    // 2. Frame Overlay (Rounded Rect)
+                    // 2. Frame Overlay (Circle)
                     if (frameUrl != null && frameUrl.isNotEmpty)
                       Container(
                         width: 54, // Frame is slightly larger than the avatar
                         height: 54,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
+                          shape: BoxShape.circle,
                           image: DecorationImage(
                             image: NetworkImage(_getAbsoluteUrl(frameUrl)),
                             fit: BoxFit.cover,
@@ -687,13 +689,13 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                               : null,
                         ),
                       ),
-                  // 3. Default border if no frame (Rounded Rect)
+                  // 3. Default border if no frame (Circle)
                   if (frameUrl == null || frameUrl.isEmpty)
                     Container(
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
+                        shape: BoxShape.circle,
                         border: Border.all(color: const Color(0xFF3B82F6), width: 2),
                       ),
                     ),

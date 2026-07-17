@@ -82,37 +82,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          backgroundColor: const Color(0xFF1E222D),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
-            children: [
-              const Icon(Icons.error_outline, color: Colors.redAccent, size: 28),
-              const SizedBox(width: 10),
-              Text(
-                'Login Gagal',
-                style: GoogleFonts.hankenGrotesk(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  fontSize: 18,
-                ),
-              ),
-            ],
+          backgroundColor: const Color(0xFF1E293B),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: const BorderSide(color: Color(0xFF334155), width: 1.5),
+          ),
+          title: Text(
+            'Login Gagal',
+            style: GoogleFonts.spaceGrotesk(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 18,
+            ),
           ),
           content: Text(
             errorMessage,
-            style: GoogleFonts.hankenGrotesk(
-              color: Colors.white70,
-              fontSize: 14,
+            style: GoogleFonts.inter(
+              color: const Color(0xFF94A3B8),
+              fontSize: 13,
+              height: 1.5,
             ),
           ),
+          actionsPadding: const EdgeInsets.only(right: 16, bottom: 16),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'OK',
-                style: GoogleFonts.hankenGrotesk(
+                style: GoogleFonts.spaceGrotesk(
                   fontWeight: FontWeight.bold,
-                  color: Colors.redAccent,
+                  color: const Color(0xFFE10600),
                 ),
               ),
             ),

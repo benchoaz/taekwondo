@@ -93,7 +93,6 @@ class _UktScreenState extends ConsumerState<UktScreen> {
         final fileName = result.files.single.name;
         
         // 1. Upload file ke endpoint /profile/upload untuk mendapatkan URL
-        final dio = Dio(BaseOptions(baseUrl: widget.user.token != null ? '' : '')); // dynamic URL
         // We reuse request settings from global dio client
         final uploadDio = Dio();
         // Set authorization token if exists
@@ -319,9 +318,9 @@ class _UktScreenState extends ConsumerState<UktScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: bannerColor.withValues(alpha: 0.1),
+        color: bannerColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: bannerColor.withValues(alpha: 0.3), width: 1.5),
+        border: Border.all(color: bannerColor.withOpacity(0.3), width: 1.5),
       ),
       child: Row(
         children: [
@@ -539,10 +538,10 @@ class _UktScreenState extends ConsumerState<UktScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFF0F172A),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: hasFile ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.1)),
+                      border: Border.all(color: hasFile ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.1)),
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.between,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
                           child: Column(

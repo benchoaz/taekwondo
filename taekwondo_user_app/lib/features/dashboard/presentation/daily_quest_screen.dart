@@ -154,17 +154,17 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: nbSurface,
+              backgroundColor: const Color(0xFF1E293B),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(color: nbBlack, width: 4),
+                borderRadius: BorderRadius.circular(24),
+                side: const BorderSide(color: Color(0xFF334155), width: 1.5),
               ),
               title: Text(
-                'KUIS HARIAN',
+                'Kuis Harian',
                 style: GoogleFonts.spaceGrotesk(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 20,
-                  color: nbPrimary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.white,
                 ),
               ),
               content: SingleChildScrollView(
@@ -174,17 +174,18 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
                   children: [
                     Text(
                       quiz.question,
-                      style: GoogleFonts.hankenGrotesk(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: nbBlack,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFFE2E8F0),
+                        height: 1.5,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     ...quiz.options.map((option) {
                       final isSelected = selectedOption == option;
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
+                        padding: const EdgeInsets.only(bottom: 10.0),
                         child: InkWell(
                           onTap: isSubmittingQuiz ? null : () {
                             setDialogState(() {
@@ -193,21 +194,21 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
                           },
                           child: Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                             decoration: BoxDecoration(
-                              color: isSelected ? nbPrimaryFixed : Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: nbBlack, width: 2),
-                              boxShadow: isSelected ? null : const [
-                                BoxShadow(color: nbBlack, offset: Offset(2, 2))
-                              ],
+                              color: isSelected ? const Color(0xFFE10600).withValues(alpha: 0.15) : const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: isSelected ? const Color(0xFFE10600) : const Color(0xFF334155),
+                                width: 1.5,
+                              ),
                             ),
                             child: Text(
                               option,
-                              style: GoogleFonts.hankenGrotesk(
-                                fontSize: 14,
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
                                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                color: nbBlack,
+                                color: isSelected ? Colors.white : const Color(0xFF94A3B8),
                               ),
                             ),
                           ),
@@ -217,14 +218,15 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
                   ],
                 ),
               ),
+              actionsPadding: const EdgeInsets.only(right: 16, bottom: 16),
               actions: [
                 TextButton(
                   onPressed: isSubmittingQuiz ? null : () => Navigator.pop(context),
                   child: Text(
-                    'BATAL',
+                    'Batal',
                     style: GoogleFonts.spaceGrotesk(
                       fontWeight: FontWeight.bold,
-                      color: nbOutline,
+                      color: const Color(0xFF94A3B8),
                     ),
                   ),
                 ),
@@ -252,28 +254,25 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
                               );
                             }
                           } catch (e) {
+                            setDialogState(() {
+                              isSubmittingQuiz = false;
+                            });
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  backgroundColor: nbSecondary,
+                                  backgroundColor: Colors.red,
                                   content: Text('Jawaban salah! Silakan coba lagi.'),
                                 ),
                               );
                             }
-                          } finally {
-                            setDialogState(() {
-                              isSubmittingQuiz = false;
-                            });
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: nbPrimary,
+                    backgroundColor: const Color(0xFFE10600),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      side: const BorderSide(color: nbBlack, width: 2),
-                    ),
-                    elevation: 2,
+                    disabledBackgroundColor: Colors.grey.withValues(alpha: 0.3),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: isSubmittingQuiz
                       ? const SizedBox(
@@ -285,7 +284,7 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
                           ),
                         )
                       : Text(
-                          'KIRIM JAWABAN',
+                          'Kirim',
                           style: GoogleFonts.spaceGrotesk(
                             fontWeight: FontWeight.bold,
                           ),

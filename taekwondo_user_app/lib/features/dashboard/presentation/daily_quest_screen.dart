@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:video_compress/video_compress.dart';
 
 import 'package:file_picker/file_picker.dart' as fp;
 import 'package:url_launcher/url_launcher.dart';
@@ -63,28 +64,55 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
     
     fp.FilePickerResult? result = await fp.FilePicker.platform.pickFiles(
       type: fp.FileType.video,
-      withData: true, // Needed for web
+      withData: true,
     );
 
-    if (result != null && result.files.single.bytes != null) {
+    if (result != null && result.files.single.path != null) {
       setState(() {
         _isUploading = true;
         _uploadingQuestId = qLog.id;
       });
 
       try {
-        final Uint8List fileBytes = result.files.single.bytes!;
-        final String fileName = result.files.single.name;
+        final String originalPath = result.files.single.path!;
+        final String originalName = result.files.single.name;
         
+        // Tampilkan snackbar info kompresi
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Sedang mengompres video agar lebih ringan, harap tunggu...'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+
+        // 1. Kompresi Video on-device
+        final MediaInfo? mediaInfo = await VideoCompress.compressVideo(
+          originalPath,
+          quality: VideoQuality.MediumQuality,
+          deleteOrigin: false,
+          includeAudio: true,
+        );
+
+        if (mediaInfo == null || mediaInfo.file == null) {
+          throw Exception('Gagal mengompres video.');
+        }
+
+        final Uint8List compressedBytes = await mediaInfo.file!.readAsBytes();
+        final String finalFileName = 'compressed_${originalName.split('.').first}.mp4';
+
         final questService = ref.read(questServiceProvider);
         
-        // 1. Upload
-        final videoUrl = await questService.uploadVideo(fileBytes, fileName);
+        // 2. Upload video yang sudah dikompres
+        final videoUrl = await questService.uploadVideo(compressedBytes, finalFileName);
         
-        // 2. Complete quest
+        // 3. Selesaikan misi
         await questService.completeQuest(qLog.id, videoUrl: videoUrl);
         
-        // Refresh quest & profile (coins/XP update)
+        // Bersihkan cache file kompresi
+        await VideoCompress.deleteAllCache();
+
         ref.invalidate(questProvider);
         ref.invalidate(profileProvider);
         if (mounted) {

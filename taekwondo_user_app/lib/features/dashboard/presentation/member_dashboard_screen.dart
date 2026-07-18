@@ -22,6 +22,7 @@ import '../../profile/data/profile_service.dart';
 import '../../profile/presentation/profile_screen.dart';
 import '../data/shop_service.dart';
 import '../../schedule/presentation/schedule_screen.dart';
+import '../data/notification_service.dart';
 import 'notification_screen.dart';
 import '../data/event_service.dart';
 import '../data/article_service.dart';
@@ -782,22 +783,45 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               ),
               const SizedBox(width: 10),
               // Bell icon inside a premium circle
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFF1E293B),
-                  border: Border.all(color: Colors.white10),
-                ),
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  icon: const Icon(Icons.notifications_none, color: textWhite, size: 18),
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen()));
-                  },
-                ),
-              ),
+              (() {
+                final notifsAsync = ref.watch(notificationProvider);
+                final hasUnread = notifsAsync.valueOrNull?.any((n) => !n.isRead) ?? false;
+                
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF1E293B),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: IconButton(
+                        padding: EdgeInsets.zero,
+                        icon: const Icon(Icons.notifications_none, color: textWhite, size: 18),
+                        onPressed: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen()));
+                        },
+                      ),
+                    ),
+                    if (hasUnread)
+                      Positioned(
+                        top: -2,
+                        right: -2,
+                        child: Container(
+                          width: 10,
+                          height: 10,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              })(),
               const SizedBox(width: 8),
               // Exit/logout icon inside a premium circle
               Container(
@@ -2167,100 +2191,106 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 }
 
                 // ── MOBILE LAYOUT (1 KOLOM SEPERTI BIASA) ──
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                  itemCount: logs.length,
-                  itemBuilder: (context, index) {
-                    final log = logs[index];
-                    final quest = log.quest;
-                    final isExpanded = _expandedQuestId == log.id;
-                    
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: log.completed ? Colors.white.withValues(alpha: 0.05) : cardBg,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: log.completed ? Colors.green.withValues(alpha: 0.3) : Colors.white10),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  color: log.completed ? Colors.green.withValues(alpha: 0.15) : goldAccent.withValues(alpha: 0.15),
-                                  borderRadius: BorderRadius.circular(16),
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(questProvider);
+                    ref.invalidate(profileProvider);
+                  },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                    itemCount: logs.length,
+                    itemBuilder: (context, index) {
+                      final log = logs[index];
+                      final quest = log.quest;
+                      final isExpanded = _expandedQuestId == log.id;
+                      
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: log.completed ? Colors.white.withValues(alpha: 0.05) : cardBg,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: log.completed ? Colors.green.withValues(alpha: 0.3) : Colors.white10),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: log.completed ? Colors.green.withValues(alpha: 0.15) : goldAccent.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Icon(
+                                    log.completed ? Icons.check_circle : Icons.assignment,
+                                    color: log.completed ? Colors.green : goldAccent,
+                                  ),
                                 ),
-                                child: Icon(
-                                  log.completed ? Icons.check_circle : Icons.assignment,
-                                  color: log.completed ? Colors.green : goldAccent,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      quest.title,
-                                      style: GoogleFonts.hankenGrotesk(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                        color: textWhite,
-                                        decoration: log.completed ? TextDecoration.lineThrough : null,
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        quest.title,
+                                        style: GoogleFonts.hankenGrotesk(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: textWhite,
+                                          decoration: log.completed ? TextDecoration.lineThrough : null,
+                                        ),
                                       ),
-                                    ),
-                                    Text(
-                                      '+${quest.baseXp} XP',
-                                      style: GoogleFonts.hankenGrotesk(
-                                        fontSize: 12,
-                                        color: textGray,
+                                      Text(
+                                        '+${quest.baseXp} XP',
+                                        style: GoogleFonts.hankenGrotesk(
+                                          fontSize: 12,
+                                          color: textGray,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              if (!log.completed)
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _expandedQuestId = isExpanded ? null : log.id;
-                                      _selectedQuizOption = null;
-                                    });
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: isExpanded ? Colors.grey.withValues(alpha: 0.2) : themeColor,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: isExpanded ? Border.all(color: Colors.white24) : null,
-                                    ),
-                                    child: Text(
-                                      isExpanded ? 'Tutup' : 'Ambil',
-                                      style: GoogleFonts.hankenGrotesk(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
+                                if (!log.completed)
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _expandedQuestId = isExpanded ? null : log.id;
+                                        _selectedQuizOption = null;
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: isExpanded ? Colors.grey.withValues(alpha: 0.2) : themeColor,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: isExpanded ? Border.all(color: Colors.white24) : null,
+                                      ),
+                                      child: Text(
+                                        isExpanded ? 'Tutup' : 'Ambil',
+                                        style: GoogleFonts.hankenGrotesk(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                            ],
-                          ),
-                          if (isExpanded && !log.completed) ...[
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12),
-                              child: Divider(color: Colors.white10, height: 1),
+                              ],
                             ),
-                            _buildQuestExpandedContent(log, quest, themeColor),
+                            if (isExpanded && !log.completed) ...[
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                child: Divider(color: Colors.white10, height: 1),
+                              ),
+                              _buildQuestExpandedContent(log, quest, themeColor),
+                            ],
                           ],
-                        ],
-                      ),
-                    );
-                  },
+                        ),
+                      );
+                    },
+                  ),
                 );
               });
             },

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/data/auth_provider.dart';
+import '../../core/network/firebase_messaging_service.dart';
 
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/coach/presentation/coach_attendance_screen.dart';
@@ -64,6 +65,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   ref.watch(authProvider);
 
   return GoRouter(
+    // ✅ Pasang globalNavigatorKey agar FCM bisa navigasi & tampilkan SnackBar dari mana saja
+    navigatorKey: globalNavigatorKey,
     initialLocation: '/',
     // Redirect guard: arahkan ke /login jika belum terautentikasi
     redirect: (context, state) {

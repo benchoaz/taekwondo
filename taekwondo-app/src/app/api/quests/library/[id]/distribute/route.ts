@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { notifyUser } from "@/lib/notify";
 
 // POST /api/quests/library/[id]/distribute
 // Distribusikan quest langsung ke DailyQuestLog semua member yang eligible hari ini
@@ -39,7 +40,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     // Ambil semua member
-    const allMembers = await prisma.member.findMany();
+    const allMembers = await prisma.member.findMany({
+      where: { status: { notIn: ['PENDING_VERIFICATION', 'INACTIVE', 'REJECTED'] } }
+    });
 
     const normalizeBelt = (str: string) => str.toUpperCase().replace(/SABUK|GEUP|DAN|[^A-Z0-9]/g, '');
 
@@ -95,6 +98,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         data: { memberId: member.id, questId: id }
       });
       distributed++;
+
+      // Kirim push notification via FCM ke member ini
+      try {
+        await notifyUser({
+          userId: member.userId,
+          title: '⚔️ Misi Baru Tersedia!',
+          message: `Pelatih baru saja mengirimkan misi khusus untukmu: "${quest.title}". Selesaikan sekarang dan raih XP!`,
+          type: 'QUEST',
+          link: '/quest',
+        });
+      } catch (notifyErr) {
+        console.error(`[DISTRIBUTE_NOTIFY_ERROR] memberId=${member.id}:`, notifyErr);
+        // Jangan gagalkan distribusi hanya karena notifikasi error
+      }
     }
 
     return NextResponse.json({
@@ -112,3 +129,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     );
   }
 }
+
+
+

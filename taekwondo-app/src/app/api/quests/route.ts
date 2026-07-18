@@ -38,9 +38,14 @@ export async function GET(req: NextRequest) {
       orderBy: { assignedAt: "asc" }
     });
 
-    if (existingLogs.length > 0) {
+    // Jika sudah ada 3+ quest hari ini → kembalikan semua (termasuk yang di-distribute admin)
+    // Jangan early-return dengan angka tetap — selalu kembalikan semua log hari ini
+    if (existingLogs.length >= 3) {
       return NextResponse.json({ success: true, data: existingLogs });
     }
+
+    // Jika ada beberapa (< 3), cek apakah perlu auto-assign tambahan
+    // Tapi tetap sertakan yang ada dalam respons akhir
 
     // Auto-assign: kalkulasi umur
     let age = 15;
@@ -113,25 +118,46 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Jika kurang dari 3, isi dari sisa quest yang belum dipilih
-    if (selectedQuests.length < 3) {
-      const selectedIds = new Set(selectedQuests.map(q => q.id));
-      const remaining = eligibleQuests
-        .filter(q => !selectedIds.has(q.id))
-        .sort(() => 0.5 - Math.random());
-      selectedQuests.push(...remaining.slice(0, 3 - selectedQuests.length));
+    // Hitung berapa quest yang masih perlu di-auto-assign (isi hingga 3 total)
+    const existingQuestIds = new Set(existingLogs.map((l: any) => l.questId));
+    const neededCount = 3 - existingLogs.length;
+
+    // Filter eligible quest yang belum ada di existing log
+    const eligibleNew = eligibleQuests.filter(q => !existingQuestIds.has(q.id));
+
+    if (neededCount > 0 && eligibleNew.length > 0) {
+      // Pilih dari kategori yang belum ada
+      const selectedQuests: typeof eligibleNew = [];
+      const categories = ["FITNESS", "TECHNICAL", "DISCIPLINE", "THEORY"].sort(() => 0.5 - Math.random());
+      for (const cat of categories) {
+        if (selectedQuests.length >= neededCount) break;
+        const pool = eligibleNew.filter(q => q.category === cat && !selectedQuests.find(s => s.id === q.id));
+        if (pool.length > 0) {
+          selectedQuests.push(pool[Math.floor(Math.random() * pool.length)]);
+        }
+      }
+      // Isi sisa jika kurang
+      if (selectedQuests.length < neededCount) {
+        const selectedIds = new Set(selectedQuests.map(q => q.id));
+        const remaining = eligibleNew.filter(q => !selectedIds.has(q.id)).slice(0, neededCount - selectedQuests.length);
+        selectedQuests.push(...remaining);
+      }
+
+      const newLogs = await Promise.all(
+        selectedQuests.map(q =>
+          prisma.dailyQuestLog.create({
+            data: { memberId: member.id, questId: q.id },
+            include: { quest: true }
+          })
+        )
+      );
+
+      // Gabungkan: quest lama (termasuk dari admin) + quest baru auto-assign
+      return NextResponse.json({ success: true, data: [...existingLogs, ...newLogs] });
     }
 
-    const newLogs = await Promise.all(
-      selectedQuests.map(q =>
-        prisma.dailyQuestLog.create({
-          data: { memberId: member.id, questId: q.id },
-          include: { quest: true }
-        })
-      )
-    );
-
-    return NextResponse.json({ success: true, data: newLogs });
+    // Tidak ada yang baru, kembalikan semua yang ada (termasuk quest dari admin)
+    return NextResponse.json({ success: true, data: existingLogs });
 
   } catch (error: any) {
     console.error("[GET_QUESTS_ERROR]", error);

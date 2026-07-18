@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:video_compress/video_compress.dart';
+import 'dart:async';
 
 import 'package:file_picker/file_picker.dart' as fp;
 import 'package:url_launcher/url_launcher.dart';
@@ -11,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import '../../auth/domain/user_model.dart';
 import '../data/quest_service.dart';
 import '../../profile/data/profile_service.dart';
+import '../../../core/network/firebase_messaging_service.dart';
 
 // Neo-Brutalism Theme Colors
 const Color nbSurface = Color(0xFFF8F9FA);
@@ -44,6 +46,36 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
   bool _isUploading = false;
   String? _uploadingQuestId;
   final Map<String, bool> _watchedQuests = {};
+  Timer? _refreshTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Refresh data fresh saat layar pertama kali dibuka
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(questProvider);
+      ref.invalidate(profileProvider);
+    });
+    // Auto-refresh setiap 30 detik agar quest baru dari admin langsung muncul
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) ref.invalidate(questProvider);
+    });
+    // Daftar callback FCM: saat push notification QUEST diterima, langsung refresh
+    onQuestNotificationReceived = () {
+      if (mounted) {
+        ref.invalidate(questProvider);
+        ref.invalidate(profileProvider);
+      }
+    };
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    // Hapus callback FCM saat layar ditutup
+    onQuestNotificationReceived = null;
+    super.dispose();
+  }
 
   Future<void> _launchURL(String urlString, String questId) async {
     setState(() {
@@ -538,19 +570,25 @@ class _DailyQuestScreenState extends ConsumerState<DailyQuestScreen> {
             children: [
               _buildTopAppBar(),
               Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildProgressSection(),
-                      const SizedBox(height: 24),
-                      _buildQuestList(ref.watch(questProvider)),
-                      const SizedBox(height: 24),
-                      _buildBonusGrid(),
-                      const SizedBox(height: 100), // padding for bottom nav
-                    ],
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(questProvider);
+                    ref.invalidate(profileProvider);
+                  },
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProgressSection(),
+                        const SizedBox(height: 24),
+                        _buildQuestList(ref.watch(questProvider)),
+                        const SizedBox(height: 24),
+                        _buildBonusGrid(),
+                        const SizedBox(height: 100), // padding for bottom nav
+                      ],
+                    ),
                   ),
                 ),
               ),

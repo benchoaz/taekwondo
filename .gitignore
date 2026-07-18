@@ -7,3 +7,4 @@ screen.png
 *.md:Zone.Identifier
 *.tar
 *.tar.gz
+firebase-service-account.json

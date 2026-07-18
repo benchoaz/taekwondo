@@ -1,17 +1,30 @@
 import * as admin from 'firebase-admin';
+import fs from 'fs';
+import path from 'path';
 
 if (!admin.apps.length) {
   try {
+    let serviceAccount: any = null;
     const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT;
-    if (serviceAccountJson) {
-      const serviceAccount = JSON.parse(serviceAccountJson);
+    
+    // Check if JSON string env is available
+    if (serviceAccountJson && serviceAccountJson.trim().startsWith('{')) {
+      serviceAccount = JSON.parse(serviceAccountJson);
+    } else {
+      // Fallback: load from physical file inside standalone path
+      const filePath = path.join(process.cwd(), 'firebase-service-account.json');
+      if (fs.existsSync(filePath)) {
+        serviceAccount = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+      }
+    }
+
+    if (serviceAccount) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
       });
       console.log('Firebase Admin Initialized');
     } else {
-      console.warn('FIREBASE_SERVICE_ACCOUNT not found in environment variables. Push notifications will not work.');
-      // Initialize without credentials just so it doesn't crash, but it won't be able to send
+      console.warn('FIREBASE_SERVICE_ACCOUNT credentials not found. Push notifications will not work.');
       admin.initializeApp();
     }
   } catch (error) {

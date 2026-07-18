@@ -45,27 +45,60 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Data wajib tidak lengkap" }, { status: 400 });
     }
 
-    const newAchievement = await prisma.achievement.create({
-      data: {
-        memberId,
-        title,
-        eventName,
-        date: new Date(date),
-        rank,
-        photoUrl,
-        certificateUrl,
-        status: status || "PENDING"
-      },
-      include: {
-        member: {
-          select: {
-            id: true,
-            fullName: true,
-            selfieUrl: true,
-            currentBelt: true
+    // Ganjaran XP untuk Prestasi (misalnya: Emas +500, Perak +300, Lainnya +200)
+    let rewardXp = 200;
+    if (rank === "Emas" || rank === "Juara 1") {
+      rewardXp = 500;
+    } else if (rank === "Perak" || rank === "Juara 2") {
+      rewardXp = 300;
+    }
+
+    const isApproved = status === "APPROVED";
+
+    const newAchievement = await prisma.$transaction(async (tx) => {
+      const ach = await tx.achievement.create({
+        data: {
+          memberId,
+          title,
+          eventName,
+          date: new Date(date),
+          rank,
+          photoUrl,
+          certificateUrl,
+          status: status || "PENDING"
+        },
+        include: {
+          member: {
+            select: {
+              id: true,
+              fullName: true,
+              selfieUrl: true,
+              currentBelt: true
+            }
           }
         }
+      });
+
+      if (isApproved) {
+        // Increment progress (XP) member
+        await tx.member.update({
+          where: { id: memberId },
+          data: { progress: { increment: rewardXp } }
+        });
+
+        // Catat di log XP
+        await tx.xpLog.create({
+          data: {
+            memberId,
+            amount: rewardXp,
+            source: "TOURNAMENT",
+            referenceId: ach.id,
+            description: `Meraih Prestasi: ${title} di ${eventName}`
+          }
+        });
       }
+
+      return ach;
     });
 
     return NextResponse.json(newAchievement, { status: 201 });

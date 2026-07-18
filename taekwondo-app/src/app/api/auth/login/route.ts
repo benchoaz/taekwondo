@@ -39,14 +39,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email/ID atau kata sandi yang Anda masukkan salah." }, { status: 401 });
     }
 
-    // Blokir login jika peran adalah MEMBER dan statusnya belum ACTIVE (misal masih PENDING_VERIFICATION / PAYMENT_UPLOADED)
+    // Blokir login jika peran adalah MEMBER dan statusnya belum ACTIVE / AKTIF
     if (user.role === "MEMBER" && user.member) {
       const status = user.member.status;
       if (status === "PENDING_VERIFICATION" || status === "PAYMENT_UPLOADED") {
         return NextResponse.json({ error: "Pendaftaran Anda sedang diverifikasi admin. Silakan konfirmasi pembayaran." }, { status: 403 });
       } else if (status === "REJECTED") {
         return NextResponse.json({ error: "Pendaftaran Anda ditolak oleh pengurus dojang." }, { status: 403 });
-      } else if (status !== "ACTIVE") {
+      } else if (status !== "ACTIVE" && status !== "AKTIF") {
         return NextResponse.json({ error: "Akun Anda dinonaktifkan. Silakan hubungi admin." }, { status: 403 });
       }
     }

@@ -4325,18 +4325,50 @@ export default function AdminDashboard({
               )}
 
               {editUserRole === "MEMBER" && (
-                <div>
-                  <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Status Anggota</label>
-                  <select 
-                    value={editUserStatus}
-                    onChange={(e) => setEditUserStatus(e.target.value)}
-                    className="w-full bg-white border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] font-semibold text-[#0F172A]"
-                  >
-                    <option value="ACTIVE">Aktif (Bisa Menerima Tagihan & Latihan)</option>
-                    <option value="PENDING_VERIFICATION">Menunggu Verifikasi</option>
-                    <option value="INACTIVE">Nonaktif</option>
-                    <option value="REJECTED">Ditolak</option>
-                  </select>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Status Anggota</label>
+                    <select 
+                      value={editUserStatus}
+                      onChange={(e) => setEditUserStatus(e.target.value)}
+                      className="w-full bg-white border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] font-semibold text-[#0F172A]"
+                    >
+                      <option value="ACTIVE">Aktif (Bisa Menerima Tagihan & Latihan)</option>
+                      <option value="PENDING_VERIFICATION">Menunggu Verifikasi (Pendaftaran Awal)</option>
+                      <option value="PAYMENT_UPLOADED">Bukti Bayar Diunggah (Perlu Dicek)</option>
+                      <option value="INACTIVE">Nonaktif</option>
+                      <option value="REJECTED">Ditolak</option>
+                    </select>
+                  </div>
+
+                  {/* Dokumen Lampiran Pendaftar Baru */}
+                  {editingUser && (editingUser as any).kkUrl && (
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <span className="block text-[10px] font-bold text-gray-500 uppercase mb-2">📄 Berkas Kartu Keluarga (KK)</span>
+                      <a 
+                        href={(editingUser as any).kkUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-xs font-bold text-[#E10600] hover:underline flex items-center gap-1"
+                      >
+                        <FileText className="w-3.5 h-3.5" /> Lihat & Unduh KK
+                      </a>
+                    </div>
+                  )}
+
+                  {editingUser && (editingUser as any).paymentProofUrl && (
+                    <div className="p-3 bg-green-50 rounded-xl border border-green-100">
+                      <span className="block text-[10px] font-bold text-green-700 uppercase mb-2">💵 Struk Bukti Bayar Pendaftaran</span>
+                      <a 
+                        href={(editingUser as any).paymentProofUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-xs font-bold text-green-600 hover:underline flex items-center gap-1"
+                      >
+                        <FileText className="w-3.5 h-3.5" /> Lihat Bukti Transfer
+                      </a>
+                    </div>
+                  )}
                 </div>
               )}
 

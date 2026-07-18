@@ -581,7 +581,7 @@ model ShopPurchase {
   memberId    String      @map("member_id")
   member      Member      @relation(fields: [memberId], references: [id], onDelete: Cascade)
   itemId      String      @map("item_id")
-  item        ShopItem    @relation(fields: [itemId], references: [id])
+  item        ShopItem    @relation(fields: [itemId], references: [id], onDelete: Cascade)
   pricePaid   Int         @map("price_paid")
   purchasedAt DateTime    @default(now()) @map("purchased_at")
   isEquipped  Boolean     @default(false) @map("is_equipped")

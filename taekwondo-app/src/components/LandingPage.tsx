@@ -697,17 +697,39 @@ export default function LandingPage({
             <p className="text-gray-400 text-sm leading-relaxed">
               {settings.description}
             </p>
+            <p className="text-[#E10600] text-xs font-bold mt-2">
+              📍 Pusat Latihan Taekwondo Terpercaya di Kraksaan, Probolinggo.
+            </p>
           </div>
           <div>
             <h4 className="font-bold text-sm uppercase tracking-wider mb-4 text-[#E10600]">Alamat Dojang</h4>
-            <p className="text-gray-400 text-sm leading-relaxed">
-              {settings.address}
+            <p className="text-gray-400 text-sm leading-relaxed mb-4">
+              {settings.address || "Kraksaan, Probolinggo, Jawa Timur"}
             </p>
+            <div className="w-full h-32 rounded-lg overflow-hidden border border-white/10 opacity-80 hover:opacity-100 transition-opacity">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.5103444005886!2d113.413247!3d-7.7816!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd7006855555555%3A0x5555555555555555!2sKraksaan%2C%20Probolinggo%2C%20East%20Java!5e0!3m2!1sid!2sid!4v1721234567890!5m2!1sid!2sid"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen={false}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
           </div>
           <div>
             <h4 className="font-bold text-sm uppercase tracking-wider mb-4 text-[#E10600]">Hubungi Kami</h4>
             <p className="text-gray-400 text-sm">Email: {settings.email}</p>
             <p className="text-gray-400 text-sm mt-1">Telp: {settings.phone}</p>
+            <a 
+              href={`https://wa.me/${settings.phone?.replace(/[^0-9]/g, '')}`} 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="inline-flex items-center gap-2 mt-4 text-xs font-bold bg-[#25D366] text-white px-3 py-1.5 rounded-lg hover:bg-[#20ba5a] transition-colors"
+            >
+              <Phone className="w-3 h-3" /> Chat WhatsApp
+            </a>
           </div>
           <div>
             <h4 className="font-bold text-sm uppercase tracking-wider mb-4 text-[#E10600]">Link Cepat</h4>
@@ -722,6 +744,20 @@ export default function LandingPage({
           <span>&copy; 2026 {settings.dojangName}. Hak Cipta Dilindungi.</span>
           <span>{settings.motto}</span>
         </div>
+
+        {/* Floating WhatsApp CTA */}
+        <a
+          href={`https://wa.me/${settings.phone?.replace(/[^0-9]/g, '')}?text=Halo%20Sabum%2C%20saya%20ingin%20tanya%20informasi%20pendaftaran%20di%20White%20Tiger%20Taekwondo%20Club.`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-6 right-6 z-50 bg-[#25D366] hover:bg-[#20ba5a] text-white p-4 rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 active:scale-95 group"
+          title="Hubungi Kami via WhatsApp"
+        >
+          <Phone className="w-6 h-6 animate-pulse" />
+          <span className="max-w-0 overflow-hidden group-hover:max-w-xs group-hover:ml-2 transition-all duration-300 font-bold text-sm whitespace-nowrap">
+            Tanya Pendaftaran
+          </span>
+        </a>
       </footer>
     </div>
   );

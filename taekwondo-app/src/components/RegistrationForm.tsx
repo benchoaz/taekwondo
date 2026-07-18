@@ -94,6 +94,20 @@ export default function RegistrationForm({
     setSuccessMsg("");
     setQrisData(null);
 
+    // Validasi input dasar
+    const cleanName = fullName.trim().replace(/[^a-zA-Z\s]/g, "");
+    if (cleanName.length < 3) {
+      setErrorMsg("Nama lengkap harus berupa huruf minimal 3 karakter.");
+      return;
+    }
+
+    const phoneRegex = /^(\+62|62|0)8[1-9][0-9]{6,11}$/;
+    const cleanPhone = phone.trim().replace(/[-\s]/g, "");
+    if (!phoneRegex.test(cleanPhone)) {
+      setErrorMsg("Format nomor WhatsApp tidak valid. Gunakan format seperti 08123456789.");
+      return;
+    }
+
     if (!kk) {
       setErrorMsg("Silakan unggah pindaian/foto Kartu Keluarga (KK) Anda.");
       return;

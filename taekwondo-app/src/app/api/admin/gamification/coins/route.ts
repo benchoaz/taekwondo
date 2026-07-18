@@ -10,10 +10,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Member ID dan jumlah Koin (tidak boleh 0) wajib diisi" }, { status: 400 });
     }
 
-    const member = await prisma.member.findUnique({ where: { id: memberId } });
+    // Cari member berdasarkan ID database (UUID), memberNumber (WTK-xxxx), atau email/username
+    let member = await prisma.member.findFirst({
+      where: {
+        OR: [
+          { id: memberId },
+          { memberNumber: memberId },
+          { user: { email: memberId } },
+          { user: { name: memberId } }
+        ]
+      },
+      include: { user: true }
+    });
+
     if (!member) {
-      return NextResponse.json({ error: "Member tidak ditemukan" }, { status: 404 });
+      return NextResponse.json({ error: "Member tidak ditemukan. Masukkan nomor member (WTK-xxxx), email, atau username dengan benar." }, { status: 404 });
     }
+
+    const resolvedMemberId = member.id;
 
     // Ensure it doesn't go below zero
     const newBalance = Math.max(0, member.dojangCoins + parseInt(amount));
@@ -21,12 +35,12 @@ export async function POST(req: NextRequest) {
     // Transaction to update balance and log it
     await prisma.$transaction([
       prisma.member.update({
-        where: { id: memberId },
+        where: { id: resolvedMemberId },
         data: { dojangCoins: newBalance },
       }),
       prisma.dojangCoinLog.create({
         data: {
-          memberId,
+          memberId: resolvedMemberId,
           amount: parseInt(amount),
           source: "MANUAL",
           description: description || (parseInt(amount) > 0 ? "Top-up manual Admin" : "Pengurangan manual Admin"),

@@ -70,10 +70,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         if (eligible && req.allowedBeltIds && req.allowedBeltIds.length > 0) {
           const normMember = normalizeBelt(member.currentBelt);
           const dbBelts = await prisma.beltRank.findMany();
+          
+          // Cari sabuk di database yang paling cocok secara substring
           const beltRecord = dbBelts.find(b => {
             const normDb = normalizeBelt(b.name);
-            return normDb === normMember || normDb.includes(normMember) || normMember.includes(normDb);
+            return normDb === normMember || 
+                   normDb.includes(normMember) || 
+                   normMember.includes(normDb) ||
+                   // Pencocokan alternatif jika sabuk memiliki warna mirip (misal: "KUNING" & "HIJAU")
+                   (normMember.includes("KUNING") && normDb.includes("KUNING")) ||
+                   (normMember.includes("HIJAU") && normDb.includes("HIJAU")) ||
+                   (normMember.includes("BIRU") && normDb.includes("BIRU")) ||
+                   (normMember.includes("MERAH") && normDb.includes("MERAH"));
           });
+          
           if (!beltRecord || !req.allowedBeltIds.includes(beltRecord.id)) {
             eligible = false;
           }

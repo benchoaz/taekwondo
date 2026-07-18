@@ -1470,68 +1470,97 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
           return const Center(child: Text('Toko kosong saat ini.', style: TextStyle(color: Colors.white)));
         }
         return GridView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
-            childAspectRatio: 0.76,
+            childAspectRatio: 0.70, // Increased ratio to avoid overflow inside card
           ),
           itemCount: shopData.items.length,
           itemBuilder: (context, index) {
             final item = shopData.items[index];
             return Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: item.equipped ? goldAccent : Colors.white10),
+                color: const Color(0xFF1E293B),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: item.equipped 
+                      ? goldAccent 
+                      : (item.owned ? Colors.green.withOpacity(0.5) : Colors.white.withOpacity(0.05)),
+                  width: item.equipped ? 2.0 : 1.0,
+                ),
+                boxShadow: item.equipped
+                    ? [
+                        BoxShadow(
+                          color: goldAccent.withOpacity(0.2),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        )
+                      ]
+                    : null,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    children: [
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(16),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.03),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.white.withOpacity(0.05)),
+                          ),
+                          child: item.itemUrl != null && item.itemUrl!.isNotEmpty
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Image.network(
+                                    _getAbsoluteUrl(item.itemUrl!),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(Icons.redeem, color: goldAccent, size: 30),
+                                  ),
+                                )
+                              : const Icon(Icons.redeem, color: goldAccent, size: 32),
                         ),
-                        child: item.itemUrl != null && item.itemUrl!.isNotEmpty
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Image.network(
-                                  _getAbsoluteUrl(item.itemUrl!),
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const Icon(Icons.redeem, color: goldAccent, size: 30),
-                                ),
-                              )
-                            : const Icon(Icons.redeem, color: goldAccent, size: 30),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        item.name,
-                        style: GoogleFonts.hankenGrotesk(
-                          color: textWhite,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+                        const SizedBox(height: 10),
+                        Text(
+                          item.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.hankenGrotesk(
+                            color: textWhite,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 13,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.type,
-                        style: GoogleFonts.spaceGrotesk(
-                          color: textGray,
-                          fontSize: 10,
+                        const SizedBox(height: 2),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            item.type,
+                            style: GoogleFonts.spaceGrotesk(
+                              color: textGray,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   Column(
                     children: [
+                      const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -1551,13 +1580,15 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: item.equipped 
-                              ? Colors.red.withValues(alpha: 0.8) // Red for unequip
+                              ? Colors.red.withOpacity(0.9) // Red for unequip
                               : (item.owned ? Colors.green : themeColor),
                           foregroundColor: Colors.white,
+                          elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          minimumSize: const Size(double.infinity, 36),
+                          minimumSize: const Size(double.infinity, 34),
+                          padding: EdgeInsets.zero,
                         ),
                         onPressed: item.equipped 
                             ? () => _handleUnequipItem(item.id) 
@@ -1568,7 +1599,10 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                           item.equipped 
                               ? 'Lepas' 
                               : (item.owned ? 'Pasang' : 'Beli'),
-                          style: GoogleFonts.hankenGrotesk(fontSize: 12, fontWeight: FontWeight.bold),
+                          style: GoogleFonts.hankenGrotesk(
+                            fontSize: 11, 
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],

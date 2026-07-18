@@ -131,6 +131,20 @@ export async function POST(req: NextRequest) {
           console.error("Gagal mengirim WhatsApp receipt:", waError);
         }
       }
+
+      // Kirim push notification ke member
+      try {
+        const { notifyUser } = await import("@/lib/notify");
+        await notifyUser({
+          userId: member.userId,
+          title: "💳 Pembayaran SPP Diterima",
+          message: `Pembayaran SPP Anda untuk bulan ${monthName} ${year} sebesar Rp ${parseFloat(amount).toLocaleString('id-ID')} telah dikonfirmasi oleh admin.`,
+          type: "SPP",
+          link: "/spp",
+        });
+      } catch (notifyErr) {
+        console.error("Gagal mengirim push notif SPP:", notifyErr);
+      }
     }
 
     return NextResponse.json({ success: true, count: createdInvoices.length });

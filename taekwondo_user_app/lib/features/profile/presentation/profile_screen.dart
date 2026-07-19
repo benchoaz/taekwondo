@@ -266,10 +266,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ],
                   ),
                 ),
-              // Profile Picture
+              // Profile Picture & Frame Stack
               Stack(
                 alignment: Alignment.center,
                 children: [
+                  // 1. Profile Photo
                   GestureDetector(
                     onTap: _isUploading ? null : () => _pickAndUploadImage(frameUrl),
                     child: Container(
@@ -289,8 +290,45 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                     ),
                   ),
+                  
+                  // 2. Frame Overlay (matches 90x90 exactly to prevent displacement)
+                  if (frameUrl != null && frameUrl.isNotEmpty)
+                    (() {
+                      final cssStyles = CssValueParser.parseCss(frameCss);
+                      final Color? parsedBorderColor = cssStyles['borderColor'];
+                      final double parsedBorderWidth = cssStyles['borderWidth'] ?? 2.0;
+                      final Color? parsedGlowColor = cssStyles['glowColor'];
+                      // Multiply blur radius by 2 for large profile view to scale the effect nicely
+                      final double parsedGlowBlurRadius = (cssStyles['glowBlurRadius'] ?? 0.0) * 2;
+
+                      return IgnorePointer(
+                        child: Container(
+                          width: 104, // Marginally larger than photo to wrap it perfectly
+                          height: 104,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                              image: NetworkImage(_getAbsoluteUrl(frameUrl!)),
+                              fit: BoxFit.fill, // Using fill to stretch round frame perfectly to container boundaries
+                            ),
+                            border: parsedBorderColor != null
+                                ? Border.all(color: parsedBorderColor, width: parsedBorderWidth * 1.5)
+                                : null,
+                            boxShadow: [
+                              BoxShadow(
+                                color: parsedGlowColor ?? Colors.white.withValues(alpha: 0.2),
+                                blurRadius: parsedGlowBlurRadius > 0 ? parsedGlowBlurRadius : 15,
+                                spreadRadius: 2,
+                              )
+                            ],
+                          ),
+                        ),
+                      );
+                    })(),
+
                   if (_isUploading)
                     const CircularProgressIndicator(color: Colors.white),
+                  
                   if (!_isUploading)
                     Positioned(
                       bottom: 0,
@@ -309,40 +347,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                 ],
               ),
-              // Frame Overlay on top
-              if (frameUrl != null && frameUrl.isNotEmpty)
-                (() {
-                  final cssStyles = CssValueParser.parseCss(frameCss);
-                  final Color? parsedBorderColor = cssStyles['borderColor'];
-                  final double parsedBorderWidth = cssStyles['borderWidth'] ?? 2.0;
-                  final Color? parsedGlowColor = cssStyles['glowColor'];
-                  // Multiply blur radius by 2 for large profile view to scale the effect nicely
-                  final double parsedGlowBlurRadius = (cssStyles['glowBlurRadius'] ?? 0.0) * 2;
-
-                  return IgnorePointer(
-                    child: Container(
-                      width: 130, // Frame is larger than avatar
-                      height: 130,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: DecorationImage(
-                          image: NetworkImage(_getAbsoluteUrl(frameUrl)),
-                          fit: BoxFit.cover,
-                        ),
-                        border: parsedBorderColor != null
-                            ? Border.all(color: parsedBorderColor, width: parsedBorderWidth * 1.5)
-                            : null,
-                        boxShadow: [
-                          BoxShadow(
-                            color: parsedGlowColor ?? Colors.white.withValues(alpha: 0.2),
-                            blurRadius: parsedGlowBlurRadius > 0 ? parsedGlowBlurRadius : 15,
-                            spreadRadius: 2,
-                          )
-                        ],
-                      ),
-                    ),
-                  );
-                })(),
             ],
           ),
           const SizedBox(height: 16),

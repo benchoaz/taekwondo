@@ -10,11 +10,28 @@ export async function GET(request: Request) {
       return NextResponse.json({ success: false, message: 'Missing userId parameter' }, { status: 400 });
     }
 
+    const now = new Date();
     const notifications = await prisma.notification.findMany({
       where: {
-        OR: [
-          { userId: userId },
-          { userId: 'ALL' }
+        AND: [
+          {
+            OR: [
+              { userId: userId },
+              { userId: 'ALL' }
+            ]
+          },
+          {
+            OR: [
+              { startAt: null },
+              { startAt: { lte: now } }
+            ]
+          },
+          {
+            OR: [
+              { expiresAt: null },
+              { expiresAt: { gte: now } }
+            ]
+          }
         ]
       },
       orderBy: { createdAt: 'desc' },

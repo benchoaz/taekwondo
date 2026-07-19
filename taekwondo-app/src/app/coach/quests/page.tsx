@@ -114,6 +114,14 @@ function CoachQuestFormContent() {
     }
   }, [editId]);
 
+  const [isIframe, setIsIframe] = useState(false);
+  
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsIframe(window.self !== window.top);
+    }
+  }, []);
+
   const handleToggleBelt = (id: string) => {
     setSelectedBeltIds(prev => 
       prev.includes(id) ? prev.filter(bid => bid !== id) : [...prev, id]
@@ -200,36 +208,56 @@ function CoachQuestFormContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f4f5] py-4 sm:py-12 px-2 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-5xl mx-auto bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+    <div className={`min-h-screen ${isIframe ? 'bg-transparent py-0 px-0' : 'bg-[#f3f4f5] py-4 sm:py-12 px-2 sm:px-6 lg:px-8'} font-sans`}>
+      <div className={`max-w-5xl mx-auto bg-white ${isIframe ? 'rounded-none shadow-none border-none' : 'rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden border border-gray-100'}`}>
         
-        {/* Header Premium Merah */}
-        <div className="bg-gradient-to-r from-red-600 to-red-800 px-8 py-10 text-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
-          
-          <div className="flex justify-center gap-4 mb-4 relative z-10">
-            <span className="bg-white/20 text-white text-xs font-black px-3.5 py-1 rounded-full border border-white/30 uppercase tracking-widest">
-              Quest Builder
-            </span>
-            <Link href="/coach/quests/library" className="bg-red-950/40 text-red-100 hover:text-white text-xs font-black px-3.5 py-1 rounded-full border border-red-700/30 uppercase tracking-widest transition-colors flex items-center gap-1.5">
-              <CheckSquare className="w-3.5 h-3.5" /> Library Misi
-            </Link>
-            <Link href="/coach/quests/logs" className="bg-red-950/40 text-red-100 hover:text-white text-xs font-black px-3.5 py-1 rounded-full border border-red-700/30 uppercase tracking-widest transition-colors flex items-center gap-1.5">
-              <ListFilter className="w-3.5 h-3.5" /> Pantau Latihan Murid
-            </Link>
-          </div>
+        {/* Header Premium Merah - Hidden in Iframe */}
+        {!isIframe && (
+          <div className="bg-gradient-to-r from-red-600 to-red-800 px-8 py-10 text-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl"></div>
+            <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
+            
+            <div className="flex justify-center gap-4 mb-4 relative z-10">
+              <span className="bg-white/20 text-white text-xs font-black px-3.5 py-1 rounded-full border border-white/30 uppercase tracking-widest">
+                Quest Builder
+              </span>
+              <Link href="/coach/quests/library" className="bg-red-950/40 text-red-100 hover:text-white text-xs font-black px-3.5 py-1 rounded-full border border-red-700/30 uppercase tracking-widest transition-colors flex items-center gap-1.5">
+                <CheckSquare className="w-3.5 h-3.5" /> Library Misi
+              </Link>
+              <Link href="/coach/quests/logs" className="bg-red-950/40 text-red-100 hover:text-white text-xs font-black px-3.5 py-1 rounded-full border border-red-700/30 uppercase tracking-widest transition-colors flex items-center gap-1.5">
+                <ListFilter className="w-3.5 h-3.5" /> Pantau Latihan Murid
+              </Link>
+            </div>
 
-          <h2 className="text-3xl font-black text-white tracking-tight relative z-10">
-            Kreator Misi Harian
-          </h2>
-          <p className="mt-2 text-red-100 font-medium relative z-10">
-            Rancang tantangan baru untuk menguji batas kemampuan murid Dojang
-          </p>
-        </div>
+            <h2 className="text-3xl font-black text-white tracking-tight relative z-10">
+              Kreator Misi Harian
+            </h2>
+            <p className="mt-2 text-red-100 font-medium relative z-10">
+              Rancang tantangan baru untuk menguji batas kemampuan murid Dojang
+            </p>
+          </div>
+        )}
+
+        {/* Navigation Tabs - Visible in Iframe but simplified */}
+        {isIframe && (
+          <div className="flex justify-between items-center border-b border-slate-100 pb-4 mb-6 gap-4 flex-wrap">
+            <div>
+              <h2 className="text-xl font-black text-[#0F172A] font-display">Daily Quests Builder</h2>
+              <p className="text-gray-400 text-xs mt-1">Rancang tantangan baru untuk menguji kemampuan teori &amp; fisik murid.</p>
+            </div>
+            <div className="flex gap-2">
+              <Link href="/coach/quests/library" className="bg-[#0F172A] hover:bg-[#1E293B] text-white px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95">
+                <CheckSquare className="w-4 h-4" /> Library Misi
+              </Link>
+              <Link href="/coach/quests/logs" className="bg-[#E10600] hover:bg-[#C00500] text-white px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95">
+                <ListFilter className="w-4 h-4" /> Pantau Latihan
+              </Link>
+            </div>
+          </div>
+        )}
         
         {/* Form Isi */}
-        <form onSubmit={handleSubmit} className="px-8 py-8 space-y-6">
+        <form onSubmit={handleSubmit} className={`${isIframe ? 'px-0 py-0' : 'px-8 py-8'} space-y-6`}>
           <div>
             <label className="block text-sm font-bold text-gray-800 mb-1">Nama Latihan / Misi</label>
             <input 

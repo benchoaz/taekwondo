@@ -5,6 +5,11 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const { title, eventName, date, rank, photoUrl, certificateUrl, status } = body;
+
     // Get current state to prevent double XP reward
     const currentAchievement = await prisma.achievement.findUnique({
       where: { id },

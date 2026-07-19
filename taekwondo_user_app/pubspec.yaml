@@ -29,6 +29,7 @@ dependencies:
   google_fonts: ^6.1.0
   flutter_svg: ^2.0.9
   cached_network_image: ^3.3.0
+  lottie: ^3.1.2
   
   # Utility
   intl: ^0.18.1

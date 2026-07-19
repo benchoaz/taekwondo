@@ -209,6 +209,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     String? frameUrl;
     String? frameCss;
     String? titleName;
+    String? titleUrl;
     
     if (shopData != null) {
       final frameId = shopData.active['frameId'];
@@ -222,6 +223,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (titleId != null) {
         final titleItem = shopData.items.where((i) => i.id == titleId).firstOrNull;
         titleName = titleItem?.name;
+        titleUrl = titleItem?.itemUrl;
       }
     }
 
@@ -369,17 +371,36 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ],
           ),
           if (titleName != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 4, bottom: 4),
-              child: Text(
-                titleName.toUpperCase(),
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFFFFD700),
-                  letterSpacing: 2,
-                ),
-              ),
+            TweenAnimationBuilder<double>(
+              tween: Tween<double>(begin: 0.3, end: 1.0),
+              duration: const Duration(milliseconds: 1000),
+              curve: Curves.easeInOut,
+              builder: (context, opacity, child) {
+                return Opacity(
+                  opacity: opacity,
+                  child: child,
+                );
+              },
+              child: titleUrl != null && titleUrl.isNotEmpty
+                  ? Image.network(
+                      _getAbsoluteUrl(titleUrl),
+                      height: 38,
+                      fit: BoxFit.contain,
+                      colorBlendMode: BlendMode.screen,
+                      color: Colors.white,
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 4),
+                      child: Text(
+                        titleName.toUpperCase(),
+                        style: GoogleFonts.spaceGrotesk(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFFFFD700),
+                          letterSpacing: 2,
+                        ),
+                      ),
+                    ),
             ),
           const SizedBox(height: 4),
           Container(

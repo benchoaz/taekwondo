@@ -90,6 +90,14 @@ export async function GET(request: Request) {
         if (!exists) {
           const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
           
+          // ABAIKAN BERITA LAMA: Jika berita diterbitkan lebih dari 7 hari yang lalu
+          const oneWeekAgo = new Date();
+          oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+          
+          if (pubDate < oneWeekAgo) {
+            continue; // Lewati berita lama
+          }
+          
           await prisma.tournamentEvent.create({
             data: {
               title: item.title,

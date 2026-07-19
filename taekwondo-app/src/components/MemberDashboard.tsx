@@ -29,7 +29,8 @@ import {
   Activity,
   LineChart as ChartIcon,
   Eye,
-  EyeOff
+  EyeOff,
+  Menu
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import confetti from "canvas-confetti";
@@ -64,6 +65,7 @@ export default function MemberDashboard({
   onBack: () => void;
 }) {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentBelt, setCurrentBelt] = useState("Biru Strip Merah (4 Geup)");
   
   const [profile, setProfile] = useState<{
@@ -1789,10 +1791,54 @@ export default function MemberDashboard({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
-      <div className="flex-grow flex flex-col md:flex-row">
+
+      {/* ── MOBILE TOP BAR ── */}
+      <header className="md:hidden sticky top-0 z-40 flex items-center gap-3 bg-white border-b border-slate-100 px-4 py-3 shadow-sm">
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#F8FAFC] hover:bg-slate-100 transition-colors"
+          aria-label="Buka menu"
+        >
+          <Menu className="w-5 h-5 text-[#0F172A]" />
+        </button>
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <span className="font-extrabold text-sm text-[#0F172A] truncate">{dynamicFullName}</span>
+        </div>
+        <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center border-2 border-[#E10600] text-[#E10600] font-bold text-xs flex-shrink-0">
+          {dynamicFullName.substring(0,2).toUpperCase()}
+        </div>
+      </header>
+
+      {/* ── MOBILE OVERLAY ── */}
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div className="flex-grow flex flex-row">
         {/* Sidebar */}
-        <aside className="w-full md:w-64 bg-white border-r border-[#0F172A]/5 p-6 flex flex-col justify-between shrink-0">
-          <div className="flex flex-col gap-8">
+        <aside className={`
+          fixed md:static top-0 left-0 h-full md:h-auto z-50 md:z-auto
+          w-72 md:w-64
+          bg-white border-r border-[#0F172A]/5
+          flex flex-col justify-between
+          transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
+          overflow-y-auto
+        `}>
+          <div className="flex flex-col gap-6 p-6">
+            {/* Mobile close btn */}
+            <div className="flex items-center justify-between md:hidden">
+              <span className="font-extrabold text-sm text-[#0F172A]">Menu Anggota</span>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
             {/* User Profile Info */}
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#E10600] flex-shrink-0">
@@ -1829,7 +1875,7 @@ export default function MemberDashboard({
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => { setActiveTab(tab.id); setSidebarOpen(false); }}
                   className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl font-bold text-xs text-left transition-all ${
                     activeTab === tab.id 
                       ? "bg-[#E10600] text-white shadow-md shadow-[#E10600]/15" 
@@ -1843,9 +1889,9 @@ export default function MemberDashboard({
             </div>
           </div>
           {/* Footer of Sidebar */}
-          <div className="flex flex-col gap-1 pt-6 border-t border-slate-100 mt-6">
+          <div className="flex flex-col gap-1 px-6 pb-6 pt-4 border-t border-slate-100">
             <button 
-              onClick={() => setActiveTab("payments")}
+              onClick={() => { setActiveTab("payments"); setSidebarOpen(false); }}
               className="w-full bg-[#E10600] hover:bg-[#C00500] text-white py-3.5 rounded-xl font-bold text-xs shadow-md transition-all active:scale-95 text-center mb-4 cursor-pointer"
             >
               Bayar Administrasi
@@ -1880,7 +1926,7 @@ export default function MemberDashboard({
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-grow p-8 sm:p-12 max-w-5xl mx-auto w-full">
+        <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8 lg:p-10 overflow-x-hidden">
           {activeTab === "dashboard" && (
             <div className="flex flex-col gap-8">
               {/* Belt card */}

@@ -188,11 +188,11 @@ export default function GamificationManagement() {
         </div>
       </div>
 
-      <div className="p-8 flex-grow bg-slate-50/50">
+      <div className="p-4 sm:p-8 flex-grow bg-slate-50/50">
         {/* SHOP TAB */}
         {activeTab === "shop" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 sm:gap-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Katalog Item</h3>
                 <p className="text-sm text-slate-500 mt-1">Item yang dijual di aplikasi member</p>
@@ -203,7 +203,7 @@ export default function GamificationManagement() {
                   setFormData({ name: "", description: "", type: "PROFILE_FRAME", rarity: "COMMON", price: 0, imageUrl: "", cssValue: "", sortOrder: 0 });
                   setIsModalOpen(true);
                 }}
-                className="group relative px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm overflow-hidden transition-all hover:shadow-lg hover:shadow-slate-900/20 active:scale-95"
+                className="group relative px-4 sm:px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-sm overflow-hidden transition-all hover:shadow-lg hover:shadow-slate-900/20 active:scale-95 self-start sm:self-auto"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 <div className="relative flex items-center">
@@ -224,7 +224,7 @@ export default function GamificationManagement() {
                 <p className="text-xs text-slate-300 leading-relaxed max-w-3xl">
                   Gunakan petunjuk di bawah ini untuk membuat gambar item toko gamifikasi secara instan menggunakan AI. Salin prompt ke generator gambar AI favorit Anda seperti **Canva Magic Media** atau **Midjourney**, lalu upload hasilnya ke form **"Buat Item Baru"**.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
                   <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-2">
                     <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">1. Bingkai Profil (Frame)</span>
                     <p className="text-[10px] text-slate-400 leading-relaxed">
@@ -265,8 +265,8 @@ export default function GamificationManagement() {
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-              <table className="min-w-full divide-y divide-slate-100">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden overflow-x-auto">
+              <table className="min-w-full min-w-[540px] divide-y divide-slate-100">
                 <thead className="bg-slate-50/80 backdrop-blur-sm">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Preview Item</th>

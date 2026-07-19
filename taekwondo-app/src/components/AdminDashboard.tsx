@@ -2090,9 +2090,9 @@ export default function AdminDashboard({
 
           {activeTab === "payments" && (
             <div className="flex flex-col gap-8">
-              <div className="flex justify-between items-center gap-4 flex-wrap">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
                 <div>
-                  <h2 className="text-3xl font-black text-[#0F172A] font-display">Administrasi Keuangan</h2>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Administrasi Keuangan</h2>
                   <p className="text-gray-400 text-xs mt-1">Kelola pencatatan SPP bulanan, iuran per pertemuan, pendaftaran UKT, serta verifikasi setoran anggota.</p>
                 </div>
                 <button 
@@ -2104,7 +2104,7 @@ export default function AdminDashboard({
               </div>
 
               {/* Financial Dashboard Counters */}
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6">
                 {[
                   { label: "Saldo Kas Bersih (Lunas)", val: `Rp ${kasBersih.toLocaleString("id-ID")}`, desc: "Total Penerimaan Riil - Pengeluaran", color: "text-[#0F172A] font-black" },
                   { label: "Piutang Tagihan (Pending)", val: `Rp ${piutangTotal.toLocaleString("id-ID")}`, desc: "Dana Tertunda Verifikasi", color: "text-amber-500 font-extrabold" },
@@ -2112,10 +2112,10 @@ export default function AdminDashboard({
                   { label: "UKT & Perlombaan", val: `Rp ${(uktTotal + perlombaanTotal).toLocaleString("id-ID")}`, desc: "Sertifikasi & Event Lunas", color: "text-green-600" },
                   { label: "Total Pengeluaran", val: `Rp ${pengeluaranTotal.toLocaleString("id-ID")}`, desc: "Pembelian Alat & Operasional", color: "text-[#E10600] font-black" }
                 ].map((s, idx) => (
-                  <div key={idx} className="bg-white border border-[#0F172A]/5 rounded-2xl p-6 shadow-sm">
-                    <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider block">{s.label}</span>
-                    <span className={`text-2xl font-black block mt-2 ${s.color}`}>{s.val}</span>
-                    <span className="text-gray-400 text-[10px] block mt-1">{s.desc}</span>
+                  <div key={idx} className="bg-white border border-[#0F172A]/5 rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-sm">
+                    <span className="text-gray-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider block leading-tight">{s.label}</span>
+                    <span className={`text-base sm:text-xl md:text-2xl font-black block mt-1 sm:mt-2 ${s.color}`}>{s.val}</span>
+                    <span className="text-gray-400 text-[9px] sm:text-[10px] block mt-0.5 sm:mt-1">{s.desc}</span>
                   </div>
                 ))}
               </div>
@@ -2817,14 +2817,14 @@ export default function AdminDashboard({
 
           {activeTab === "ukt_schedule" && (
             <div className="flex flex-col gap-6">
-              <div className="flex justify-between items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
                 <div>
-                  <h2 className="text-3xl font-black text-[#0F172A] font-display">Kelola Jadwal &amp; Biaya UKT</h2>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Kelola Jadwal &amp; Biaya UKT</h2>
                   <p className="text-gray-400 text-xs mt-1">Buat jadwal ujian UKT baru, atur biaya flat/dinamis per sabuk, dan kelola kelengkapan dokumen pendaftaran murid.</p>
                 </div>
                 <button 
                   onClick={() => handleOpenUktExamModal()}
-                  className="bg-[#E10600] hover:bg-[#C00500] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                  className="bg-[#E10600] hover:bg-[#C00500] text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 self-start sm:self-auto"
                 >
                   <Plus className="w-4 h-4" /> Atur Jadwal UKT Baru
                 </button>
@@ -2903,12 +2903,12 @@ export default function AdminDashboard({
           {activeTab === "analytics" && (
             <div className="flex flex-col gap-8">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A] font-display">Dashboard Analytics</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Dashboard Analytics</h2>
                 <p className="text-gray-400 text-xs mt-1">Pantau perkembangan anggota, pelatih, dan statistik kelulusan ujian dojang.</p>
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
                 {isStatsLoading ? (
                   <div className="col-span-4 text-center py-10 text-gray-500 font-bold">Memuat statistik real-time...</div>
                 ) : (
@@ -2918,10 +2918,10 @@ export default function AdminDashboard({
                     { label: "Tingkat Kelulusan", val: `${dashboardStats?.passRate || 0}%`, desc: "Semua Partisipan UKT", color: "text-green-600" },
                     { label: "Biaya Registrasi", val: `Rp ${(dashboardStats?.registrationFee || 150000).toLocaleString("id-ID")}`, desc: "Pengaturan Aktif", color: "text-[#0F172A]" }
                   ].map((s, idx) => (
-                    <div key={idx} className="bg-white border border-[#0F172A]/5 rounded-2xl p-6 shadow-sm">
-                      <span className="text-gray-400 text-[10px] font-bold uppercase tracking-wider block">{s.label}</span>
-                      <span className={`text-3xl font-black block mt-2 ${s.color}`}>{s.val}</span>
-                      <span className="text-gray-400 text-[10px] block mt-1">{s.desc}</span>
+                    <div key={idx} className="bg-white border border-[#0F172A]/5 rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-sm">
+                      <span className="text-gray-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider block leading-tight">{s.label}</span>
+                      <span className={`text-xl sm:text-2xl md:text-3xl font-black block mt-1 sm:mt-2 ${s.color}`}>{s.val}</span>
+                      <span className="text-gray-400 text-[9px] sm:text-[10px] block mt-0.5 sm:mt-1">{s.desc}</span>
                     </div>
                   ))
                 )}
@@ -2948,21 +2948,21 @@ export default function AdminDashboard({
 
           {activeTab === "users" && (
             <div className="flex flex-col gap-6">
-              <div className="flex justify-between items-center gap-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
                 <div>
-                  <h2 className="text-3xl font-black text-[#0F172A] font-display">Manajemen User &amp; Peran</h2>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Manajemen User &amp; Peran</h2>
                   <p className="text-gray-400 text-xs mt-1">Kelola data otentikasi serta role-based access control (RBAC) dojang.</p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 self-start sm:self-auto">
                   <button 
                     onClick={() => setShowImportModal(true)}
-                    className="bg-[#0F172A] hover:bg-[#1E293B] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 border border-white/10"
+                    className="bg-[#0F172A] hover:bg-[#1E293B] text-white px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 border border-white/10"
                   >
                     <UploadCloud className="w-4 h-4" /> Import CSV
                   </button>
                   <button 
                     onClick={() => setShowAddModal(true)}
-                    className="bg-[#E10600] hover:bg-[#C00500] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                    className="bg-[#E10600] hover:bg-[#C00500] text-white px-3 sm:px-5 py-2.5 sm:py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
                   >
                     <Plus className="w-4 h-4" /> Tambah User
                   </button>
@@ -3061,14 +3061,14 @@ export default function AdminDashboard({
             <div className="flex flex-col gap-8">
               {/* SECTION 1: AGENDA KEGIATAN & BERITA */}
               <div className="flex flex-col gap-6">
-                <div className="flex justify-between items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
                   <div>
-                    <h2 className="text-3xl font-black text-[#0F172A] font-display">Agenda Kegiatan &amp; Berita</h2>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Agenda Kegiatan &amp; Berita</h2>
                     <p className="text-gray-400 text-xs mt-1">Buat, sunting, dan hapus pengumuman/agenda kegiatan untuk dihalaman utama.</p>
                   </div>
                   <button 
                     onClick={() => handleOpenArticleModal()}
-                    className="bg-[#E10600] hover:bg-[#C00500] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                    className="bg-[#E10600] hover:bg-[#C00500] text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 self-start sm:self-auto"
                   >
                     <Plus className="w-4 h-4" /> Tambah Agenda
                   </button>
@@ -3122,19 +3122,18 @@ export default function AdminDashboard({
                   </div>
                 )}
               </div>
-
               {/* SECTION 2: KALENDER KEJUARAAN */}
               <div className="flex flex-col gap-6 pt-8 border-t border-slate-200">
-                <div className="flex justify-between items-center gap-4">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
                   <div>
-                    <h2 className="text-3xl font-black text-[#0F172A] font-display">Kalender Kejuaraan (Turnamen)</h2>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Kalender Kejuaraan (Turnamen)</h2>
                     <p className="text-gray-400 text-xs mt-1">Kelola jadwal turnamen, unggah proposal PDF, dan detail kejuaraan untuk public/member.</p>
                   </div>
                   <button 
                     onClick={() => setShowTournamentModal(true)}
-                    className="bg-[#E10600] hover:bg-[#C00500] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                    className="bg-[#E10600] hover:bg-[#C00500] text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 self-start sm:self-auto"
                   >
-                    <Plus className="w-4 h-4" /> Tambah Kejuaraan & Unggah Proposal
+                    <Plus className="w-4 h-4" /> Tambah Kejuaraan &amp; Unggah Proposal
                   </button>
                 </div>
 
@@ -3204,14 +3203,14 @@ export default function AdminDashboard({
 
           {activeTab === "coaches" && (
             <div className="flex flex-col gap-6">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
                 <div>
-                  <h2 className="text-3xl font-black text-[#0F172A] font-display">Manajemen Profil Pelatih</h2>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Manajemen Profil Pelatih</h2>
                   <p className="text-gray-400 text-xs mt-1">Lengkapi informasi tingkatan Dan rank, spesialisasi, dan jam terbang pelatih dojang.</p>
                 </div>
                 <button 
                   onClick={() => setShowAddModal(true)}
-                  className="bg-[#0F172A] hover:bg-[#1E293B] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                  className="bg-[#0F172A] hover:bg-[#1E293B] text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 self-start sm:self-auto"
                 >
                   <Plus className="w-4 h-4" /> Daftarkan Pelatih Baru
                 </button>
@@ -3538,7 +3537,7 @@ export default function AdminDashboard({
           {activeTab === "settings" && (
             <div className="flex flex-col gap-8">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A] font-display">Pengaturan Aplikasi Dojang</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Pengaturan Aplikasi Dojang</h2>
                 <p className="text-gray-400 text-xs mt-1">Ubah metadata dojang, logo, visual background hero, motto, dan biaya pendaftaran.</p>
               </div>
 
@@ -3896,7 +3895,7 @@ export default function AdminDashboard({
           {activeTab === "hero_slides" && (
             <div className="flex flex-col gap-8">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A] font-display">Slider Hero — Wajah Para Juara</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Slider Hero — Wajah Para Juara</h2>
                 <p className="text-gray-400 text-xs mt-1">Kelola foto atlet berprestasi yang tampil di layar perkenalan website (setelah intro animasi).</p>
               </div>
 
@@ -3993,14 +3992,14 @@ export default function AdminDashboard({
           {/* ── TAB: GALERI FOTO ── */}
           {activeTab === "gallery" && (
             <div className="flex flex-col gap-8">
-              <div className="flex justify-between items-end">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 sm:gap-4">
                 <div>
-                  <h1 className="text-3xl font-black text-[#0F172A] tracking-tight">Manajemen Galeri</h1>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] tracking-tight">Manajemen Galeri</h1>
                   <p className="text-gray-500 text-sm mt-1">Kelola foto-foto yang tampil di halaman Galeri Aktivitas.</p>
                 </div>
                 <button
                   onClick={() => { setCurrentGalleryItem({ imageUrl: "", category: "LATIHAN", title: "" }); setIsGalleryModalOpen(true); }}
-                  className="bg-[#E10600] hover:bg-red-700 text-white px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-lg shadow-red-500/20 active:scale-95"
+                  className="bg-[#E10600] hover:bg-red-700 text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-lg shadow-red-500/20 active:scale-95 self-start sm:self-auto"
                 >
                   <Plus className="w-5 h-5" /> Tambah Foto Galeri
                 </button>

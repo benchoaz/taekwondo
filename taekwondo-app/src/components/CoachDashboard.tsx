@@ -34,7 +34,9 @@ import {
   Activity,
   Eye,
   EyeOff,
-  DollarSign
+  DollarSign,
+  Menu,
+  X
 } from "lucide-react";
 
 export default function CoachDashboard({ 
@@ -45,6 +47,7 @@ export default function CoachDashboard({
   onBack: () => void 
 }) {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [candidates, setCandidates] = useState<any[]>([]);
   const [allMembers, setAllMembers] = useState<any[]>([]);
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -819,10 +822,56 @@ export default function CoachDashboard({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
-      <div className="flex-grow flex flex-col md:flex-row">
+
+      {/* ── MOBILE TOP BAR ── */}
+      <header className="md:hidden sticky top-0 z-40 flex items-center gap-3 bg-white border-b border-slate-100 px-4 py-3 shadow-sm">
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="w-9 h-9 flex items-center justify-center rounded-xl bg-[#F8FAFC] hover:bg-slate-100 transition-colors"
+          aria-label="Buka menu"
+        >
+          <Menu className="w-5 h-5 text-[#0F172A]" />
+        </button>
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <span className="font-extrabold text-sm text-[#0F172A] truncate">
+            {navItems.find(t => t.id === activeTab)?.label || 'Dashboard Pelatih'}
+          </span>
+        </div>
+        <div className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center border-2 border-[#E10600] text-[#E10600] font-bold text-xs flex-shrink-0">
+          PL
+        </div>
+      </header>
+
+      {/* ── MOBILE OVERLAY ── */}
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div className="flex-grow flex flex-row">
         {/* Sidebar */}
-        <aside className="w-full md:w-64 bg-white border-r border-[#0F172A]/5 p-6 flex flex-col justify-between shrink-0">
-          <div className="flex flex-col gap-8">
+        <aside className={`
+          fixed md:static top-0 left-0 h-full md:h-auto z-50 md:z-auto
+          w-72 md:w-64
+          bg-white border-r border-[#0F172A]/5
+          flex flex-col justify-between
+          transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
+          overflow-y-auto
+        `}>
+          <div className="flex flex-col gap-6 p-6">
+            {/* Close button mobile only */}
+            <div className="flex items-center justify-between md:hidden">
+              <span className="font-extrabold text-sm text-[#0F172A]">Menu Pelatih</span>
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-500" />
+              </button>
+            </div>
             {/* Coach Identity */}
             {(() => {
               const currentCoach = coaches.find((c: any) => c.user?.email.toLowerCase() === userEmail?.toLowerCase());
@@ -848,7 +897,7 @@ export default function CoachDashboard({
               {navItems.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => { setActiveTab(tab.id); setSidebarOpen(false); }}
                   className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl font-bold text-xs text-left transition-all ${
                     activeTab === tab.id
                       ? "bg-[#E10600] text-white shadow-md shadow-[#E10600]/15"
@@ -862,9 +911,9 @@ export default function CoachDashboard({
             </div>
           </div>
 
-          <div className="flex flex-col gap-1 pt-6 border-t border-slate-100 mt-6">
+          <div className="flex flex-col gap-1 px-6 pb-6 pt-4 border-t border-slate-100">
             <button
-              onClick={() => { setActiveTab("grading"); }}
+              onClick={() => { setActiveTab("grading"); setSidebarOpen(false); }}
               className="w-full bg-[#E10600] hover:bg-[#C00500] text-white py-3.5 rounded-xl font-bold text-xs shadow-md transition-all active:scale-95 text-center mb-4 flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" /> Mulai Penilaian UKT
@@ -893,14 +942,14 @@ export default function CoachDashboard({
         </aside>
 
         {/* Main Content */}
-        <main className="flex-grow p-6 sm:p-10 w-full">
+        <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8 lg:p-10 overflow-x-hidden">
           
           {/* ══════════════ TAB: DASHBOARD ══════════════ */}
           {activeTab === "dashboard" && (
             <div className="flex flex-col gap-8">
               <div>
                 <span className="text-[#E10600] font-bold text-xs uppercase tracking-wider">Selamat Datang</span>
-                <h2 className="text-3xl font-black text-[#0F172A] mt-1">Ringkasan Dojang</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] mt-1">Ringkasan Dojang</h2>
                 <p className="text-gray-400 text-xs mt-1">Pantau kondisi seluruh siswa dan aktivitas latihan hari ini.</p>
               </div>
 
@@ -1129,7 +1178,7 @@ export default function CoachDashboard({
             <div className="flex flex-col gap-8">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h2 className="text-3xl font-black text-[#0F172A]">Data Siswa</h2>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Data Siswa</h2>
                   <p className="text-gray-400 text-xs mt-1">Pantau perkembangan, sabuk, dan administrasi seluruh siswa dojang.</p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -1246,7 +1295,7 @@ export default function CoachDashboard({
             <div className="flex flex-col gap-8">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <h2 className="text-3xl font-black text-[#0F172A]">Penilaian UKT</h2>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Penilaian UKT</h2>
                   <p className="text-gray-400 text-xs mt-1">Berikan penilaian objektif sesuai standar Kukkiwon/PBTI untuk setiap peserta ujian.</p>
                 </div>
                 <button onClick={fetchAllData} className="bg-white border border-slate-200 text-[#0F172A] px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-slate-50">
@@ -1632,7 +1681,7 @@ export default function CoachDashboard({
           {activeTab === "history" && (
             <div className="flex flex-col gap-8">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A]">Progres Sabuk Siswa</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Progres Sabuk Siswa</h2>
                 <p className="text-gray-400 text-xs mt-1">Analisis kesiapan setiap siswa untuk naik ke tingkatan berikutnya berdasarkan data kurikulum.</p>
               </div>
 
@@ -1719,7 +1768,7 @@ export default function CoachDashboard({
             <div className="flex flex-col gap-6 animate-fade-in pb-12 w-full">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-3xl font-black text-[#0F172A]">Kelola Jadwal Latihan</h2>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Kelola Jadwal Latihan</h2>
                   <p className="text-gray-400 text-xs mt-1">Konfigurasi jadwal kelas rutin dojang, edit waktu/lokasi latihan, dan tugaskan pelatih pengampu.</p>
                 </div>
                 <button 
@@ -1877,7 +1926,7 @@ export default function CoachDashboard({
           {activeTab === "certificates" && (
             <div className="flex flex-col gap-8">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A]">Manajemen Sertifikat</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Manajemen Sertifikat</h2>
                 <p className="text-gray-400 text-xs mt-1">Pantau sertifikat kelulusan UKT yang telah diterbitkan untuk para siswa.</p>
               </div>
 
@@ -1960,7 +2009,7 @@ export default function CoachDashboard({
           {activeTab === "announcements" && (
             <div className="flex flex-col gap-8 max-w-2xl">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A]">Buat Pengumuman</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Buat Pengumuman</h2>
                 <p className="text-gray-400 text-xs mt-1">Kirim informasi penting secara serentak ke seluruh murid melalui Notifikasi Aplikasi dan WhatsApp.</p>
               </div>
 
@@ -2068,7 +2117,7 @@ export default function CoachDashboard({
             <div className="flex flex-col gap-8">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                  <h2 className="text-3xl font-black text-[#0F172A]">Verifikasi Misi Atlet</h2>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Verifikasi Misi Atlet</h2>
                   <p className="text-gray-400 text-xs mt-1">Pantau kiriman bukti video teknik taekwondo siswa dan berikan penilaian langsung.</p>
                 </div>
 
@@ -2198,7 +2247,7 @@ export default function CoachDashboard({
           {activeTab === "quest_builder" && (
             <div className="flex flex-col gap-6 animate-fade-in pb-12 h-[80vh] w-full">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A]">Kelola Misi & Kuis</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Kelola Misi & Kuis</h2>
                 <p className="text-gray-400 text-xs mt-1">Buat misi latihan baru, atur pertanyaan kuis materi teori, dan verifikasi batas pencapaian umur/sabuk.</p>
               </div>
               <iframe 
@@ -2213,7 +2262,7 @@ export default function CoachDashboard({
           {activeTab === "curriculum_builder" && (
             <div className="flex flex-col gap-6 animate-fade-in pb-12 w-full">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A]">Kurikulum & Sabuk</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Kurikulum & Sabuk</h2>
                 <p className="text-gray-400 text-xs mt-1">Konfigurasi daftar tingkatan sabuk Dojang beserta video panduan jurus/poomsae.</p>
               </div>
               <div className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm">
@@ -2229,7 +2278,7 @@ export default function CoachDashboard({
           {activeTab === "finance" && (
             <div className="flex flex-col gap-8">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A]">Keuangan & SPP</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Keuangan & SPP</h2>
                 <p className="text-gray-400 text-xs mt-1">Kelola tagihan bulanan SPP murid, verifikasi pembayaran manual, dan pantau status transaksi.</p>
               </div>
 

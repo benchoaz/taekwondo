@@ -37,9 +37,47 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   try {
     const { id } = await params;
     
-    // Check if it's currently purchased by anyone (optional logic, but safe to just delete and let cascade handle it if DB allows)
-    await prisma.shopItem.delete({
-      where: { id },
+    // Delete related ShopPurchase and Member equipped state references in transaction to prevent foreign key errors
+    await prisma.$transaction(async (tx) => {
+      // 1. Un-equip item from any members using it
+      const titleItem = await tx.shopItem.findUnique({
+        where: { id },
+        select: { type: true }
+      });
+
+      if (titleItem) {
+        if (titleItem.type === "PROFILE_FRAME") {
+          await tx.member.updateMany({
+            where: { activeFrameId: id },
+            data: { activeFrameId: null }
+          });
+        } else if (titleItem.type === "TITLE") {
+          await tx.member.updateMany({
+            where: { activeTitleId: id },
+            data: { activeTitleId: null }
+          });
+        } else if (titleItem.type === "THEME") {
+          await tx.member.updateMany({
+            where: { activeThemeId: id },
+            data: { activeThemeId: null }
+          });
+        } else if (titleItem.type === "EMBLEM") {
+          await tx.member.updateMany({
+            where: { activeEmblemId: id },
+            data: { activeEmblemId: null }
+          });
+        }
+      }
+
+      // 2. Delete all purchase records for this item
+      await tx.shopPurchase.deleteMany({
+        where: { itemId: id }
+      });
+
+      // 3. Delete the shop item itself
+      await tx.shopItem.delete({
+        where: { id }
+      });
     });
 
     return NextResponse.json({ success: true });

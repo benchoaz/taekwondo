@@ -43,6 +43,16 @@ export async function GET(request: Request) {
           });
 
           if (!exists) {
+            const endDate = ev.tanggalBerakhirKejuaraan ? new Date(ev.tanggalBerakhirKejuaraan) : new Date();
+            
+            // ABAIKAN EVENT LAMA: Jika kejuaraan berakhir lebih dari 7 hari yang lalu
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            
+            if (endDate < oneWeekAgo) {
+              continue; // Lewati kejuaraan lama yang sudah lewat lebih dari seminggu
+            }
+
             // Tentukan level dari gradeKejuaraan
             let level = "Nasional";
             const grade = (ev.gradeKejuaraan || "").toUpperCase();
@@ -62,7 +72,7 @@ export async function GET(request: Request) {
                 level: level,
                 location: location,
                 startDate: ev.tanggalKejuaraan ? new Date(ev.tanggalKejuaraan) : new Date(),
-                endDate: ev.tanggalBerakhirKejuaraan ? new Date(ev.tanggalBerakhirKejuaraan) : new Date(),
+                endDate: endDate,
                 source: "SIMPBTI",
                 status: "PUBLISHED",
                 link: "https://simpbti.id/championships"

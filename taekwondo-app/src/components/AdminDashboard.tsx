@@ -546,7 +546,6 @@ export default function AdminDashboard({
       fetchSettings();
     } else if (activeTab === "events") {
       fetchArticles();
-    } else if (activeTab === "tournaments") {
       fetchTournaments();
     } else if (activeTab === "analytics") {
       fetchPayments();
@@ -1957,7 +1956,7 @@ export default function AdminDashboard({
     { id: "schedules", label: "Pengaturan Jadwal", icon: <Calendar className="w-4 h-4" /> },
     { id: "spp", label: "Manajemen SPP", icon: <DollarSign className="w-4 h-4" /> },
     { id: "users", label: "Manajemen User", icon: <Users className="w-4 h-4" /> },
-    { id: "events", label: "Agenda Kegiatan (Event)", icon: <FileText className="w-4 h-4" /> },
+    { id: "events", label: "Agenda Kegiatan & Kejuaraan", icon: <FileText className="w-4 h-4" /> },
     { id: "coaches", label: "Manajemen Pelatih", icon: <Shield className="w-4 h-4" /> },
     { id: "achievements", label: "Prestasi Member", icon: <Award className="w-4 h-4" /> },
     { id: "announcements", label: "Pengumuman", icon: <Megaphone className="w-4 h-4" /> },
@@ -3048,145 +3047,147 @@ export default function AdminDashboard({
           )}
 
           {activeTab === "events" && (
-            <div className="flex flex-col gap-6">
-              <div className="flex justify-between items-center gap-4">
-                <div>
-                  <h2 className="text-3xl font-black text-[#0F172A] font-display">Agenda Kegiatan &amp; Berita</h2>
-                  <p className="text-gray-400 text-xs mt-1">Buat, sunting, dan hapus pengumuman/agenda kegiatan untuk dihalaman utama.</p>
+            <div className="flex flex-col gap-8">
+              {/* SECTION 1: AGENDA KEGIATAN & BERITA */}
+              <div className="flex flex-col gap-6">
+                <div className="flex justify-between items-center gap-4">
+                  <div>
+                    <h2 className="text-3xl font-black text-[#0F172A] font-display">Agenda Kegiatan &amp; Berita</h2>
+                    <p className="text-gray-400 text-xs mt-1">Buat, sunting, dan hapus pengumuman/agenda kegiatan untuk dihalaman utama.</p>
+                  </div>
+                  <button 
+                    onClick={() => handleOpenArticleModal()}
+                    className="bg-[#E10600] hover:bg-[#C00500] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah Agenda
+                  </button>
                 </div>
-                <button 
-                  onClick={() => handleOpenArticleModal()}
-                  className="bg-[#E10600] hover:bg-[#C00500] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
-                >
-                  <Plus className="w-4 h-4" /> Tambah Agenda
-                </button>
-              </div>
 
-              {/* Grid of Articles */}
-              {isLoadingArticles ? (
-                <div className="text-center py-12 text-gray-400 text-xs">Memuat daftar berita...</div>
-              ) : articles.length === 0 ? (
-                <div className="bg-white border border-slate-100 rounded-2xl p-12 text-center text-gray-400 text-xs">
-                  Belum ada agenda kegiatan yang diterbitkan. Klik "Tambah Agenda" di atas.
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {articles.map((art) => (
-                    <div key={art.id} className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
-                      <div>
-                        {art.imageUrl && (
-                          <div className="h-44 w-full overflow-hidden">
-                            <img src={art.imageUrl} alt={art.title} className="w-full h-full object-cover" />
+                {/* Grid of Articles */}
+                {isLoadingArticles ? (
+                  <div className="text-center py-12 text-gray-400 text-xs">Memuat daftar berita...</div>
+                ) : articles.length === 0 ? (
+                  <div className="bg-white border border-slate-100 rounded-2xl p-12 text-center text-gray-400 text-xs">
+                    Belum ada agenda kegiatan yang diterbitkan. Klik "Tambah Agenda" di atas.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {articles.map((art) => (
+                      <div key={art.id} className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
+                        <div>
+                          {art.imageUrl && (
+                            <div className="h-44 w-full overflow-hidden">
+                              <img src={art.imageUrl} alt={art.title} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div className="p-6">
+                            <div className="flex justify-between items-center text-[10px] text-gray-400 font-bold mb-2">
+                              <span>Oleh: {art.author}</span>
+                              <span>{new Date(art.createdAt).toLocaleDateString("id-ID")}</span>
+                            </div>
+                            <h3 className="font-extrabold text-base text-[#0F172A] mb-2">{art.title}</h3>
+                            <p className="text-gray-500 text-xs leading-relaxed line-clamp-3 whitespace-pre-wrap">{art.content}</p>
                           </div>
-                        )}
-                        <div className="p-6">
-                          <div className="flex justify-between items-center text-[10px] text-gray-400 font-bold mb-2">
-                            <span>Oleh: {art.author}</span>
-                            <span>{new Date(art.createdAt).toLocaleDateString("id-ID")}</span>
-                          </div>
-                          <h3 className="font-extrabold text-base text-[#0F172A] mb-2">{art.title}</h3>
-                          <p className="text-gray-500 text-xs leading-relaxed line-clamp-3 whitespace-pre-wrap">{art.content}</p>
+                        </div>
+
+                        <div className="p-6 pt-0 border-t border-[#0F172A]/5 flex justify-end gap-2 mt-4">
+                          <button
+                            onClick={() => handleOpenArticleModal(art)}
+                            className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all"
+                            title="Sunting"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteArticle(art.id)}
+                            className="p-2 border border-red-100 rounded-lg text-[#E10600] hover:bg-red-50 transition-all"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
-
-                      <div className="p-6 pt-0 border-t border-[#0F172A]/5 flex justify-end gap-2 mt-4">
-                        <button
-                          onClick={() => handleOpenArticleModal(art)}
-                          className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition-all"
-                          title="Sunting"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteArticle(art.id)}
-                          className="p-2 border border-red-100 rounded-lg text-[#E10600] hover:bg-red-50 transition-all"
-                          title="Hapus"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === "tournaments" && (
-            <div className="flex flex-col gap-6">
-              <div className="flex justify-between items-center gap-4">
-                <div>
-                  <h2 className="text-3xl font-black text-[#0F172A] font-display">Kalender Kejuaraan</h2>
-                  <p className="text-gray-400 text-xs mt-1">Kelola jadwal turnamen dan kejuaraan untuk member.</p>
-                </div>
-                <button 
-                  onClick={() => setShowTournamentModal(true)}
-                  className="bg-[#E10600] hover:bg-[#C00500] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
-                >
-                  <Plus className="w-4 h-4" /> Tambah Kejuaraan
-                </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* Grid of Tournaments */}
-              {isLoadingTournaments ? (
-                <div className="text-center py-12 text-gray-400 text-xs">Memuat daftar kejuaraan...</div>
-              ) : tournaments.length === 0 ? (
-                <div className="bg-white border border-slate-100 rounded-2xl p-12 text-center text-gray-400 text-xs">
-                  Belum ada jadwal kejuaraan yang ditambahkan. Klik "Tambah Kejuaraan" di atas.
+              {/* SECTION 2: KALENDER KEJUARAAN */}
+              <div className="flex flex-col gap-6 pt-8 border-t border-slate-200">
+                <div className="flex justify-between items-center gap-4">
+                  <div>
+                    <h2 className="text-3xl font-black text-[#0F172A] font-display">Kalender Kejuaraan (Turnamen)</h2>
+                    <p className="text-gray-400 text-xs mt-1">Kelola jadwal turnamen, unggah proposal PDF, dan detail kejuaraan untuk public/member.</p>
+                  </div>
+                  <button 
+                    onClick={() => setShowTournamentModal(true)}
+                    className="bg-[#E10600] hover:bg-[#C00500] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95"
+                  >
+                    <Plus className="w-4 h-4" /> Tambah Kejuaraan & Unggah Proposal
+                  </button>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {tournaments.map((tour) => (
-                    <div key={tour.id} className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
-                      <div>
-                        {tour.posterUrl && (
-                          <div className="w-full h-40 bg-slate-100 relative">
-                            <img src={tour.posterUrl} alt="Poster" className="w-full h-full object-cover" />
+
+                {/* Grid of Tournaments */}
+                {isLoadingTournaments ? (
+                  <div className="text-center py-12 text-gray-400 text-xs">Memuat daftar kejuaraan...</div>
+                ) : tournaments.length === 0 ? (
+                  <div className="bg-white border border-slate-100 rounded-2xl p-12 text-center text-gray-400 text-xs">
+                    Belum ada jadwal kejuaraan yang ditambahkan. Klik "Tambah Kejuaraan & Unggah Proposal" di atas.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {tournaments.map((tour) => (
+                      <div key={tour.id} className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between">
+                        <div>
+                          {tour.posterUrl && (
+                            <div className="w-full h-40 bg-slate-100 relative">
+                              <img src={tour.posterUrl} alt="Poster" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div className="p-5">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-[#E10600] bg-red-50 px-2 py-0.5 rounded-full mb-2 inline-block">
+                              {tour.level}
+                            </span>
+                            <h3 className="font-black text-[#0F172A] leading-tight mb-2">{tour.title}</h3>
+                            <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                              <MapPin className="w-3.5 h-3.5" /> {tour.location}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
+                              <Calendar className="w-3.5 h-3.5" /> 
+                              {new Date(tour.startDate).toLocaleDateString("id-ID")} - {new Date(tour.endDate).toLocaleDateString("id-ID")}
+                            </div>
+                            
+                            <div className="flex gap-2">
+                              {tour.proposalUrl && (
+                                <a href={tour.proposalUrl} target="_blank" className="flex-1 bg-slate-100 text-[#0F172A] text-[10px] font-bold text-center py-2 rounded-lg hover:bg-slate-200">
+                                  Proposal
+                                </a>
+                              )}
+                              {tour.link && (
+                                <a href={tour.link} target="_blank" className="flex-1 bg-slate-100 text-[#0F172A] text-[10px] font-bold text-center py-2 rounded-lg hover:bg-slate-200">
+                                  Info Lain
+                                </a>
+                              )}
+                            </div>
                           </div>
-                        )}
-                        <div className="p-5">
-                          <span className="text-[9px] font-bold uppercase tracking-wider text-[#E10600] bg-red-50 px-2 py-0.5 rounded-full mb-2 inline-block">
-                            {tour.level}
+                        </div>
+                        
+                        <div className="p-3 border-t border-slate-100 bg-slate-50 flex justify-between">
+                          <span className="text-[10px] font-bold text-gray-400">
+                            Status: <span className="text-green-600">{tour.status}</span>
                           </span>
-                          <h3 className="font-black text-[#0F172A] leading-tight mb-2">{tour.title}</h3>
-                          <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                            <MapPin className="w-3.5 h-3.5" /> {tour.location}
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-gray-500 mb-4">
-                            <Calendar className="w-3.5 h-3.5" /> 
-                            {new Date(tour.startDate).toLocaleDateString("id-ID")} - {new Date(tour.endDate).toLocaleDateString("id-ID")}
-                          </div>
-                          
-                          <div className="flex gap-2">
-                            {tour.proposalUrl && (
-                              <a href={tour.proposalUrl} target="_blank" className="flex-1 bg-slate-100 text-[#0F172A] text-[10px] font-bold text-center py-2 rounded-lg hover:bg-slate-200">
-                                Proposal
-                              </a>
-                            )}
-                            {tour.link && (
-                              <a href={tour.link} target="_blank" className="flex-1 bg-slate-100 text-[#0F172A] text-[10px] font-bold text-center py-2 rounded-lg hover:bg-slate-200">
-                                Info Lain
-                              </a>
-                            )}
-                          </div>
+                          <button 
+                            onClick={() => handleDeleteTournament(tour.id)}
+                            className="text-[#E10600] hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </div>
                       </div>
-                      
-                      <div className="p-3 border-t border-slate-100 bg-slate-50 flex justify-between">
-                        <span className="text-[10px] font-bold text-gray-400">
-                          Status: <span className="text-green-600">{tour.status}</span>
-                        </span>
-                        <button 
-                          onClick={() => handleDeleteTournament(tour.id)}
-                          className="text-[#E10600] hover:bg-red-50 p-1.5 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

@@ -1930,11 +1930,11 @@ export default function MemberDashboard({
           {activeTab === "dashboard" && (
             <div className="flex flex-col gap-8">
               {/* Belt card */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-                <div className="md:col-span-8 bg-white border border-[#0F172A]/5 rounded-[24px] p-8 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-6 min-h-[220px]">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-8 items-start">
+                <div className="md:col-span-8 bg-white border border-[#0F172A]/5 rounded-[24px] p-5 sm:p-8 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6 min-h-[auto] sm:min-h-[220px]">
                   <div className="flex-grow max-w-md">
                     <span className="bg-blue-50 text-blue-600 text-[10px] font-black uppercase px-2.5 py-1 rounded-full block w-max mb-3 tracking-wider">Current Rank</span>
-                    <h2 className="text-4xl font-black text-[#0F172A] mb-3 font-display">{currentBelt.split(" (")[0]}</h2>
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#0F172A] mb-3 font-display">{currentBelt.split(" (")[0]}</h2>
                     
                     <div className="my-4 flex items-center gap-2">
                       <span className="text-xs text-gray-400 font-bold uppercase shrink-0">Sabuk Aktif:</span>
@@ -2127,7 +2127,7 @@ export default function MemberDashboard({
           {activeTab === "physical_growth" && (
             <div className="flex flex-col gap-8">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A] font-display">Tumbuh Kembang Fisik</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Tumbuh Kembang Fisik</h2>
                 <p className="text-gray-400 text-xs mt-1">Pantau perkembangan tinggi dan berat badan Anda dari waktu ke waktu.</p>
               </div>
 
@@ -2215,7 +2215,7 @@ export default function MemberDashboard({
           {activeTab === "history" && (
             <div className="flex flex-col gap-8">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A] font-display">Kurikulum Latihan</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Kurikulum Latihan</h2>
                 <p className="text-gray-400 text-xs mt-1">Daftar jurus, teknik tendangan, dan tangkisan yang harus Anda kuasai pada tingkatan sabuk aktif.</p>
               </div>
 
@@ -2320,7 +2320,7 @@ export default function MemberDashboard({
             return (
               <div className="flex flex-col gap-8">
                 <div>
-                  <h2 className="text-3xl font-black text-[#0F172A] font-display">Administrasi Keuangan</h2>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Administrasi Keuangan</h2>
                   <p className="text-gray-400 text-xs mt-1">Pantau kewajiban iuran bulanan SPP, iuran latihan, dan riwayat transaksi secara real-time.</p>
                 </div>
 
@@ -2474,8 +2474,8 @@ export default function MemberDashboard({
                 <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-8 shadow-sm">
                   <h3 className="font-black text-base text-[#0F172A] mb-6 font-display">Riwayat Pembayaran Lunas</h3>
 
-                  <div className="overflow-hidden border border-slate-100 rounded-xl">
-                    <table className="w-full text-left text-xs border-collapse">
+                  <div className="overflow-x-auto border border-slate-100 rounded-xl">
+                    <table className="w-full min-w-[480px] text-left text-xs border-collapse">
                       <thead>
                         <tr className="bg-slate-50 text-gray-500 font-bold uppercase border-b border-slate-100">
                           <th className="p-4">Tanggal</th>
@@ -2528,7 +2528,7 @@ export default function MemberDashboard({
           {activeTab === "ukt_report" && (
             <div className="flex flex-col gap-8">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A] font-display">Ujian Kenaikan Tingkat (UKT)</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Ujian Kenaikan Tingkat (UKT)</h2>
                 <p className="text-gray-400 text-xs mt-1">Daftar ujian kenaikan tingkat aktif serta rapor hasil penilaian evaluasi latihan Anda.</p>
               </div>
 
@@ -2660,7 +2660,7 @@ export default function MemberDashboard({
           {activeTab === "certificates" && (
             <div className="flex flex-col gap-8">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A] font-display">Sertifikat Digital</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Sertifikat Digital</h2>
                 <p className="text-gray-400 text-xs mt-1">Unduh dan verifikasi sertifikat kenaikan sabuk resmi Anda yang terdaftar pada sistem.</p>
               </div>
 
@@ -2750,7 +2750,7 @@ export default function MemberDashboard({
           {activeTab === "schedule" && (
             <div className="flex flex-col gap-8">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A] font-display">Jadwal Latihan Anda</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Jadwal Latihan Anda</h2>
                 <p className="text-gray-400 text-xs mt-1">Jadwal rutin mingguan sesi latihan dojang yang disesuaikan dengan tingkatan sabuk aktif.</p>
               </div>
 
@@ -2786,7 +2786,7 @@ export default function MemberDashboard({
             <div className="flex flex-col gap-8 animate-fade-in pb-12">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-3xl font-black text-[#0F172A] font-display">Prestasi Saya <span className="text-yellow-500 text-2xl">🏆</span></h1>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Prestasi Saya <span className="text-yellow-500 text-2xl">🏆</span></h1>
                   <p className="text-sm text-gray-500 mt-1">Galeri pencapaian pribadi Anda (Hall of Fame). Banggalah dengan apa yang telah Anda raih!</p>
                 </div>
                 <button 
@@ -2871,12 +2871,12 @@ export default function MemberDashboard({
           {activeTab === "members" && (
             <div className="flex flex-col gap-6">
               <div>
-                <h2 className="text-3xl font-black text-[#0F172A] font-display">Teman Se-Dojang</h2>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Teman Se-Dojang</h2>
                 <p className="text-gray-400 text-xs mt-1">Daftar seluruh anggota aktif di akademi Taekwondo yang terdaftar dalam sistem.</p>
               </div>
 
-              <div className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm">
-                <table className="w-full text-left text-xs border-collapse">
+              <div className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm overflow-x-auto">
+                <table className="w-full min-w-[480px] text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-slate-50 text-gray-500 font-bold uppercase border-b border-[#0F172A]/5">
                       <th className="p-4">Nama Lengkap</th>

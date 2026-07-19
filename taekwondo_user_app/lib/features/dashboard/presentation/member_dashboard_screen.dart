@@ -1215,79 +1215,140 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               if (events.isEmpty) {
                 return const Text('Belum ada turnamen dalam waktu dekat.', style: TextStyle(color: Colors.white54));
               }
-              return Column(
-                children: events.map((event) => Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: cardBg.withValues(alpha: 0.6),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              return SizedBox(
+                height: 180,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: events.length,
+                  itemBuilder: (context, index) {
+                    final event = events[index];
+                    return Container(
+                      width: 280,
+                      margin: const EdgeInsets.only(right: 16),
+                      decoration: BoxDecoration(
+                        color: cardBg.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                        image: event.posterUrl != null && event.posterUrl!.isNotEmpty
+                            ? DecorationImage(
+                                image: NetworkImage(event.posterUrl!),
+                                fit: BoxFit.cover,
+                                colorFilter: ColorFilter.mode(
+                                  Colors.black.withValues(alpha: 0.75),
+                                  BlendMode.srcOver,
+                                ),
+                              )
+                            : null,
+                      ),
+                      child: Stack(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: brandRed.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: brandRed.withValues(alpha: 0.2)),
-                            ),
-                            child: Text(
-                              event.level.toUpperCase(),
-                              style: GoogleFonts.spaceGrotesk(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w900,
-                                color: themeColor,
+                          if (event.posterUrl == null || event.posterUrl!.isEmpty)
+                            Positioned.fill(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      brandRed.withValues(alpha: 0.15),
+                                      Colors.transparent,
+                                      darkBg.withValues(alpha: 0.4),
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                          Text(
-                            '${event.startDate.day}/${event.startDate.month}',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 10,
-                              color: textGray,
-                              fontWeight: FontWeight.bold,
+                          Padding(
+                            padding: const EdgeInsets.all(18),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      decoration: BoxDecoration(
+                                        color: brandRed.withValues(alpha: 0.25),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: brandRed.withValues(alpha: 0.4)),
+                                      ),
+                                      child: Text(
+                                        event.level.toUpperCase(),
+                                        style: GoogleFonts.spaceGrotesk(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.3),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        '${event.startDate.day}/${event.startDate.month}',
+                                        style: GoogleFonts.spaceGrotesk(
+                                          fontSize: 10,
+                                          color: goldAccent,
+                                          fontWeight: FontWeight.black,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Text(
+                                        event.title,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: GoogleFonts.hankenGrotesk(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          height: 1.2,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.location_on, color: brandRed, size: 14),
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              event.location,
+                                              style: GoogleFonts.hankenGrotesk(
+                                                fontSize: 11,
+                                                color: Colors.white70,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        event.title,
-                        style: GoogleFonts.hankenGrotesk(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on, color: Colors.white30, size: 14),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              event.location,
-                              style: GoogleFonts.hankenGrotesk(
-                                fontSize: 11,
-                                color: textGray,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                )).toList(),
+                    );
+                  },
+                ),
               );
             },
             loading: () => const Center(child: CircularProgressIndicator(color: Colors.red)),

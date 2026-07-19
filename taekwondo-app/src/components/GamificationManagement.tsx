@@ -469,7 +469,40 @@ export default function GamificationManagement() {
                         />
                       </div>
                     </div>
-                    <p className="text-xs text-slate-400">Penting: Jika mengupload Bingkai, gunakan format **PNG dengan latar belakang transparan (bolong tengahnya)** agar menyatu dengan foto profil member.</p>
+                    </div>
+                    
+                    {/* AI Prompt generator helper */}
+                    <div className="mt-4 bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-2xl p-5 flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-indigo-600 animate-pulse" />
+                        <span className="text-xs font-black text-indigo-950 uppercase tracking-wider">Asisten Pembuat Gambar AI (Canva / Midjourney)</span>
+                      </div>
+                      <p className="text-[11px] text-indigo-800 leading-relaxed">
+                        Salin perintah di bawah ini ke Canva Magic Media atau generator AI Anda untuk mendapatkan desain yang presisi dan premium:
+                      </p>
+                      
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 relative group">
+                        <code className="text-[10px] font-mono text-indigo-200 block whitespace-pre-wrap select-all leading-relaxed">
+                          {formData.type === "PROFILE_FRAME" && (
+                            "3D circular profile avatar frame border, taekwondo belt wrapped around border style, glowing neon red and cyan accents, clean transparent hollow center inside circle, game asset, solid black background, highly detailed rendering"
+                          )}
+                          {formData.type === "TITLE" && (
+                            "Luxury golden title banner ribbon overlay, game user interface asset, premium dark gold details, red highlights, modern taekwondo style, glowing lighting, black clean background, 3D style asset"
+                          )}
+                          {formData.type === "EMBLEM" && (
+                            "Mythical white tiger head shield emblem logo badge, futuristic taekwondo champions style, shiny metallic gold and red glow borders, game asset badge design, solid dark blue background, clean 3D render"
+                          )}
+                          {formData.type === "THEME" && (
+                            "Minimalist gaming profile dashboard card theme template background, cyber red white tiger neon pattern grid, premium abstract dark card UI design"
+                          )}
+                        </code>
+                      </div>
+                      <div className="text-[10px] text-indigo-500 font-bold flex items-center justify-between">
+                        <span>💡 Tips: Pilih gaya "3D" atau "Concept Art" di Canva untuk hasil terbaik.</span>
+                        <span className="text-indigo-600">Klik teks untuk menyalin</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-2">Penting: Jika mengupload Bingkai, gunakan format **PNG dengan latar belakang transparan (bolong tengahnya)** agar menyatu dengan foto profil member.</p>
                   </div>
 
                   <div className="col-span-2 space-y-1.5">

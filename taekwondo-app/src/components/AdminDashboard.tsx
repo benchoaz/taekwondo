@@ -5391,20 +5391,72 @@ export default function AdminDashboard({
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Poster URL (Opsional)</label>
-                  <input type="url" value={tournamentPosterUrl || ""} onChange={e => setTournamentPosterUrl(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none" placeholder="https://.../poster.jpg" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Unggah Poster (Gambar)</label>
+                    <div className="relative">
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        id="tournament-poster-file"
+                        className="hidden" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const url = await uploadToServer(file, file.name, "gallery");
+                            if (url) setTournamentPosterUrl(url);
+                          }
+                        }}
+                      />
+                      <label 
+                        htmlFor="tournament-poster-file"
+                        className="w-full flex items-center justify-center border border-dashed border-slate-300 bg-slate-50 hover:bg-[#E10600]/5 hover:border-[#E10600] rounded-xl py-3 px-4 text-xs font-bold text-slate-500 cursor-pointer transition-all truncate"
+                      >
+                        {tournamentPosterUrl ? "✅ Poster Diunggah" : "📁 Pilih Gambar"}
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Unggah Proposal (PDF)</label>
+                    <div className="relative">
+                      <input 
+                        type="file" 
+                        accept="application/pdf" 
+                        id="tournament-proposal-file"
+                        className="hidden" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const url = await uploadToServer(file, file.name, "documents");
+                            if (url) setTournamentProposalUrl(url);
+                          }
+                        }}
+                      />
+                      <label 
+                        htmlFor="tournament-proposal-file"
+                        className="w-full flex items-center justify-center border border-dashed border-slate-300 bg-slate-50 hover:bg-[#E10600]/5 hover:border-[#E10600] rounded-xl py-3 px-4 text-xs font-bold text-slate-500 cursor-pointer transition-all truncate"
+                      >
+                        {tournamentProposalUrl ? "✅ Proposal Diunggah" : "📁 Pilih PDF"}
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Proposal PDF URL (Opsional)</label>
-                    <input type="url" value={tournamentProposalUrl || ""} onChange={e => setTournamentProposalUrl(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none" placeholder="https://..." />
+                    <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Manual Poster URL (Alternatif)</label>
+                    <input type="url" value={tournamentPosterUrl || ""} onChange={e => setTournamentPosterUrl(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none" placeholder="https://.../poster.jpg" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Link Info (Opsional)</label>
-                    <input type="url" value={tournamentLink} onChange={e => setTournamentLink(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none" placeholder="https://..." />
+                    <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Manual Proposal URL (Alternatif)</label>
+                    <input type="url" value={tournamentProposalUrl || ""} onChange={e => setTournamentProposalUrl(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none" placeholder="https://.../proposal.pdf" />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[#0F172A] mb-1.5 uppercase tracking-wider">Link Info Pendaftaran (Opsional)</label>
+                  <input type="url" value={tournamentLink} onChange={e => setTournamentLink(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-[#0F172A] font-medium outline-none" placeholder="https://..." />
                 </div>
               </form>
             </div>

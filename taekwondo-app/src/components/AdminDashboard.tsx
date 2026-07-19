@@ -76,6 +76,7 @@ interface SettingData {
   dojangLat?: number | null;
   dojangLng?: number | null;
   dojangRadius?: number;
+  appApkUrl?: string | null;
 }
 
 interface UserData {
@@ -342,7 +343,8 @@ export default function AdminDashboard({
     showIntro: true,
     dojangLat: null,
     dojangLng: null,
-    dojangRadius: 50
+    dojangRadius: 50,
+    appApkUrl: null
   });
   const [isSavingSettings, setIsSavingSettings] = useState(false);
 
@@ -3660,6 +3662,19 @@ export default function AdminDashboard({
                       />
                       <div className="relative w-11 h-6 bg-slate-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-[#E10600]/30 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#E10600]"></div>
                     </label>
+                  </div>
+
+                  {/* Android APK Download Link */}
+                  <div className="border-t border-[#0F172A]/5 pt-6 mt-6 flex flex-col gap-3">
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase">Link Download Aplikasi Android (APK / Google Play Store)</label>
+                    <input 
+                      type="url" 
+                      placeholder="Masukkan link playstore atau link direct download APK. Contoh: https://play.google.com/store/apps/details?id=..."
+                      value={settings.appApkUrl || ""}
+                      onChange={(e) => setSettings(prev => ({ ...prev, appApkUrl: e.target.value || null }))}
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    />
+                    <p className="text-[10px] text-gray-400">Jika diisi, tombol download aplikasi di Google Play Store akan ditampilkan di Landing Page untuk member.</p>
                   </div>
                 </div>
 

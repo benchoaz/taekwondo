@@ -61,6 +61,7 @@ export async function POST(request: Request) {
       dojangLat,
       dojangLng,
       dojangRadius,
+      appApkUrl,
     } = body;
 
     const setting = await prisma.setting.upsert({
@@ -85,6 +86,7 @@ export async function POST(request: Request) {
         dojangLat: dojangLat !== undefined ? parseFloat(dojangLat) : undefined,
         dojangLng: dojangLng !== undefined ? parseFloat(dojangLng) : undefined,
         dojangRadius: dojangRadius !== undefined ? parseInt(dojangRadius) : undefined,
+        appApkUrl: appApkUrl !== undefined ? appApkUrl : undefined,
       },
       create: {
         id: "default",
@@ -107,6 +109,7 @@ export async function POST(request: Request) {
         dojangLat: dojangLat !== undefined ? parseFloat(dojangLat) : undefined,
         dojangLng: dojangLng !== undefined ? parseFloat(dojangLng) : undefined,
         dojangRadius: dojangRadius !== undefined ? parseInt(dojangRadius) : 50,
+        appApkUrl: appApkUrl || null,
       },
     });
 

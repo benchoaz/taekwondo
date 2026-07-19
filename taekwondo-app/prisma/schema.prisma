@@ -330,6 +330,7 @@ model Setting {
   dojangLat       Float?   @map("dojang_lat")
   dojangLng       Float?   @map("dojang_lng")
   dojangRadius    Int      @default(100) @map("dojang_radius")
+  appApkUrl       String?  @map("app_apk_url")
   updatedAt       DateTime @updatedAt
 }
 

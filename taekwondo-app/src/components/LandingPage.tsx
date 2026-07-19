@@ -43,6 +43,7 @@ export default function LandingPage({
     email: "halo@whitetiger-tkd.com",
     phone: "+62 811-1234-5678",
     registrationFee: 75000,
+    appApkUrl: null as string | null,
   });
 
   // Dynamic Articles/Events & Coaches State
@@ -310,19 +311,33 @@ export default function LandingPage({
             {settings.description}
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+          <div className="flex flex-col sm:flex-row gap-4 mt-4 items-center">
             <button 
               onClick={() => onNavigate("register")} 
-              className="bg-white hover:bg-slate-100 text-[#E10600] px-8 py-4 rounded-[12px] font-bold text-sm transition-all shadow-xl active:scale-95"
+              className="bg-white hover:bg-slate-100 text-[#E10600] px-8 py-4 rounded-[12px] font-bold text-sm transition-all shadow-xl active:scale-95 w-full sm:w-auto"
             >
               Daftar Sekarang (Rp {settings.registrationFee.toLocaleString("id-ID")})
             </button>
             <button 
               onClick={() => onNavigate("schedule-view")} 
-              className="bg-[#E10600]/30 hover:bg-[#E10600]/50 text-white border border-white/50 px-8 py-4 rounded-[12px] font-bold text-sm transition-all backdrop-blur-md active:scale-95"
+              className="bg-[#E10600]/30 hover:bg-[#E10600]/50 text-white border border-white/50 px-8 py-4 rounded-[12px] font-bold text-sm transition-all backdrop-blur-md active:scale-95 w-full sm:w-auto"
             >
               Jadwal Latihan
             </button>
+            {settings.appApkUrl && (
+              <a 
+                href={settings.appApkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition-all hover:scale-105 active:scale-95 w-[160px] inline-block"
+              >
+                <img 
+                  src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
+                  alt="Download di Google Play" 
+                  className="w-full h-auto"
+                />
+              </a>
+            )}
           </div>
 
           <div className="flex flex-wrap justify-center gap-12 mt-8 pt-8 border-t border-white/20 text-white w-full max-w-2xl">

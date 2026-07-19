@@ -727,6 +727,22 @@ export default function LandingPage({
             <p className="text-[#E10600] text-xs font-bold mt-2">
               📍 Pusat Latihan Taekwondo Terpercaya di Kraksaan, Probolinggo.
             </p>
+            {settings.appApkUrl && (
+              <div className="mt-4">
+                <a 
+                  href={settings.appApkUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block transition-transform hover:scale-105 active:scale-95 w-36"
+                >
+                  <img 
+                    src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
+                    alt="Download di Google Play" 
+                    className="w-full h-auto"
+                  />
+                </a>
+              </div>
+            )}
           </div>
           <div>
             <h4 className="font-bold text-sm uppercase tracking-wider mb-4 text-[#E10600]">Alamat Dojang</h4>

@@ -75,7 +75,18 @@ export async function POST(req: Request) {
     let isAllCorrect = true;
     for (let i = 0; i < quizQuestions.length; i++) {
       const dbAnswer = quizQuestions[i].correctAnswer ?? quizQuestions[i].answer;
-      if (answers[i] !== dbAnswer) {
+      
+      const cleanInput = String(answers[i] ?? "")
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "");
+
+      const cleanDb = String(dbAnswer ?? "")
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "");
+
+      if (cleanInput !== cleanDb) {
         isAllCorrect = false;
         break;
       }

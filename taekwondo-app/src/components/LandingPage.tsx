@@ -744,20 +744,6 @@ export default function LandingPage({
           <span>&copy; 2026 {settings.dojangName}. Hak Cipta Dilindungi.</span>
           <span>{settings.motto}</span>
         </div>
-
-        {/* Floating WhatsApp CTA */}
-        <a
-          href={`https://wa.me/${settings.phone?.replace(/[^0-9]/g, '')}?text=Halo%20Sabum%2C%20saya%20ingin%20tanya%20informasi%20pendaftaran%20di%20White%20Tiger%20Taekwondo%20Club.`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fixed bottom-6 right-6 z-50 bg-[#25D366] hover:bg-[#20ba5a] text-white p-4 rounded-full shadow-2xl flex items-center justify-center transition-transform hover:scale-110 active:scale-95 group"
-          title="Hubungi Kami via WhatsApp"
-        >
-          <Phone className="w-6 h-6 animate-pulse" />
-          <span className="max-w-0 overflow-hidden group-hover:max-w-xs group-hover:ml-2 transition-all duration-300 font-bold text-sm whitespace-nowrap">
-            Tanya Pendaftaran
-          </span>
-        </a>
       </footer>
     </div>
   );

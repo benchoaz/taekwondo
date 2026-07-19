@@ -484,16 +484,16 @@ export default function GamificationManagement() {
                       <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 relative group">
                         <code className="text-[10px] font-mono text-indigo-200 block whitespace-pre-wrap select-all leading-relaxed">
                           {formData.type === "PROFILE_FRAME" && (
-                            "3D circular profile avatar frame border, taekwondo belt wrapped around border style, glowing neon red and cyan accents, clean transparent hollow center inside circle, game asset, solid black background, highly detailed rendering"
+                            "Circular avatar profile frame border (aspect ratio 1:1, size 512x512 pixels), taekwondo belt wrapped around border style, glowing neon red and cyan accents, clean transparent hollow center inside circle, game asset, solid black background, highly detailed rendering --ar 1:1"
                           )}
                           {formData.type === "TITLE" && (
-                            "Luxury golden title banner ribbon overlay, game user interface asset, premium dark gold details, red highlights, modern taekwondo style, glowing lighting, black clean background, 3D style asset"
+                            "Horizontal title banner plate (aspect ratio 16:4, size 1024x256 pixels), luxury golden banner ribbon overlay, game user interface asset, premium dark gold details, red highlights, modern taekwondo style, glowing lighting, black clean background, 3D style asset --ar 4:1"
                           )}
                           {formData.type === "EMBLEM" && (
-                            "Mythical white tiger head shield emblem logo badge, futuristic taekwondo champions style, shiny metallic gold and red glow borders, game asset badge design, solid dark blue background, clean 3D render"
+                            "Mythical white tiger head shield emblem logo badge (aspect ratio 1:1, size 512x512 pixels), futuristic taekwondo champions style, shiny metallic gold and red glow borders, game asset badge design, solid dark blue background, clean 3D render --ar 1:1"
                           )}
                           {formData.type === "THEME" && (
-                            "Minimalist gaming profile dashboard card theme template background, cyber red white tiger neon pattern grid, premium abstract dark card UI design"
+                            "Minimalist gaming profile dashboard card theme template background (aspect ratio 16:9, size 1920x1080 pixels), cyber red white tiger neon pattern grid, premium abstract dark card UI design --ar 16:9"
                           )}
                         </code>
                       </div>

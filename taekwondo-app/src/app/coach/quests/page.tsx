@@ -200,8 +200,8 @@ function CoachQuestFormContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f4f5] py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+    <div className="min-h-screen bg-[#f3f4f5] py-4 sm:py-12 px-2 sm:px-6 lg:px-8 font-sans">
+      <div className="max-w-5xl mx-auto bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden border border-gray-100">
         
         {/* Header Premium Merah */}
         <div className="bg-gradient-to-r from-red-600 to-red-800 px-8 py-10 text-center relative overflow-hidden">

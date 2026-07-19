@@ -115,45 +115,45 @@ export default function CoachQuestLogs() {
   const totalVideos = logs.filter(l => l.completed && l.videoUrl).length;
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-[#f8fafc] py-4 sm:py-12 px-2 sm:px-6 lg:px-8 font-sans">
       <div className="max-w-5xl mx-auto">
         
         {/* Navigation & Header */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <div className="flex gap-4 mb-2">
-              <Link href="/coach/quests" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-600 font-bold transition-colors">
+              <Link href="/coach/quests" className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-red-600 font-bold transition-colors">
                 <ArrowLeft className="w-4 h-4" /> Kembali ke Builder
               </Link>
-              <Link href="/coach/quests/library" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-red-600 font-bold transition-colors">
+              <Link href="/coach/quests/library" className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-red-600 font-bold transition-colors">
                 Library Misi <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
               Aktivitas Misi Harian Murid
             </h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <p className="text-slate-500 text-xs sm:text-sm mt-1">
               Pantau pengerjaan, catatan mandiri, dan rekaman video latihan murid
             </p>
           </div>
         </div>
 
         {/* Mini Dashboard Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
           <div className="bg-white rounded-2xl p-4 border border-slate-200/60 flex flex-col items-center justify-center text-center shadow-sm">
-            <CheckSquare className="w-6 h-6 text-emerald-500 mb-2" />
-            <span className="text-3xl font-black text-slate-800 leading-none">{totalCompleted}</span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Misi Selesai</span>
+            <CheckSquare className="w-6 h-6 text-emerald-500 mb-1" />
+            <span className="text-2xl sm:text-3xl font-black text-slate-800 leading-none">{totalCompleted}</span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Misi Selesai</span>
           </div>
           <div className="bg-white rounded-2xl p-4 border border-slate-200/60 flex flex-col items-center justify-center text-center shadow-sm">
-            <Clock className="w-6 h-6 text-amber-500 mb-2" />
-            <span className="text-3xl font-black text-slate-800 leading-none">{totalIncomplete}</span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Belum Selesai</span>
+            <Clock className="w-6 h-6 text-amber-500 mb-1" />
+            <span className="text-2xl sm:text-3xl font-black text-slate-800 leading-none">{totalIncomplete}</span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Belum Selesai</span>
           </div>
           <div className="bg-white rounded-2xl p-4 border border-slate-200/60 flex flex-col items-center justify-center text-center shadow-sm">
-            <Video className="w-6 h-6 text-red-500 mb-2" />
-            <span className="text-3xl font-black text-slate-800 leading-none">{totalVideos}</span>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Video Diunggah</span>
+            <Video className="w-6 h-6 text-red-500 mb-1" />
+            <span className="text-2xl sm:text-3xl font-black text-slate-800 leading-none">{totalVideos}</span>
+            <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Video Diunggah</span>
           </div>
         </div>
 

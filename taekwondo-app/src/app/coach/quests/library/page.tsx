@@ -104,7 +104,7 @@ export default function QuestLibraryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f3f4f5] py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-[#f3f4f5] py-4 sm:py-12 px-2 sm:px-6 lg:px-8 font-sans">
 
       {/* Toast Notification */}
       {toastMsg && (
@@ -117,41 +117,41 @@ export default function QuestLibraryPage() {
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
+      <div className="max-w-4xl mx-auto bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden border border-gray-100">
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-red-600 to-red-800 px-8 py-10 text-center relative overflow-hidden">
+        <div className="bg-gradient-to-r from-red-600 to-red-800 px-4 sm:px-8 py-8 sm:py-10 text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl"></div>
           <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
 
-          <div className="flex justify-center gap-4 mb-4 relative z-10 flex-wrap">
-            <Link href="/coach/quests" className="bg-red-950/40 text-red-100 hover:text-white text-xs font-black px-3.5 py-1 rounded-full border border-red-700/30 uppercase tracking-widest transition-colors flex items-center gap-1.5">
+          <div className="flex justify-center gap-2 sm:gap-4 mb-4 relative z-10 flex-wrap">
+            <Link href="/coach/quests" className="bg-red-950/40 text-red-100 hover:text-white text-[10px] sm:text-xs font-black px-3 py-1 rounded-full border border-red-700/30 uppercase tracking-widest transition-colors flex items-center gap-1.5">
               <PlusCircle className="w-3.5 h-3.5" /> Buat Misi Baru
             </Link>
-            <span className="bg-white/20 text-white text-xs font-black px-3.5 py-1 rounded-full border border-white/30 uppercase tracking-widest flex items-center gap-1.5">
+            <span className="bg-white/20 text-white text-[10px] sm:text-xs font-black px-3 py-1 rounded-full border border-white/30 uppercase tracking-widest flex items-center gap-1.5">
               <Library className="w-3.5 h-3.5" /> Library Misi
             </span>
-            <Link href="/coach/quests/logs" className="bg-red-950/40 text-red-100 hover:text-white text-xs font-black px-3.5 py-1 rounded-full border border-red-700/30 uppercase tracking-widest transition-colors flex items-center gap-1.5">
+            <Link href="/coach/quests/logs" className="bg-red-950/40 text-red-100 hover:text-white text-[10px] sm:text-xs font-black px-3 py-1 rounded-full border border-red-700/30 uppercase tracking-widest transition-colors flex items-center gap-1.5">
               <ListFilter className="w-3.5 h-3.5" /> Pantau Latihan
             </Link>
           </div>
 
-          <h2 className="text-3xl font-black text-white tracking-tight relative z-10">
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight relative z-10">
             Library Misi
           </h2>
-          <p className="mt-2 text-red-100 font-medium relative z-10">
+          <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-red-100 font-medium relative z-10">
             Kolam template misi yang siap didistribusikan ke member sesuai sabuk &amp; usia.
           </p>
         </div>
 
         {/* Legend */}
-        <div className="bg-amber-50 border-b border-amber-100 px-8 py-3 flex flex-wrap gap-4 text-xs text-amber-800 font-semibold">
-          <span className="flex items-center gap-1.5"><ToggleRight className="w-4 h-4 text-green-600" /> Toggle = Aktifkan/Nonaktifkan misi (tanpa hapus)</span>
-          <span className="flex items-center gap-1.5"><Send className="w-4 h-4 text-red-600" /> Kirim = Distribusikan langsung ke member hari ini</span>
+        <div className="bg-amber-50 border-b border-amber-100 px-4 sm:px-8 py-3 flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 text-[10px] sm:text-xs text-amber-800 font-semibold">
+          <span className="flex items-center gap-1.5"><ToggleRight className="w-4 h-4 text-green-600 shrink-0" /> Toggle = Aktifkan/Nonaktifkan misi</span>
+          <span className="flex items-center gap-1.5"><Send className="w-4 h-4 text-red-600 shrink-0" /> Kirim = Distribusikan langsung hari ini</span>
         </div>
 
         {/* Konten */}
-        <div className="p-8">
+        <div className="p-4 sm:p-8">
           {loading ? (
             <div className="text-center py-12 text-gray-500 font-medium animate-pulse">
               Memuat data misi...
@@ -169,30 +169,30 @@ export default function QuestLibraryPage() {
               {quests.map((q) => (
                 <div
                   key={q.id}
-                  className={`p-5 border rounded-2xl flex items-start justify-between gap-4 transition-all
+                  className={`p-4 sm:p-5 border rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all
                     ${q.isActive
                       ? "border-gray-100 bg-gray-50/50 hover:bg-white"
                       : "border-dashed border-gray-300 bg-gray-100/70 opacity-60"}`}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
                       {/* Status badge */}
-                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md
+                      <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md
                         ${q.isActive ? "text-green-700 bg-green-100" : "text-gray-500 bg-gray-200"}`}>
                         {q.isActive ? "● AKTIF" : "○ NONAKTIF"}
                       </span>
-                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${categoryColor[q.category] ?? "text-gray-600 bg-gray-100"}`}>
+                      <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${categoryColor[q.category] ?? "text-gray-600 bg-gray-100"}`}>
                         {q.category}
                       </span>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-md">
+                      <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded-md">
                         {q.baseXp} XP
                       </span>
                       {q.requirements && q.requirements.length > 0 && (
                         <>
-                          <span className="text-[10px] font-black uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">
+                          <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">
                             USIA: {q.requirements[0].minAge}-{q.requirements[0].maxAge} TH
                           </span>
-                          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                          <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
                             {q.requirements[0].allowedBeltIds?.length > 0
                               ? `${q.requirements[0].allowedBeltIds.length} SABUK`
                               : 'SEMUA SABUK'}
@@ -200,27 +200,27 @@ export default function QuestLibraryPage() {
                         </>
                       )}
                       {q.videoUrl && (
-                        <span className="text-[10px] font-black uppercase tracking-wider text-pink-700 bg-pink-100 px-2 py-0.5 rounded-md">
+                        <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-pink-700 bg-pink-100 px-2 py-0.5 rounded-md">
                           📹 VIDEO
                         </span>
                       )}
                     </div>
 
-                    <h3 className="font-bold text-gray-800 text-lg leading-tight mb-1">{q.title}</h3>
-                    <p className="text-sm text-gray-500 line-clamp-2 leading-snug">{q.description}</p>
+                    <h3 className="font-bold text-gray-800 text-base sm:text-lg leading-tight mb-1">{q.title}</h3>
+                    <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 leading-snug">{q.description}</p>
 
-                    <div className="mt-3 text-xs font-medium text-gray-400">
+                    <div className="mt-2 text-[10px] sm:text-xs font-medium text-gray-400">
                       Dibuat: {new Date(q.createdAt).toLocaleDateString('id-ID')}
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex flex-col gap-2 shrink-0">
+                  {/* Action Buttons (flex-row on mobile, flex-col on desktop) */}
+                  <div className="flex flex-row md:flex-col gap-1.5 sm:gap-2 shrink-0 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 mt-1 md:mt-0 border-slate-100">
                     {/* Toggle Aktif/Nonaktif */}
                     <button
                       onClick={() => handleToggleActive(q)}
                       disabled={toggling === q.id}
-                      className={`p-2 rounded-xl transition-all title="Aktifkan/Nonaktifkan"
+                      className={`p-2 rounded-xl transition-all
                         ${q.isActive
                           ? "text-green-600 hover:bg-green-50"
                           : "text-gray-400 hover:bg-gray-100"}`}

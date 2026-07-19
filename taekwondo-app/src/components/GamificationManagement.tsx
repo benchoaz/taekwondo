@@ -213,6 +213,49 @@ export default function GamificationManagement() {
               </button>
             </div>
 
+            {/* Permanent AI Asset Generator Instructions Card */}
+            <div className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-950 rounded-2xl p-6 text-white border border-indigo-500/20 shadow-lg relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 blur-3xl pointer-events-none"></div>
+              <div className="relative flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-indigo-400 animate-pulse" />
+                  <h4 className="font-extrabold text-sm uppercase tracking-wider text-indigo-200">Panduan & Prompt AI Pembuatan Aset Gambar Toko</h4>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed max-w-3xl">
+                  Gunakan petunjuk di bawah ini untuk membuat gambar item toko gamifikasi secara instan menggunakan AI. Salin prompt ke generator gambar AI favorit Anda seperti **Canva Magic Media** atau **Midjourney**, lalu upload hasilnya ke form **"Buat Item Baru"**.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-2">
+                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">1. Bingkai Profil (Frame)</span>
+                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                      Wajib berdimensi 1:1 (Kotak) dan latar belakang transparan/bolong tengahnya.
+                    </p>
+                    <code className="bg-slate-950 border border-slate-800 p-2 rounded-lg text-[9px] font-mono text-indigo-200 select-all block leading-tight">
+                      Circular avatar profile frame border (aspect ratio 1:1, size 512x512 pixels), taekwondo belt wrapped around border style, glowing neon red and cyan accents, clean transparent hollow center inside circle, game asset, solid black background --ar 1:1
+                    </code>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-2">
+                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">2. Gelar / Spanduk (Title)</span>
+                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                      Berdimensi memanjang horizontal (Landscape) untuk papan gelar siswa.
+                    </p>
+                    <code className="bg-slate-950 border border-slate-800 p-2 rounded-lg text-[9px] font-mono text-indigo-200 select-all block leading-tight">
+                      Horizontal title banner plate (aspect ratio 16:4, size 1024x256 pixels), luxury golden banner ribbon overlay, game user interface asset, premium dark gold details, red highlights, modern taekwondo style, glowing lighting, black clean background, 3D style asset --ar 4:1
+                    </code>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-2">
+                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">3. Lencana Khusus (Emblem)</span>
+                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                      Lencana bulat/perisai berdimensi 1:1 untuk ikon khusus di profil siswa.
+                    </p>
+                    <code className="bg-slate-950 border border-slate-800 p-2 rounded-lg text-[9px] font-mono text-indigo-200 select-all block leading-tight">
+                      Mythical white tiger head shield emblem logo badge (aspect ratio 1:1, size 512x512 pixels), futuristic taekwondo champions style, shiny metallic gold and red glow borders, game asset badge design, solid dark blue background, clean 3D render --ar 1:1
+                    </code>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
               <table className="min-w-full divide-y divide-slate-100">
                 <thead className="bg-slate-50/80 backdrop-blur-sm">
@@ -468,7 +511,6 @@ export default function GamificationManagement() {
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-medium focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" 
                         />
                       </div>
-                    </div>
                     </div>
                     
                     {/* AI Prompt generator helper */}

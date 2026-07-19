@@ -224,7 +224,7 @@ export default function GamificationManagement() {
                 <p className="text-xs text-slate-300 leading-relaxed max-w-3xl">
                   Gunakan petunjuk di bawah ini untuk membuat gambar item toko gamifikasi secara instan menggunakan AI. Salin prompt ke generator gambar AI favorit Anda seperti **Canva Magic Media** atau **Midjourney**, lalu upload hasilnya ke form **"Buat Item Baru"**.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
                   <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-2">
                     <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">1. Bingkai Profil (Frame)</span>
                     <p className="text-[10px] text-slate-400 leading-relaxed">
@@ -250,6 +250,15 @@ export default function GamificationManagement() {
                     </p>
                     <code className="bg-slate-950 border border-slate-800 p-2 rounded-lg text-[9px] font-mono text-indigo-200 select-all block leading-tight">
                       Mythical white tiger head shield emblem logo badge (aspect ratio 1:1, size 512x512 pixels), futuristic taekwondo champions style, shiny metallic gold and red glow borders, game asset badge design, solid dark blue background, clean 3D render --ar 1:1
+                    </code>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-2">
+                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">4. Tema Profil (Theme)</span>
+                    <p className="text-[10px] text-slate-400 leading-relaxed">
+                      Latar belakang kartu anggota (VIP Card) profil berdimensi landscape 16:9.
+                    </p>
+                    <code className="bg-slate-950 border border-slate-800 p-2 rounded-lg text-[9px] font-mono text-indigo-200 select-all block leading-tight">
+                      Minimalist gaming profile dashboard card theme template background (aspect ratio 16:9, size 1920x1080 pixels), cyber red white tiger neon pattern grid, premium abstract dark card UI design --ar 16:9
                     </code>
                   </div>
                 </div>

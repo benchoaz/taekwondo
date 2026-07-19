@@ -17,28 +17,28 @@ export default function EventCard({ title, level, location, startDate, endDate, 
   const end = new Date(endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <div className="bg-white border-2 border-[#191C1D] shadow-[4px_4px_0px_#191C1D] rounded-xl p-6 hover:-translate-y-1 hover:shadow-[6px_6px_0px_#191C1D] transition-all flex flex-col justify-between">
+    <div className="bg-[#0B0F19] border border-white/5 rounded-2xl p-6 hover:-translate-y-1 hover:shadow-xl hover:shadow-red-950/20 transition-all flex flex-col justify-between">
       <div>
         <div className="flex justify-between items-start mb-4">
-          <span className={`px-3 py-1 text-xs font-bold rounded-full border-2 border-[#191C1D] ${isNews ? 'bg-[#FFDEB4]' : 'bg-[#E0F2FE]'}`}>
+          <span className={`px-3 py-1 text-xs font-bold rounded-full border ${isNews ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
             {isNews ? 'Berita/Rumor 📰' : 'Terverifikasi ✅'}
           </span>
-          <span className="px-3 py-1 text-xs font-bold rounded-full bg-gray-100 border-2 border-[#191C1D]">
+          <span className="px-3 py-1 text-xs font-bold rounded-full bg-white/5 border border-white/10 text-slate-300">
             {level}
           </span>
         </div>
         
-        <h3 className="text-xl font-black text-[#191C1D] mb-4 font-spaceGrotesk leading-tight">
+        <h3 className="text-xl font-black text-white mb-4 font-spaceGrotesk leading-tight">
           {title}
         </h3>
         
         <div className="space-y-2 mb-6">
-          <div className="flex items-center text-sm font-medium text-gray-700">
-            <span className="material-symbols-outlined text-[18px] mr-2">calendar_month</span>
+          <div className="flex items-center text-sm font-medium text-slate-300">
+            <span className="material-symbols-outlined text-[18px] mr-2 text-slate-400">calendar_month</span>
             {start} {start !== end && `- ${end}`}
           </div>
-          <div className="flex items-center text-sm font-medium text-gray-700">
-            <span className="material-symbols-outlined text-[18px] mr-2">location_on</span>
+          <div className="flex items-center text-sm font-medium text-slate-300">
+            <span className="material-symbols-outlined text-[18px] mr-2 text-slate-400">location_on</span>
             {location}
           </div>
         </div>
@@ -51,19 +51,19 @@ export default function EventCard({ title, level, location, startDate, endDate, 
             download 
             target="_blank"
             rel="noopener noreferrer" 
-            className="block w-full py-2.5 text-center bg-[#FFDEB4] hover:bg-[#ffe3c2] text-[#191C1D] font-black rounded-lg border-2 border-[#191C1D] shadow-[2px_2px_0px_#191C1D] active:translate-y-[2px] active:shadow-none transition-all text-xs uppercase"
+            className="block w-full py-2.5 text-center bg-[#E10600]/10 hover:bg-[#E10600]/20 text-[#E10600] font-black rounded-xl border border-[#E10600]/20 transition-all text-xs uppercase"
           >
             📥 Unduh Proposal (PDF)
           </a>
         )}
         
         {link ? (
-          <a href={link} target="_blank" rel="noopener noreferrer" className="block w-full py-2.5 text-center bg-[#0052DC] hover:bg-blue-700 text-white font-bold rounded-lg border-2 border-[#191C1D] text-xs uppercase">
+          <a href={link} target="_blank" rel="noopener noreferrer" className="block w-full py-2.5 text-center bg-[#E10600] hover:bg-red-700 text-white font-bold rounded-xl transition-all text-xs uppercase">
             Lihat Sumber
           </a>
         ) : (
           !proposalUrl && (
-            <button disabled className="w-full py-2.5 text-center bg-gray-200 text-gray-500 font-bold rounded-lg border-2 border-gray-300 text-xs">
+            <button disabled className="w-full py-2.5 text-center bg-white/5 text-slate-500 font-bold rounded-xl border border-white/5 text-xs">
               Proposal Belum Tersedia
             </button>
           )

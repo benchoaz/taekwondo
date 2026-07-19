@@ -15,7 +15,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { title, content, author, imageUrl } = body;
+    const { title, content, author, imageUrl, proposalUrl } = body;
 
     if (!title || !content) {
       return NextResponse.json({ error: "Title and Content are required" }, { status: 400 });
@@ -27,6 +27,7 @@ export async function POST(request: Request) {
         content,
         author: author || "Admin",
         imageUrl,
+        proposalUrl,
       },
     });
 

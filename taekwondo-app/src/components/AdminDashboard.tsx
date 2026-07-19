@@ -97,6 +97,7 @@ interface ArticleData {
   content: string;
   author: string;
   imageUrl: string | null;
+  proposalUrl?: string | null;
   createdAt: string;
 }
 
@@ -386,6 +387,7 @@ export default function AdminDashboard({
   const [articleContent, setArticleContent] = useState("");
   const [articleAuthor, setArticleAuthor] = useState("Admin Editorial");
   const [articleImage, setArticleImage] = useState<string | null>(null);
+  const [articleProposal, setArticleProposal] = useState<string | null>(null);
 
   // Tournaments / Kejuaraan State
   const [tournaments, setTournaments] = useState<any[]>([]);
@@ -1316,12 +1318,14 @@ export default function AdminDashboard({
       setArticleContent(article.content);
       setArticleAuthor(article.author);
       setArticleImage(article.imageUrl);
+      setArticleProposal(article.proposalUrl || null);
     } else {
       setEditingArticle(null);
       setArticleTitle("");
       setArticleContent("");
       setArticleAuthor("Admin Editorial");
       setArticleImage(null);
+      setArticleProposal(null);
     }
     setShowArticleModal(true);
   };
@@ -1335,6 +1339,7 @@ export default function AdminDashboard({
       content: articleContent,
       author: articleAuthor,
       imageUrl: articleImage,
+      proposalUrl: articleProposal,
     };
 
     try {
@@ -1356,6 +1361,10 @@ export default function AdminDashboard({
       if (res.ok) {
         fetchArticles();
         setShowArticleModal(false);
+        setArticleTitle("");
+        setArticleContent("");
+        setArticleImage(null);
+        setArticleProposal(null);
       } else {
         const err = await res.json();
         alert(err.error || "Gagal menyimpan agenda");
@@ -4807,6 +4816,61 @@ export default function AdminDashboard({
                         )}
                       </label>
                     </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[11px] font-black text-[#0F172A] uppercase tracking-widest mb-2">Unggah Proposal PDF (Opsional)</label>
+                    <div className="relative group w-full">
+                      <input 
+                        type="file" 
+                        accept="application/pdf" 
+                        id="article-proposal-upload"
+                        className="hidden" 
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const url = await uploadToServer(file, file.name, "documents");
+                            if (url) setArticleProposal(url);
+                          }
+                        }} 
+                      />
+                      <label 
+                        htmlFor="article-proposal-upload"
+                        className={`w-full flex items-center justify-center border-2 border-dashed rounded-xl cursor-pointer transition-all overflow-hidden relative ${
+                          articleProposal 
+                            ? "border-transparent h-[50px]" 
+                            : "border-slate-300 bg-slate-50 hover:bg-[#E10600]/5 hover:border-[#E10600] h-[50px]"
+                        }`}
+                      >
+                        {articleProposal ? (
+                          <div className="absolute inset-0 flex items-center justify-between px-4 bg-slate-100 border border-slate-200">
+                            <div className="flex items-center gap-3 overflow-hidden">
+                              <span className="material-symbols-outlined text-slate-500 text-lg">picture_as_pdf</span>
+                              <span className="text-xs font-bold text-green-600 truncate">Proposal Terlampir</span>
+                            </div>
+                            <div className="bg-white px-3 py-1.5 rounded-lg text-[10px] font-bold text-gray-500 shadow-sm whitespace-nowrap">Ganti PDF</div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-slate-500 group-hover:text-[#E10600] transition-colors">
+                            <Upload className="w-4 h-4" />
+                            <span className="text-xs font-bold">Pilih File PDF Proposal</span>
+                          </div>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-black text-[#0F172A] uppercase tracking-widest mb-2">Manual Link Proposal (Alternatif)</label>
+                    <input 
+                      type="url" 
+                      value={articleProposal || ""}
+                      onChange={(e) => setArticleProposal(e.target.value)}
+                      placeholder="https://.../proposal.pdf" 
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-medium text-[#0F172A] placeholder:font-normal outline-none focus:bg-white focus:border-[#E10600] focus:ring-4 focus:ring-[#E10600]/10 transition-all"
+                    />
                   </div>
                 </div>
 

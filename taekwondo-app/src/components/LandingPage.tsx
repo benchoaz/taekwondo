@@ -398,7 +398,19 @@ export default function LandingPage({
                         <span>{new Date(art.createdAt).toLocaleDateString("id-ID")}</span>
                       </div>
                       <h3 className="font-extrabold text-base text-[#0F172A] mb-2">{art.title}</h3>
-                      <p className="text-gray-500 text-xs leading-relaxed line-clamp-4 whitespace-pre-wrap">{art.content}</p>
+                      <p className="text-gray-500 text-xs leading-relaxed line-clamp-4 whitespace-pre-wrap mb-4">{art.content}</p>
+                      
+                      {art.proposalUrl && (
+                        <a 
+                          href={art.proposalUrl} 
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-[#E10600]/10 hover:bg-[#E10600]/20 text-[#E10600] font-bold text-xs rounded-lg transition-colors border border-[#E10600]/10"
+                        >
+                          📥 Unduh Proposal (PDF)
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>

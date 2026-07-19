@@ -6,12 +6,19 @@ export const metadata: Metadata = {
   title: "White Tiger Taekwondo Club - Disiplin, Integritas, Prestasi",
   description: "Dojang & Club Taekwondo Premium. Bangun Mental Juara, Disiplin dan Prestasi Bersama Kami.",
   icons: {
-    icon: '/logo.png',
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/logo.png', sizes: '32x32', type: 'image/png' },
+      { url: '/logo.png', sizes: '192x192', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
   },
   openGraph: {
     title: "White Tiger Taekwondo Club",
     description: "Bangun Mental Juara, Disiplin dan Prestasi Bersama Kami",
     type: "website",
+    images: '/logo.png',
   }
 };
 

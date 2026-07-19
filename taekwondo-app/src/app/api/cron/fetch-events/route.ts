@@ -86,50 +86,11 @@ export async function GET(request: Request) {
       console.error("Error scraping SIMPBTI API:", err);
     }
 
-    // =====================================================================
-    // 2. SCRAPE DARI GOOGLE NEWS RSS (Sebagai Backup)
-    // =====================================================================
-    try {
-      const feed = await parser.parseURL('https://news.google.com/rss/search?q=Kejuaraan+Taekwondo+Indonesia&hl=id&gl=ID&ceid=ID:id');
-      
-      for (const item of feed.items) {
-        const exists = await prisma.tournamentEvent.findFirst({
-          where: { title: item.title }
-        });
-
-        if (!exists) {
-          const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
-          
-          // ABAIKAN BERITA LAMA: Jika berita diterbitkan lebih dari 7 hari yang lalu
-          const oneWeekAgo = new Date();
-          oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-          
-          if (pubDate < oneWeekAgo) {
-            continue; // Lewati berita lama
-          }
-          
-          await prisma.tournamentEvent.create({
-            data: {
-              title: item.title,
-              level: "Provinsi",
-              location: "Jawa Timur", // Lokasi general default
-              startDate: pubDate,
-              endDate: new Date(pubDate.getTime() + (2 * 24 * 60 * 60 * 1000)), // Estimasi 2 hari
-              source: "AUTOMATIC_RSS",
-              status: "PUBLISHED",
-              link: item.link
-            }
-          });
-          googleNewsAdded++;
-        }
-      }
-    } catch (err) {
-      console.error("Error parsing Google News RSS:", err);
-    }
+    // Google News RSS scraping has been removed to focus exclusively on SIM PBTI Championships
 
     return NextResponse.json({
       success: true,
-      message: `Berhasil memindai kejuaraan. Ditambahkan: ${simpbtiAdded} dari SIM PBTI, ${googleNewsAdded} dari Google News.`
+      message: `Berhasil memindai kejuaraan. Ditambahkan: ${simpbtiAdded} dari SIM PBTI.`
     });
 
   } catch (error: any) {

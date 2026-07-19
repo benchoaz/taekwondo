@@ -1296,7 +1296,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                         style: GoogleFonts.spaceGrotesk(
                                           fontSize: 10,
                                           color: goldAccent,
-                                          fontWeight: FontWeight.black,
+                                          fontWeight: FontWeight.w900,
                                         ),
                                       ),
                                     ),

@@ -7,10 +7,11 @@ interface EventCardProps {
   startDate: string;
   endDate: string;
   link?: string | null;
+  proposalUrl?: string | null;
   source: string;
 }
 
-export default function EventCard({ title, level, location, startDate, endDate, link, source }: EventCardProps) {
+export default function EventCard({ title, level, location, startDate, endDate, link, proposalUrl, source }: EventCardProps) {
   const isNews = source === 'AUTOMATIC_RSS';
   const start = new Date(startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   const end = new Date(endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -43,15 +44,31 @@ export default function EventCard({ title, level, location, startDate, endDate, 
         </div>
       </div>
       
-      {link ? (
-        <a href={link} target="_blank" rel="noopener noreferrer" className="block w-full py-3 text-center bg-[#0052DC] hover:bg-blue-700 text-white font-bold rounded-lg border-2 border-[#191C1D] transition-colors">
-          Lihat Sumber
-        </a>
-      ) : (
-        <button disabled className="w-full py-3 text-center bg-gray-200 text-gray-500 font-bold rounded-lg border-2 border-gray-300">
-          Proposal Belum Tersedia
-        </button>
-      )}
+      <div className="space-y-2">
+        {proposalUrl && (
+          <a 
+            href={proposalUrl} 
+            download 
+            target="_blank"
+            rel="noopener noreferrer" 
+            className="block w-full py-2.5 text-center bg-[#FFDEB4] hover:bg-[#ffe3c2] text-[#191C1D] font-black rounded-lg border-2 border-[#191C1D] shadow-[2px_2px_0px_#191C1D] active:translate-y-[2px] active:shadow-none transition-all text-xs uppercase"
+          >
+            📥 Unduh Proposal (PDF)
+          </a>
+        )}
+        
+        {link ? (
+          <a href={link} target="_blank" rel="noopener noreferrer" className="block w-full py-2.5 text-center bg-[#0052DC] hover:bg-blue-700 text-white font-bold rounded-lg border-2 border-[#191C1D] text-xs uppercase">
+            Lihat Sumber
+          </a>
+        ) : (
+          !proposalUrl && (
+            <button disabled className="w-full py-2.5 text-center bg-gray-200 text-gray-500 font-bold rounded-lg border-2 border-gray-300 text-xs">
+              Proposal Belum Tersedia
+            </button>
+          )
+        )}
+      </div>
     </div>
   );
 }

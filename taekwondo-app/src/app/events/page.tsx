@@ -65,6 +65,7 @@ export default async function EventsPage() {
                 startDate={evt.startDate.toISOString()}
                 endDate={evt.endDate.toISOString()}
                 link={evt.link}
+                proposalUrl={evt.proposalUrl}
                 source={evt.source}
               />
             ))}

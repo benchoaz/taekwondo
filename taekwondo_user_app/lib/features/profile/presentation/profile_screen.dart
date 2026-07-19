@@ -387,7 +387,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       height: 38,
                       fit: BoxFit.contain,
                       colorBlendMode: BlendMode.screen,
-                      color: Colors.white,
                     )
                   : Padding(
                       padding: const EdgeInsets.only(top: 4, bottom: 4),

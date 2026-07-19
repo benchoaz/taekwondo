@@ -740,7 +740,6 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                 height: 26,
                                 fit: BoxFit.contain,
                                 colorBlendMode: BlendMode.screen,
-                                color: Colors.white,
                               )
                             : Text(
                                 (titleName ?? 'ATLET MUDA').toUpperCase(),

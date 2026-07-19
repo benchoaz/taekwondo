@@ -6,9 +6,19 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic'; // Prevent database connections at build time
 
 export default async function EventsPage() {
-  const events = await prisma.tournamentEvent.findMany({
+  const allEvents = await prisma.tournamentEvent.findMany({
     where: { status: "PUBLISHED" },
-    orderBy: { createdAt: "desc" }
+    orderBy: { startDate: "asc" } // Sorted chronologically
+  });
+
+  // Sort: Jawa Timur events first, then others
+  const events = [...allEvents].sort((a, b) => {
+    const aIsJatim = (a.location || "").toLowerCase().includes("jawa timur") || (a.location || "").toLowerCase().includes("jatim");
+    const bIsJatim = (b.location || "").toLowerCase().includes("jawa timur") || (b.location || "").toLowerCase().includes("jatim");
+    
+    if (aIsJatim && !bIsJatim) return -1;
+    if (!aIsJatim && bIsJatim) return 1;
+    return 0; // Keep chronological order if both are same region status
   });
 
   return (

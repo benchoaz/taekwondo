@@ -52,6 +52,7 @@ jobs:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE }}
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\n' | base64 -d > taekwondo_user_app/android/app/key.jks
+          echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\n' | base64 -d > taekwondo_user_app/android/key.jks
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > taekwondo_user_app/android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> taekwondo_user_app/android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> taekwondo_user_app/android/key.properties

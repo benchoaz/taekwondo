@@ -50,13 +50,18 @@ jobs:
       - name: Setup Android Keystore
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\n' | base64 -d > taekwondo_user_app/android/app/key.jks
           echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\n' | base64 -d > taekwondo_user_app/android/key.jks
-          echo "storePassword=$(echo -n "${{ secrets.KEYSTORE_PASSWORD }}" | tr -d '\r\n ')" > taekwondo_user_app/android/key.properties
-          echo "keyPassword=$(echo -n "${{ secrets.KEY_PASSWORD }}" | tr -d '\r\n ')" >> taekwondo_user_app/android/key.properties
-          echo "keyAlias=$(echo -n "${{ secrets.KEY_ALIAS }}" | tr -d '\r\n ')" >> taekwondo_user_app/android/key.properties
-          echo "storeFile=key.jks" >> taekwondo_user_app/android/key.properties
+          cat <<EOF > taekwondo_user_app/android/key.properties
+          storePassword=$KEYSTORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=key.jks
+          EOF
 
       - name: Build Release APK & AAB
         run: |

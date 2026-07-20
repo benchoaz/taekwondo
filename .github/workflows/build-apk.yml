@@ -48,8 +48,10 @@ jobs:
           flutter pub get
 
       - name: Setup Android Keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE }}
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE }}" | base64 --decode --ignore-garbage > taekwondo_user_app/android/app/key.jks
+          echo -n "$ANDROID_KEYSTORE_BASE64" | base64 --decode > taekwondo_user_app/android/app/key.jks
           echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > taekwondo_user_app/android/key.properties
           echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> taekwondo_user_app/android/key.properties
           echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> taekwondo_user_app/android/key.properties

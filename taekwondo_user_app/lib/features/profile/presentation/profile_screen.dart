@@ -228,6 +228,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       }
     }
 
+    final activeThemeUrl = shopData?.active['themeId'] != null
+        ? shopData!.items.where((i) => i.id == shopData.active['themeId']).firstOrNull?.itemUrl
+        : null;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -235,6 +239,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         color: Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        image: activeThemeUrl != null && activeThemeUrl.isNotEmpty
+            ? DecorationImage(
+                image: NetworkImage(_getAbsoluteUrl(activeThemeUrl)),
+                fit: BoxFit.cover,
+              )
+            : null,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.3),

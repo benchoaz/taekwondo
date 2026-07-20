@@ -29,17 +29,28 @@ export async function POST(req: NextRequest) {
     const field = typeToField[purchase.item.type];
     if (!field) return NextResponse.json({ error: "Tipe item tidak dikenal" }, { status: 400 });
 
-    // Update active item on member
-    await prisma.member.update({
-      where: { id: member.id },
-      data: { [field]: itemId },
-    });
-
-    // Mark as equipped in purchase record
-    await prisma.shopPurchase.update({
-      where: { memberId_itemId: { memberId: member.id, itemId } },
-      data: { isEquipped: true },
-    });
+    // Use transaction to update active field, set currently equipped item to true, and all other items of same type to false
+    await prisma.$transaction([
+      // Update active item on member
+      prisma.member.update({
+        where: { id: member.id },
+        data: { [field]: itemId },
+      }),
+      // Set all other purchases of same type for this member to false
+      prisma.shopPurchase.updateMany({
+        where: {
+          memberId: member.id,
+          item: { type: purchase.item.type },
+          itemId: { not: itemId },
+        },
+        data: { isEquipped: false },
+      }),
+      // Mark equipped item to true
+      prisma.shopPurchase.update({
+        where: { memberId_itemId: { memberId: member.id, itemId } },
+        data: { isEquipped: true },
+      }),
+    ]);
 
     return NextResponse.json({
       success: true,

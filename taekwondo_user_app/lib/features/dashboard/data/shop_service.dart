@@ -8,6 +8,7 @@ class ShopItem {
   final String description;
   final int price;
   final String type; // FRAME, TITLE, THEME, EMBLEM
+  final String rarity; // COMMON, RARE, LEGENDARY
   final String? itemUrl;
   final bool owned;
   final bool equipped;
@@ -19,6 +20,7 @@ class ShopItem {
     required this.description,
     required this.price,
     required this.type,
+    required this.rarity,
     this.itemUrl,
     required this.owned,
     required this.equipped,
@@ -32,6 +34,7 @@ class ShopItem {
       description: json['description'] ?? '',
       price: json['price'] ?? 0,
       type: json['type'] ?? 'FRAME',
+      rarity: json['rarity'] ?? 'COMMON',
       itemUrl: json['imageUrl'] ?? json['itemUrl'],
       owned: json['owned'] ?? false,
       equipped: json['equipped'] ?? false,

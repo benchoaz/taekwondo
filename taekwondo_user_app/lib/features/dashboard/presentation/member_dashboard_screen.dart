@@ -1567,6 +1567,25 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
           itemCount: shopData.items.length,
           itemBuilder: (context, index) {
             final item = shopData.items[index];
+            // Determine Rarity Theme Styling
+            Color rarityColor;
+            String rarityText;
+            switch (item.rarity.toUpperCase()) {
+              case 'LEGENDARY':
+                rarityColor = const Color(0xFFFFD700); // Gold
+                rarityText = 'LEGENDARY';
+                break;
+              case 'RARE':
+                rarityColor = const Color(0xFF8B5CF6); // Purple
+                rarityText = 'RARE';
+                break;
+              case 'COMMON':
+              default:
+                rarityColor = const Color(0xFF94A3B8); // Slate/Silver
+                rarityText = 'COMMON';
+                break;
+            }
+
             return Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -1574,19 +1593,25 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: item.equipped 
-                      ? goldAccent 
-                      : (item.owned ? Colors.green.withOpacity(0.5) : Colors.white.withOpacity(0.05)),
-                  width: item.equipped ? 2.0 : 1.0,
+                      ? const Color(0xFFEF4444) // Bright red border for active equipped items so it's clear
+                      : rarityColor.withOpacity(0.5),
+                  width: item.equipped ? 2.0 : 1.5,
                 ),
                 boxShadow: item.equipped
                     ? [
                         BoxShadow(
-                          color: goldAccent.withOpacity(0.2),
+                          color: const Color(0xFFEF4444).withOpacity(0.2),
                           blurRadius: 8,
                           spreadRadius: 1,
                         )
                       ]
-                    : null,
+                    : [
+                        BoxShadow(
+                          color: rarityColor.withOpacity(0.05),
+                          blurRadius: 4,
+                          spreadRadius: 0.5,
+                        )
+                      ],
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1601,7 +1626,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                           decoration: BoxDecoration(
                             color: Colors.white.withOpacity(0.03),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white.withOpacity(0.05)),
+                            border: Border.all(color: rarityColor.withOpacity(0.3), width: 1.5),
                           ),
                           child: item.itemUrl != null && item.itemUrl!.isNotEmpty
                               ? ClipRRect(
@@ -1609,12 +1634,12 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                   child: DynamicAssetWidget(
                                     url: _getAbsoluteUrl(item.itemUrl!),
                                     fit: BoxFit.cover,
-                                    placeholder: const Icon(Icons.redeem, color: goldAccent, size: 30),
+                                    placeholder: Icon(Icons.redeem, color: rarityColor, size: 30),
                                   ),
                                 )
-                              : const Icon(Icons.redeem, color: goldAccent, size: 32),
+                              : Icon(Icons.redeem, color: rarityColor, size: 32),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 8),
                         Text(
                           item.name,
                           maxLines: 1,
@@ -1626,7 +1651,26 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 4),
+                        // Rarity Badge Tag (Legendary / Rare / Common)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: rarityColor.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: rarityColor.withOpacity(0.3), width: 0.8),
+                          ),
+                          child: Text(
+                            rarityText,
+                            style: GoogleFonts.spaceGrotesk(
+                              color: rarityColor,
+                              fontSize: 8,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 3),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
@@ -1637,7 +1681,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                             item.type,
                             style: GoogleFonts.spaceGrotesk(
                               color: textGray,
-                              fontSize: 9,
+                              fontSize: 8,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1667,7 +1711,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: item.equipped 
-                              ? Colors.red.withOpacity(0.9) // Red for unequip
+                              ? Colors.red.withOpacity(0.9) // Red for unequip/lepas
                               : (item.owned ? Colors.green : themeColor),
                           foregroundColor: Colors.white,
                           elevation: 0,
@@ -1684,8 +1728,8 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                 : () => _handleBuyItem(item.id)),
                         child: Text(
                           item.equipped 
-                              ? 'Lepas' 
-                              : (item.owned ? 'Pasang' : 'Beli'),
+                              ? 'Lepas' // Benar-benar terpasang -> Lepas (Red button)
+                              : (item.owned ? 'Pasang' : 'Beli'), // Benar-benar lepas -> Pasang / Beli
                           style: GoogleFonts.hankenGrotesk(
                             fontSize: 11, 
                             fontWeight: FontWeight.bold,

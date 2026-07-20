@@ -255,10 +255,10 @@ export default function GamificationManagement() {
                   <div className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col gap-2">
                     <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">4. Tema Profil (Theme)</span>
                     <p className="text-[10px] text-slate-400 leading-relaxed">
-                      Latar belakang kartu anggota (VIP Card) profil berdimensi landscape 16:9.
+                      Desain background kartu profil (VIP Card) berdimensi memanjang vertikal/kotak tumpul.
                     </p>
                     <code className="bg-slate-950 border border-slate-800 p-2 rounded-lg text-[9px] font-mono text-indigo-200 select-all block leading-tight">
-                      Minimalist gaming profile dashboard card theme template background (aspect ratio 16:9, size 1920x1080 pixels), cyber red white tiger neon pattern grid, premium abstract dark card UI design --ar 16:9
+                      Vertical abstract dark futuristic background with golden glowing neon curves, sleek tech borders, smooth abstract flow lines, game asset UI background panel, rounded card border texture, solid black backplate --ar 4:5
                     </code>
                   </div>
                 </div>

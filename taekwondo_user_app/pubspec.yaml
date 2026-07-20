@@ -1,6 +1,6 @@
 name: taekwondo_user_app
 description: "Aplikasi Mobile Member untuk Taekwondo Academy"
-# Trigger build with finalized keystore credentials
+# Trigger build with verified unified keystore credentials
 publish_to: 'none'
 
 version: 1.0.0+1

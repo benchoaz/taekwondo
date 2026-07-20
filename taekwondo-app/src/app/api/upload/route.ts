@@ -75,13 +75,27 @@ export async function POST(request: Request) {
     let finalExt = originalExt;
     let mimeType = file.type;
 
-    // Optional Image optimization for local storage: convert to WebP
+    // Optional Image optimization: convert static images to webp
+    // Bypass conversion for animated gifs and animated webp to preserve animation frames!
     if (isImage && originalExt !== 'gif') {
-      finalBuffer = await sharp(buffer)
-        .webp({ quality: 80 })
-        .toBuffer();
-      finalExt = 'webp';
-      mimeType = 'image/webp';
+      let isAnimated = false;
+      try {
+        const metadata = await sharp(buffer).metadata();
+        // sharp returns pages/delay properties if the webp/gif is animated (multi-frame)
+        if (metadata.pages && metadata.pages > 1) {
+          isAnimated = true;
+        }
+      } catch (e) {
+        console.error("Error reading image metadata:", e);
+      }
+
+      if (!isAnimated) {
+        finalBuffer = await sharp(buffer)
+          .webp({ quality: 80 })
+          .toBuffer();
+        finalExt = 'webp';
+        mimeType = 'image/webp';
+      }
     }
 
     // ================================================================

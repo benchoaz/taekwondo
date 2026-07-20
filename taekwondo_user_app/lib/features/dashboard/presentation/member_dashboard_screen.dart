@@ -10,6 +10,7 @@ import 'package:file_picker/file_picker.dart' as fp;
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import 'web_iframe_helper.dart';
 import '../../../core/network/firebase_messaging_service.dart';
+import '../../../core/widgets/dynamic_asset_widget.dart';
 
 import '../../auth/domain/user_model.dart';
 import '../../auth/data/auth_provider.dart';
@@ -735,11 +736,11 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                           );
                         },
                         child: titleUrl != null && titleUrl.isNotEmpty
-                            ? Image.network(
-                                _getAbsoluteUrl(titleUrl),
+                            ? DynamicAssetWidget(
+                                url: _getAbsoluteUrl(titleUrl),
                                 height: 26,
                                 fit: BoxFit.contain,
-                                colorBlendMode: BlendMode.screen,
+                                blendMode: BlendMode.screen,
                               )
                             : Text(
                                 (titleName ?? 'ATLET MUDA').toUpperCase(),
@@ -753,7 +754,12 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       ),
                       if (emblemUrl != null && emblemUrl.isNotEmpty) ...[
                         const SizedBox(width: 4),
-                        Image.network(_getAbsoluteUrl(emblemUrl), width: 14, height: 14, fit: BoxFit.contain),
+                        DynamicAssetWidget(
+                          url: _getAbsoluteUrl(emblemUrl),
+                          width: 14,
+                          height: 14,
+                          fit: BoxFit.contain,
+                        ),
                       ]
                     ],
                   ),
@@ -1600,10 +1606,10 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                           child: item.itemUrl != null && item.itemUrl!.isNotEmpty
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(16),
-                                  child: Image.network(
-                                    _getAbsoluteUrl(item.itemUrl!),
+                                  child: DynamicAssetWidget(
+                                    url: _getAbsoluteUrl(item.itemUrl!),
                                     fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => const Icon(Icons.redeem, color: goldAccent, size: 30),
+                                    placeholder: const Icon(Icons.redeem, color: goldAccent, size: 30),
                                   ),
                                 )
                               : const Icon(Icons.redeem, color: goldAccent, size: 32),

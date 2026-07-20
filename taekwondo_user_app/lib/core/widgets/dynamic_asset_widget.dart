@@ -10,6 +10,8 @@ class DynamicAssetWidget extends StatelessWidget {
   final Color? color;
   final Widget? placeholder;
 
+  final BlendMode? blendMode;
+
   const DynamicAssetWidget({
     super.key,
     required this.url,
@@ -18,6 +20,7 @@ class DynamicAssetWidget extends StatelessWidget {
     this.fit = BoxFit.contain,
     this.color,
     this.placeholder,
+    this.blendMode,
   });
 
   @override
@@ -64,6 +67,7 @@ class DynamicAssetWidget extends StatelessWidget {
       height: height,
       fit: fit,
       color: color,
+      colorBlendMode: blendMode,
       errorBuilder: (context, error, stackTrace) =>
           placeholder ?? const Icon(Icons.broken_image, color: Colors.white24),
     );

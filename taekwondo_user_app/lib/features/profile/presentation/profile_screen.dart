@@ -8,6 +8,7 @@ import '../../auth/data/auth_provider.dart';
 import '../data/profile_service.dart';
 import '../../dashboard/data/shop_service.dart';
 import 'image_adjust_dialog.dart';
+import '../../../core/widgets/dynamic_asset_widget.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -366,7 +367,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               if (emblemUrl != null) ...[
                 const SizedBox(width: 8),
-                Image.network(_getAbsoluteUrl(emblemUrl), width: 24, height: 24, fit: BoxFit.contain),
+                DynamicAssetWidget(
+                  url: _getAbsoluteUrl(emblemUrl),
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.contain,
+                ),
               ]
             ],
           ),
@@ -382,11 +388,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 );
               },
               child: titleUrl != null && titleUrl.isNotEmpty
-                  ? Image.network(
-                      _getAbsoluteUrl(titleUrl),
+                  ? DynamicAssetWidget(
+                      url: _getAbsoluteUrl(titleUrl),
                       height: 38,
                       fit: BoxFit.contain,
-                      colorBlendMode: BlendMode.screen,
+                      blendMode: BlendMode.screen,
                     )
                   : Padding(
                       padding: const EdgeInsets.only(top: 4, bottom: 4),

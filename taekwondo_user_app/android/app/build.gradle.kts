@@ -7,6 +7,8 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+import java.util.Properties
+
 android {
     namespace = "com.whitetigerkraksaan.member"
     compileSdk = flutter.compileSdkVersion
@@ -32,7 +34,7 @@ android {
         create("release") {
             val keystorePropertiesFile = rootProject.file("../key.properties")
             if (keystorePropertiesFile.exists()) {
-                val keystoreProperties = java.util.Properties()
+                val keystoreProperties = Properties()
                 keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
                 keyAlias = keystoreProperties["keyAlias"] as String
                 keyPassword = keystoreProperties["keyPassword"] as String

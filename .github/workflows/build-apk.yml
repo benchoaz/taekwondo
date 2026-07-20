@@ -53,9 +53,9 @@ jobs:
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\n' | base64 -d > taekwondo_user_app/android/app/key.jks
           echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\n' | base64 -d > taekwondo_user_app/android/key.jks
-          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > taekwondo_user_app/android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> taekwondo_user_app/android/key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> taekwondo_user_app/android/key.properties
+          echo "storePassword=$(echo -n "${{ secrets.KEYSTORE_PASSWORD }}" | tr -d '\r\n ')" > taekwondo_user_app/android/key.properties
+          echo "keyPassword=$(echo -n "${{ secrets.KEY_PASSWORD }}" | tr -d '\r\n ')" >> taekwondo_user_app/android/key.properties
+          echo "keyAlias=$(echo -n "${{ secrets.KEY_ALIAS }}" | tr -d '\r\n ')" >> taekwondo_user_app/android/key.properties
           echo "storeFile=key.jks" >> taekwondo_user_app/android/key.properties
 
       - name: Build Release APK & AAB

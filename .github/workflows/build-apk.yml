@@ -1,13 +1,6 @@
 name: Build Android APK
 
 on:
-  push:
-    branches:
-      - main
-      - master
-    paths:
-      - 'taekwondo_user_app/**'
-      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 # Batalkan otomatis build sebelumnya jika ada commit baru di branch yang sama

@@ -1,0 +1,38 @@
+name: Build Flutter AAB
+
+on:
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.x' # Or use your specific version, or omit for latest
+          channel: 'stable'
+
+      - name: Install Dependencies
+        working-directory: taekwondo_user_app
+        run: flutter pub get
+
+      - name: Build AAB
+        working-directory: taekwondo_user_app
+        run: flutter build appbundle --release
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: taekwondo_user_app/build/app/outputs/bundle/release/app-release.aab

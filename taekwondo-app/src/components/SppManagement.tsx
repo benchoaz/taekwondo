@@ -546,7 +546,7 @@ export default function SppManagement() {
               >
                 <option value="ALL">🌐 Semua Member Aktif (Massal)</option>
                 {members.map(m => (
-                  <option key={m.id || m.memberId} value={m.id || m.memberId}>
+                  <option key={m.memberId || m.id} value={m.memberId || m.id}>
                     👤 {m.name} ({m.memberNumber})
                   </option>
                 ))}

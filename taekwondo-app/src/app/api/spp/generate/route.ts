@@ -24,7 +24,12 @@ export async function POST(req: NextRequest) {
     // Filter member: perorangan (memberId) atau semua member aktif
     const activeMembers = (memberId && memberId !== "ALL")
       ? await prisma.member.findMany({
-          where: { id: memberId },
+          where: {
+            OR: [
+              { id: memberId },
+              { userId: memberId }
+            ]
+          },
           include: { user: true }
         })
       : await prisma.member.findMany({
@@ -137,9 +142,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const message = generatedCount > 0 
+      ? `Berhasil generate ${generatedCount} tagihan SPP baru.`
+      : `Tidak ada tagihan baru yang dibuat. Tagihan SPP bulan ${monthName} ${year} untuk member yang dipilih sudah pernah diterbitkan di sistem.`;
+
     return NextResponse.json({ 
       success: true, 
-      message: `Berhasil generate ${generatedCount} tagihan SPP baru.`,
+      message,
       generatedCount 
     });
 

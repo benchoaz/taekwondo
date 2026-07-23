@@ -9,14 +9,23 @@ if (!(global as any).lastOverdueCheck) {
 
 const TEN_MINUTES = 10 * 60 * 1000;
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const userHeaderId = req.headers.get("x-user-id");
+    const userRole = req.headers.get("x-user-role");
+    const normalizedRole = userRole?.toUpperCase();
+    const isStaff = normalizedRole === "ADMIN" || normalizedRole === "SUPERADMIN" || normalizedRole === "COACH";
+
+    let filter: any = {};
+    if (!isStaff && userHeaderId) {
+      filter = { member: { userId: userHeaderId } };
+    }
+
     const now = new Date();
     
     // Only run updateMany if at least 10 minutes have passed since the last check
     if (Date.now() - (global as any).lastOverdueCheck > TEN_MINUTES) {
       (global as any).lastOverdueCheck = Date.now();
-      // Run update asynchronously without awaiting it to avoid blocking the GET request
       prisma.payment.updateMany({
         where: {
           status: "PENDING",
@@ -31,6 +40,7 @@ export async function GET() {
     }
 
     const payments = await prisma.payment.findMany({
+      where: filter,
       include: {
         member: {
           select: {

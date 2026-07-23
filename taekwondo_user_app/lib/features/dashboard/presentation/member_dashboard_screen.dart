@@ -389,6 +389,12 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     return 'https://www.whitetigerkraksaan.com$cleanPath';
   }
 
+  String _getDisplayName(String? fullName) {
+    if (fullName == null || fullName.trim().isEmpty) return 'Member';
+    final parts = fullName.trim().split(RegExp(r'\s+'));
+    return parts.first;
+  }
+
   @override
   Widget build(BuildContext context) {
     final shopDataAsync = ref.watch(shopDataProvider);
@@ -637,165 +643,171 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05), width: 1)),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              (() {
-                final cssStyles = CssValueParser.parseCss(frameCss);
-                final Color? parsedBorderColor = cssStyles['borderColor'];
-                final double parsedBorderWidth = cssStyles['borderWidth'] ?? 2.0;
-                final Color? parsedGlowColor = cssStyles['glowColor'];
-                final double parsedGlowBlurRadius = cssStyles['glowBlurRadius'] ?? 0.0;
+          (() {
+            final cssStyles = CssValueParser.parseCss(frameCss);
+            final Color? parsedBorderColor = cssStyles['borderColor'];
+            final double parsedBorderWidth = cssStyles['borderWidth'] ?? 2.0;
+            final Color? parsedGlowColor = cssStyles['glowColor'];
+            final double parsedGlowBlurRadius = cssStyles['glowBlurRadius'] ?? 0.0;
 
-                return Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    // 1. Base Profile Picture (Circle)
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFF1E293B),
-                      ),
-                      child: ClipOval(
-                        child: Image(
-                          image: profile?.profilePicture != null
-                              ? NetworkImage(_getAbsoluteUrl(profile!.profilePicture!))
-                              : const NetworkImage('https://api.dicebear.com/7.x/avataaars/png?seed=Taekwondo') as ImageProvider,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    // 2. Frame Overlay (Circle)
-                    if (frameUrl != null && frameUrl.isNotEmpty)
-                      Container(
-                        width: 54, // Frame is slightly larger than the avatar
-                        height: 54,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            image: NetworkImage(_getAbsoluteUrl(frameUrl)),
-                            fit: BoxFit.cover,
-                          ),
-                          border: parsedBorderColor != null 
-                              ? Border.all(color: parsedBorderColor, width: parsedBorderWidth)
-                              : null,
-                          boxShadow: parsedGlowColor != null && parsedGlowBlurRadius > 0
-                              ? [
-                                  BoxShadow(
-                                    color: parsedGlowColor,
-                                    blurRadius: parsedGlowBlurRadius,
-                                    spreadRadius: 1,
-                                  )
-                                ]
-                              : null,
-                        ),
-                      ),
-                  // 3. Default border if no frame (Circle)
-                  if (frameUrl == null || frameUrl.isEmpty)
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFF3B82F6), width: 2),
-                      ),
-                    ),
-                  Positioned(
-                    bottom: 1,
-                    right: 1,
-                    child: Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF3B82F6), // Blue status dot
-                        shape: BoxShape.circle,
-                        border: Border.all(color: darkBg, width: 1.5),
-                      ),
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                // 1. Base Profile Picture (Circle)
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0xFF1E293B),
+                  ),
+                  child: ClipOval(
+                    child: Image(
+                      image: profile?.profilePicture != null
+                          ? NetworkImage(_getAbsoluteUrl(profile!.profilePicture!))
+                          : const NetworkImage('https://api.dicebear.com/7.x/avataaars/png?seed=Taekwondo') as ImageProvider,
+                      fit: BoxFit.cover,
                     ),
                   ),
-                ],
-              );
-            })(),
-            const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      TweenAnimationBuilder<double>(
-                        tween: Tween<double>(begin: 0.3, end: 1.0),
-                        duration: const Duration(milliseconds: 1000),
-                        curve: Curves.easeInOut,
-                        builder: (context, opacity, child) {
-                          return Opacity(
-                            opacity: opacity,
-                            child: child,
-                          );
-                        },
-                        child: titleUrl != null && titleUrl.isNotEmpty
-                            ? DynamicAssetWidget(
-                                url: _getAbsoluteUrl(titleUrl),
-                                height: 26,
-                                fit: BoxFit.contain,
-                                blendMode: BlendMode.screen,
+                ),
+                // 2. Frame Overlay (Circle)
+                if (frameUrl != null && frameUrl.isNotEmpty)
+                  Container(
+                    width: 54, // Frame is slightly larger than the avatar
+                    height: 54,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: NetworkImage(_getAbsoluteUrl(frameUrl)),
+                        fit: BoxFit.cover,
+                      ),
+                      border: parsedBorderColor != null 
+                          ? Border.all(color: parsedBorderColor, width: parsedBorderWidth)
+                          : null,
+                      boxShadow: parsedGlowColor != null && parsedGlowBlurRadius > 0
+                          ? [
+                              BoxShadow(
+                                color: parsedGlowColor,
+                                blurRadius: parsedGlowBlurRadius,
+                                spreadRadius: 1,
                               )
-                            : Text(
-                                (titleName ?? 'ATLET MUDA').toUpperCase(),
-                                style: GoogleFonts.spaceGrotesk(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.5,
-                                  color: titleName != null ? const Color(0xFFFFD700) : themeColor,
-                                ),
+                            ]
+                          : null,
+                    ),
+                  ),
+                // 3. Default border if no frame (Circle)
+                if (frameUrl == null || frameUrl.isEmpty)
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF3B82F6), width: 2),
+                    ),
+                  ),
+                Positioned(
+                  bottom: 1,
+                  right: 1,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3B82F6), // Blue status dot
+                      shape: BoxShape.circle,
+                      border: Border.all(color: darkBg, width: 1.5),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          })(),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0.3, end: 1.0),
+                      duration: const Duration(milliseconds: 1000),
+                      curve: Curves.easeInOut,
+                      builder: (context, opacity, child) {
+                        return Opacity(
+                          opacity: opacity,
+                          child: child,
+                        );
+                      },
+                      child: titleUrl != null && titleUrl.isNotEmpty
+                          ? DynamicAssetWidget(
+                              url: _getAbsoluteUrl(titleUrl),
+                              height: 26,
+                              fit: BoxFit.contain,
+                              blendMode: BlendMode.screen,
+                            )
+                          : Text(
+                              (titleName ?? 'ATLET MUDA').toUpperCase(),
+                              style: GoogleFonts.spaceGrotesk(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                                color: titleName != null ? const Color(0xFFFFD700) : themeColor,
                               ),
+                            ),
+                    ),
+                    if (emblemUrl != null && emblemUrl.isNotEmpty) ...[
+                      const SizedBox(width: 4),
+                      DynamicAssetWidget(
+                        url: _getAbsoluteUrl(emblemUrl),
+                        width: 14,
+                        height: 14,
+                        fit: BoxFit.contain,
                       ),
-                      if (emblemUrl != null && emblemUrl.isNotEmpty) ...[
-                        const SizedBox(width: 4),
-                        DynamicAssetWidget(
-                          url: _getAbsoluteUrl(emblemUrl),
-                          width: 14,
-                          height: 14,
-                          fit: BoxFit.contain,
-                        ),
-                      ]
-                    ],
+                    ]
+                  ],
+                ),
+                Text(
+                  _getDisplayName(widget.user.name),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.hankenGrotesk(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: textWhite,
                   ),
-                  Text(
-                    widget.user.name ?? 'Beni Setiawan',
-                    style: GoogleFonts.hankenGrotesk(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w900,
-                      color: textWhite,
-                    ),
+                ),
+                Text(
+                  widget.user.memberNumber ?? '#WTK-2026-0089',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.spaceGrotesk(
+                    fontSize: 10,
+                    color: textGray,
                   ),
-                  Text(
-                    widget.user.memberNumber ?? '#WTK-2026-0089',
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 10,
-                      color: textGray,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
+          const SizedBox(width: 8),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Coins Pill widget (Matches next.js web UI)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1E293B),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: goldAccent, width: 1.5), // Gold outline matching Next.js
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(Icons.monetization_on, color: goldAccent, size: 16),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Text(
                       '$coins',
                       style: GoogleFonts.spaceGrotesk(
@@ -807,7 +819,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 6),
               // Bell icon inside a premium circle
               (() {
                 final notifsAsync = ref.watch(notificationProvider);
@@ -848,7 +860,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   ],
                 );
               })(),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               // Exit/logout icon inside a premium circle
               Container(
                 width: 36,
@@ -1562,7 +1574,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
             crossAxisCount: 2,
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
-            childAspectRatio: 0.70, // Increased ratio to avoid overflow inside card
+            childAspectRatio: 0.65, // Expanded height to prevent text overlap
           ),
           itemCount: shopData.items.length,
           itemBuilder: (context, index) {
@@ -1594,20 +1606,20 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 border: Border.all(
                   color: item.equipped 
                       ? const Color(0xFFEF4444) // Bright red border for active equipped items so it's clear
-                      : rarityColor.withOpacity(0.5),
+                      : rarityColor.withValues(alpha: 0.5),
                   width: item.equipped ? 2.0 : 1.5,
                 ),
                 boxShadow: item.equipped
                     ? [
                         BoxShadow(
-                          color: const Color(0xFFEF4444).withOpacity(0.2),
+                          color: const Color(0xFFEF4444).withValues(alpha: 0.2),
                           blurRadius: 8,
                           spreadRadius: 1,
                         )
                       ]
                     : [
                         BoxShadow(
-                          color: rarityColor.withOpacity(0.05),
+                          color: rarityColor.withValues(alpha: 0.05),
                           blurRadius: 4,
                           spreadRadius: 0.5,
                         )
@@ -1624,9 +1636,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                           width: 64,
                           height: 64,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.03),
+                            color: Colors.white.withValues(alpha: 0.03),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: rarityColor.withOpacity(0.3), width: 1.5),
+                            border: Border.all(color: rarityColor.withValues(alpha: 0.3), width: 1.5),
                           ),
                           child: item.itemUrl != null && item.itemUrl!.isNotEmpty
                               ? ClipRRect(
@@ -1656,9 +1668,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: rarityColor.withOpacity(0.15),
+                            color: rarityColor.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: rarityColor.withOpacity(0.3), width: 0.8),
+                            border: Border.all(color: rarityColor.withValues(alpha: 0.3), width: 0.8),
                           ),
                           child: Text(
                             rarityText,
@@ -1667,22 +1679,6 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                               fontSize: 8,
                               fontWeight: FontWeight.w900,
                               letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            item.type,
-                            style: GoogleFonts.spaceGrotesk(
-                              color: textGray,
-                              fontSize: 8,
-                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -1711,7 +1707,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: item.equipped 
-                              ? Colors.red.withOpacity(0.9) // Red for unequip/lepas
+                              ? Colors.red.withValues(alpha: 0.9) // Red for unequip/lepas
                               : (item.owned ? Colors.green : themeColor),
                           foregroundColor: Colors.white,
                           elevation: 0,

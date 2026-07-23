@@ -7,8 +7,11 @@ export async function GET(req: NextRequest) {
     const userHeaderId = req.headers.get("x-user-id");
     const userRole = req.headers.get("x-user-role");
 
+    const normalizedRole = userRole?.toUpperCase();
     let filter: any = {};
-    if (userRole === "MEMBER" && userHeaderId) {
+    const isStaff = normalizedRole === "ADMIN" || normalizedRole === "SUPERADMIN" || normalizedRole === "COACH";
+
+    if (!isStaff && userHeaderId) {
       filter = { member: { userId: userHeaderId } };
     } else {
       const memberId = searchParams.get("memberId");
@@ -17,6 +20,8 @@ export async function GET(req: NextRequest) {
         filter = { memberId };
       } else if (userId) {
         filter = { member: { userId } };
+      } else if (userHeaderId && !isStaff) {
+        filter = { member: { userId: userHeaderId } };
       }
     }
 
@@ -172,16 +177,18 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
+    const paymentId = invoice.paymentId;
+
+    // Delete SppInvoice first
+    await prisma.sppInvoice.delete({
+      where: { id },
+    });
+
     // Delete associated payment if exists
-    if (invoice.paymentId) {
+    if (paymentId) {
       await prisma.payment.delete({
-        where: { id: invoice.paymentId },
-      });
-    } else {
-      // Just delete the invoice
-      await prisma.sppInvoice.delete({
-        where: { id },
-      });
+        where: { id: paymentId },
+      }).catch((e) => console.error("Payment deletion warning:", e));
     }
 
     return NextResponse.json({ success: true });

@@ -103,13 +103,17 @@ export async function POST(req: NextRequest) {
           }
 
           // Kirim Push Notification (FCM)
-          if (member.user?.fcmToken) {
-            const title = "Tagihan SPP Baru 📝";
-            const body = `Halo ${member.fullName}, tagihan SPP bulan ${monthName} ${year} sebesar Rp${sppFee.toLocaleString("id-ID")} telah diterbitkan.`;
-            await sendPushNotification(member.user.fcmToken, title, body, {
-              type: "SPP_INVOICE",
-              paymentId: newPayment.id
-            });
+          try {
+            if (member.user?.fcmToken) {
+              const title = "Tagihan SPP Baru 📝";
+              const body = `Halo ${member.fullName}, tagihan SPP bulan ${monthName} ${year} sebesar Rp${sppFee.toLocaleString("id-ID")} telah diterbitkan.`;
+              await sendPushNotification(member.user.fcmToken, title, body, {
+                type: "SPP_INVOICE",
+                paymentId: newPayment.id
+              });
+            }
+          } catch (fcmErr) {
+            console.error("Gagal sendPushNotification:", fcmErr);
           }
 
           // Simpan ke database Notification agar muncul di list Notifikasi aplikasi HP

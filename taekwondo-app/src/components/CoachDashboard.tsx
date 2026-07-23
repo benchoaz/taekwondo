@@ -47,6 +47,7 @@ export default function CoachDashboard({
   onBack: () => void 
 }) {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [financeSubTab, setFinanceSubTab] = useState<"spp" | "verify" | "report">("spp");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [candidates, setCandidates] = useState<any[]>([]);
   const [allMembers, setAllMembers] = useState<any[]>([]);
@@ -1046,128 +1047,45 @@ export default function CoachDashboard({
                   </div>
                 </div>
 
-                {/* Pending Payments Alert */}
-                <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-6 shadow-sm lg:col-span-2 flex flex-col gap-6">
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-black text-sm text-[#0F172A]">⚠️ Verifikasi Pembayaran (SPP & UKT)</h3>
-                      <span className="text-[10px] text-gray-400 font-bold">{pendingPayments.length} menunggu validasi</span>
+                {/* Pending Payments Alert Card */}
+                <div className="lg:col-span-2">
+                  {pendingPayments.length > 0 ? (
+                    <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-5 rounded-[24px] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 bg-white/20 rounded-2xl flex items-center justify-center text-xl shrink-0">
+                          ⚠️
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-sm text-white">Ada {pendingPayments.length} Pembayaran Transfer Perlu Verifikasi!</h4>
+                          <p className="text-xs text-amber-100 mt-0.5">Siswa telah mengirim bukti bayar (SPP / UKT / Event). Silakan periksa struk & lakukan validasi lunas.</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => { setActiveTab("finance"); setFinanceSubTab("verify"); }}
+                        className="bg-white text-orange-700 hover:bg-orange-50 px-4.5 py-2.5 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer whitespace-nowrap"
+                      >
+                        Verifikasi Sekarang ↗
+                      </button>
                     </div>
-                    {pendingPayments.length === 0 ? (
-                      <div className="bg-green-50/50 border border-green-100 rounded-2xl p-4 text-center">
-                        <p className="text-green-700 font-bold text-xs">✅ Semua administrasi keuangan bersih. Hebat!</p>
+                  ) : (
+                    <div className="bg-white border border-slate-100 p-5 rounded-[24px] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-lg font-bold">
+                          ✅
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-xs text-[#0F172A]">Administrasi Keuangan Bersih</h4>
+                          <p className="text-[11px] text-gray-400">Tidak ada struk transfer yang tertunda. Semua pembayaran aman.</p>
+                        </div>
                       </div>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-xs">
-                          <thead>
-                            <tr className="text-gray-400 font-bold uppercase border-b border-slate-100">
-                              <th className="pb-2 text-left">Siswa</th>
-                              <th className="pb-2 text-left">Jenis</th>
-                              <th className="pb-2 text-left">Nominal</th>
-                              <th className="pb-2 text-left">Bukti</th>
-                              <th className="pb-2 text-right">Aksi</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {pendingPayments.slice(0, 10).map((p, idx) => {
-                              const isUKT = (p.purpose || "").toLowerCase().includes("ukt");
-                              const isSPP = (p.purpose || "").toLowerCase().includes("spp");
-                              const badgeClass = isUKT
-                                ? "bg-purple-50 text-purple-700 border border-purple-100"
-                                : isSPP
-                                ? "bg-blue-50 text-blue-700 border border-blue-100"
-                                : "bg-slate-50 text-slate-500 border border-slate-100";
-                              const badgeLabel = isUKT ? "UKT" : isSPP ? "SPP" : "Lainnya";
-                              return (
-                                <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50/50">
-                                  <td className="py-2.5 font-bold text-[#0F172A]">{p.member?.fullName || "—"}</td>
-                                  <td className="py-2.5">
-                                    <span className={`px-2 py-0.5 rounded-full font-black text-[9px] uppercase ${badgeClass}`}>
-                                      {badgeLabel}
-                                    </span>
-                                  </td>
-                                  <td className="py-2.5 font-bold text-[#0F172A]">Rp {(p.amount || 0).toLocaleString("id-ID")}</td>
-                                  <td className="py-2.5">
-                                    {p.paymentProofUrl ? (
-                                      <a
-                                        href={p.paymentProofUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-blue-600 underline font-bold text-[9px] hover:text-blue-800"
-                                      >
-                                        Lihat Bukti ↗
-                                      </a>
-                                    ) : (
-                                      <span className="text-gray-300 text-[9px]">Belum upload</span>
-                                    )}
-                                  </td>
-                                  <td className="py-2.5 text-right">
-                                    <button
-                                      onClick={async () => {
-                                        if (confirm(`Validasi pembayaran ${badgeLabel} untuk ${p.member?.fullName || "murid"} sebesar Rp ${(p.amount || 0).toLocaleString("id-ID")}?\n\nTindakan ini akan dicatat atas nama Anda.`)) {
-                                          try {
-                                            const res = await fetch(`/api/payments/${p.id}/validate`, {
-                                              method: "POST"
-                                            });
-                                            if (res.ok) {
-                                              alert(`✅ Pembayaran ${badgeLabel} berhasil diverifikasi!`);
-                                              fetchAllData();
-                                            } else {
-                                              const errData = await res.json();
-                                              alert(`Gagal memverifikasi: ${errData.error || "Kesalahan tidak dikenal"}`);
-                                            }
-                                          } catch (e) {
-                                            alert(`Gagal menghubungi server: ${e}`);
-                                          }
-                                        }
-                                      }}
-                                      className="bg-green-600 hover:bg-green-700 text-white font-extrabold text-[9px] uppercase px-2.5 py-1.5 rounded-lg inline-flex items-center gap-1.5 transition-all shadow-sm shadow-green-600/10 cursor-pointer"
-                                    >
-                                      <Check className="w-3 h-3" /> Tandai Lunas
-                                    </button>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Digital Audit Trace / Validation History */}
-                  <div className="border-t border-slate-100 pt-6">
-                    <h4 className="font-black text-xs text-[#0F172A] mb-4">📝 Jejak Digital Riwayat Validasi Pelatih</h4>
-                    {completedPayments.length === 0 ? (
-                      <p className="text-[11px] text-gray-400">Belum ada riwayat validasi manual.</p>
-                    ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-xs text-gray-500">
-                          <thead>
-                            <tr className="font-bold text-gray-400 border-b border-slate-100">
-                              <th className="pb-2 text-left">Siswa</th>
-                              <th className="pb-2 text-left">Jenis Tagihan</th>
-                              <th className="pb-2 text-left">Tanggal Bayar</th>
-                              <th className="pb-2 text-right">Divalidasi Oleh</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {completedPayments.slice(0, 5).map((p, idx) => (
-                              <tr key={idx} className="border-b border-slate-50">
-                                <td className="py-2 font-bold text-[#0F172A]">{p.member?.fullName || "—"}</td>
-                                <td className="py-2">{p.purpose}</td>
-                                <td className="py-2">{p.paidAt ? new Date(p.paidAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "—"}</td>
-                                <td className="py-2 text-right font-semibold text-green-700">
-                                  {p.receiver?.name || "Sistem / QRIS"}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
+                      <button
+                        onClick={() => { setActiveTab("finance"); setFinanceSubTab("report"); }}
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl font-bold text-xs transition-colors cursor-pointer"
+                      >
+                        📊 Lihat Laporan Keuangan ↗
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -2276,19 +2194,267 @@ export default function CoachDashboard({
 
           {/* ══════════════ TAB: FINANCE (KEUANGAN & SPP) ══════════════ */}
           {activeTab === "finance" && (
-            <div className="flex flex-col gap-8">
+            <div className="flex flex-col gap-6">
               <div>
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Keuangan & SPP</h2>
-                <p className="text-gray-400 text-xs mt-1">Kelola tagihan bulanan SPP murid, verifikasi pembayaran manual, dan pantau status transaksi.</p>
+                <p className="text-gray-400 text-xs mt-1">Kelola tagihan bulanan SPP murid, verifikasi bukti bayar transfer, dan pantau laporan keuangan academy.</p>
               </div>
 
-              {/* SPP Management UI Container */}
-              <div className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm">
-                {(() => {
-                  const SppManagement = require("./SppManagement").default;
-                  return <SppManagement />;
-                })()}
+              {/* Sub-menu Navigation Bar */}
+              <div className="flex flex-wrap items-center gap-2 bg-slate-100 p-1.5 rounded-2xl w-fit">
+                <button
+                  onClick={() => setFinanceSubTab("spp")}
+                  className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer ${
+                    financeSubTab === "spp"
+                      ? "bg-white text-[#E10600] shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  💳 Tagihan SPP & Perorangan
+                </button>
+
+                <button
+                  onClick={() => setFinanceSubTab("verify")}
+                  className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-1.5 ${
+                    financeSubTab === "verify"
+                      ? "bg-[#E10600] text-white shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  <span>⚠️ Verifikasi Pembayaran Struk</span>
+                  {pendingPayments.length > 0 && (
+                    <span className="bg-white text-[#E10600] px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse">
+                      {pendingPayments.length}
+                    </span>
+                  )}
+                </button>
+
+                <button
+                  onClick={() => setFinanceSubTab("report")}
+                  className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer ${
+                    financeSubTab === "report"
+                      ? "bg-white text-emerald-600 shadow-sm"
+                      : "text-gray-500 hover:text-gray-900"
+                  }`}
+                >
+                  📊 Laporan Keuangan
+                </button>
               </div>
+
+              {/* SUB TAB 1: Tagihan SPP & Perorangan */}
+              {financeSubTab === "spp" && (
+                <div className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm">
+                  {(() => {
+                    const SppManagement = require("./SppManagement").default;
+                    return <SppManagement />;
+                  })()}
+                </div>
+              )}
+
+              {/* SUB TAB 2: Verifikasi Pembayaran Struk & Jejak Digital Validasi */}
+              {financeSubTab === "verify" && (
+                <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-6 shadow-sm flex flex-col gap-6">
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-black text-sm text-[#0F172A]">⚠️ Verifikasi Pembayaran (SPP & UKT)</h3>
+                      <span className="text-[10px] text-gray-400 font-bold">{pendingPayments.length} menunggu validasi</span>
+                    </div>
+                    {pendingPayments.length === 0 ? (
+                      <div className="bg-green-50/50 border border-green-100 rounded-2xl p-6 text-center">
+                        <p className="text-green-700 font-bold text-xs">✅ Semua administrasi keuangan bersih. Tidak ada bukti transfer yang perlu diverifikasi.</p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs">
+                          <thead>
+                            <tr className="text-gray-400 font-bold uppercase border-b border-slate-100">
+                              <th className="pb-3 text-left">Siswa</th>
+                              <th className="pb-3 text-left">Jenis Tagihan</th>
+                              <th className="pb-3 text-left">Nominal</th>
+                              <th className="pb-3 text-left">Bukti Struk</th>
+                              <th className="pb-3 text-right">Aksi</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50">
+                            {pendingPayments.map((p, idx) => {
+                              const isUKT = (p.purpose || "").toLowerCase().includes("ukt");
+                              const isSPP = (p.purpose || "").toLowerCase().includes("spp");
+                              const badgeClass = isUKT
+                                ? "bg-purple-50 text-purple-700 border border-purple-100"
+                                : isSPP
+                                ? "bg-blue-50 text-blue-700 border border-blue-100"
+                                : "bg-slate-50 text-slate-500 border border-slate-100";
+                              const badgeLabel = isUKT ? "UKT" : isSPP ? "SPP" : "Lainnya";
+                              return (
+                                <tr key={idx} className="hover:bg-slate-50/50">
+                                  <td className="py-3 font-bold text-[#0F172A]">{p.member?.fullName || "—"}</td>
+                                  <td className="py-3">
+                                    <span className={`px-2.5 py-1 rounded-full font-black text-[9px] uppercase ${badgeClass}`}>
+                                      {badgeLabel}
+                                    </span>
+                                  </td>
+                                  <td className="py-3 font-bold text-[#E10600]">Rp {(p.amount || 0).toLocaleString("id-ID")}</td>
+                                  <td className="py-3">
+                                    {p.paymentProofUrl ? (
+                                      <a
+                                        href={p.paymentProofUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg font-extrabold text-[10px] hover:bg-blue-100 transition-colors inline-flex items-center gap-1"
+                                      >
+                                        🖼️ Lihat Bukti ↗
+                                      </a>
+                                    ) : (
+                                      <span className="text-gray-300 text-[10px]">Belum upload</span>
+                                    )}
+                                  </td>
+                                  <td className="py-3 text-right">
+                                    <button
+                                      onClick={async () => {
+                                        if (confirm(`Validasi pembayaran ${badgeLabel} untuk ${p.member?.fullName || "murid"} sebesar Rp ${(p.amount || 0).toLocaleString("id-ID")}?\n\nTindakan ini akan dicatat atas nama Anda.`)) {
+                                          try {
+                                            const res = await fetch(`/api/payments/${p.id}/validate`, {
+                                              method: "POST"
+                                            });
+                                            if (res.ok) {
+                                              alert(`✅ Pembayaran ${badgeLabel} berhasil diverifikasi!`);
+                                              fetchAllData();
+                                            } else {
+                                              const errData = await res.json();
+                                              alert(`Gagal memverifikasi: ${errData.error || "Kesalahan tidak dikenal"}`);
+                                            }
+                                          } catch (e) {
+                                            alert(`Gagal menghubungi server: ${e}`);
+                                          }
+                                        }
+                                      }}
+                                      className="bg-green-600 hover:bg-green-700 text-white font-extrabold text-[10px] uppercase px-3.5 py-1.5 rounded-lg inline-flex items-center gap-1.5 transition-all shadow-sm shadow-green-600/10 cursor-pointer"
+                                    >
+                                      <Check className="w-3.5 h-3.5" /> Tandai Lunas
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Digital Audit Trace / Validation History */}
+                  <div className="border-t border-slate-100 pt-6">
+                    <h4 className="font-black text-xs text-[#0F172A] mb-4">📝 Jejak Digital Riwayat Validasi Pelatih</h4>
+                    {completedPayments.length === 0 ? (
+                      <p className="text-[11px] text-gray-400">Belum ada riwayat validasi manual.</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs text-gray-500">
+                          <thead>
+                            <tr className="font-bold text-gray-400 border-b border-slate-100">
+                              <th className="pb-2 text-left">Siswa</th>
+                              <th className="pb-2 text-left">Jenis Tagihan</th>
+                              <th className="pb-2 text-left">Tanggal Bayar</th>
+                              <th className="pb-2 text-right">Divalidasi Oleh</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50">
+                            {completedPayments.slice(0, 10).map((p, idx) => (
+                              <tr key={idx} className="hover:bg-slate-50/50">
+                                <td className="py-2.5 font-bold text-[#0F172A]">{p.member?.fullName || "—"}</td>
+                                <td className="py-2.5 font-medium">{p.purpose}</td>
+                                <td className="py-2.5">{p.paidAt ? new Date(p.paidAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "—"}</td>
+                                <td className="py-2.5 text-right font-semibold text-green-700">
+                                  {p.receiver?.name || "Sistem / QRIS"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* SUB TAB 3: Laporan Keuangan */}
+              {financeSubTab === "report" && (
+                <div className="flex flex-col gap-6">
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-gradient-to-br from-emerald-500 to-teal-700 text-white p-6 rounded-[24px] shadow-sm">
+                      <div className="text-[10px] font-black uppercase text-emerald-100 tracking-wider">Total Pendapatan Lunas</div>
+                      <div className="text-2xl font-black mt-2">
+                        Rp {payments.filter(p => p.status === "COMPLETED").reduce((sum, p) => sum + (p.amount || 0), 0).toLocaleString("id-ID")}
+                      </div>
+                      <div className="text-[11px] text-emerald-100 mt-2 font-medium">SPP, UKT, Event & Tagihan Lainnya</div>
+                    </div>
+
+                    <div className="bg-white border border-slate-100 p-6 rounded-[24px] shadow-sm">
+                      <div className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Menunggu Verifikasi Struk</div>
+                      <div className="text-2xl font-black text-amber-600 mt-2">
+                        Rp {pendingPayments.reduce((sum, p) => sum + (p.amount || 0), 0).toLocaleString("id-ID")}
+                      </div>
+                      <div className="text-[11px] text-amber-600 mt-2 font-bold">{pendingPayments.length} Transaksi Struk Uploaded</div>
+                    </div>
+
+                    <div className="bg-white border border-slate-100 p-6 rounded-[24px] shadow-sm flex flex-col justify-between">
+                      <div>
+                        <div className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Cetak Laporan Keuangan</div>
+                        <div className="text-xs font-bold text-gray-700 mt-1">Export PDF / Print Ringkasan Mutasi Keuangan</div>
+                      </div>
+                      <button
+                        onClick={() => window.print()}
+                        className="w-full mt-3 bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl font-extrabold text-xs shadow transition-all cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        🖨️ Cetak / Export Laporan Keuangan
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Rekap Mutasi Transaksi Table */}
+                  <div className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-extrabold text-[#0F172A] text-sm">📜 Rekap Riwayat Laporan Keuangan</h3>
+                      <span className="text-xs text-gray-400 font-bold">{payments.length} Transaksi Recorded</span>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-left">
+                        <thead>
+                          <tr className="bg-slate-50 text-gray-400 font-bold uppercase border-b border-slate-100">
+                            <th className="p-3">Tanggal</th>
+                            <th className="p-3">Siswa</th>
+                            <th className="p-3">Peruntukan</th>
+                            <th className="p-3">Nominal</th>
+                            <th className="p-3">Metode</th>
+                            <th className="p-3">Status</th>
+                            <th className="p-3 text-right">Divalidasi Oleh</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                          {payments.map((p, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50">
+                              <td className="p-3 text-gray-500 font-medium">{p.createdAt ? new Date(p.createdAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' }) : "—"}</td>
+                              <td className="p-3 font-bold text-[#0F172A]">{p.member?.fullName || "—"}</td>
+                              <td className="p-3 font-medium text-gray-700">{p.purpose}</td>
+                              <td className="p-3 font-bold text-[#E10600]">Rp {(p.amount || 0).toLocaleString("id-ID")}</td>
+                              <td className="p-3 font-medium text-gray-600">{p.paymentMethod || "Transfer / Cash"}</td>
+                              <td className="p-3">
+                                <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
+                                  p.status === "COMPLETED" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
+                                }`}>
+                                  {p.status === "COMPLETED" ? "LUNAS" : "PENDING"}
+                                </span>
+                              </td>
+                              <td className="p-3 text-right text-gray-500">{p.receiver?.name || "—"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

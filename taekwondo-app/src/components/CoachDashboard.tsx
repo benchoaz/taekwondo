@@ -796,8 +796,8 @@ export default function CoachDashboard({
   const approvedCount = candidates.filter(c => c.status === "APPROVED").length;
   const pendingCount = candidates.filter(c => c.status === "PENDING").length;
   const failedCount = candidates.filter(c => c.status === "FAILED").length;
-  const pendingPayments = payments.filter(p => p.status === "PENDING");
-  const completedPayments = payments.filter(p => p.status === "COMPLETED");
+  const pendingPayments = payments.filter(p => ["PENDING", "UNPAID", "PENDING_VERIFICATION", "OVERDUE"].includes((p.status || "").toUpperCase()));
+  const completedPayments = payments.filter(p => ["COMPLETED", "PAID", "LUNAS"].includes((p.status || "").toUpperCase()));
   const beltDistribution = beltOrder.map(belt => ({
     belt,
     count: allMembers.filter(m => (m.currentBelt || "").startsWith(belt.split(" (")[0])).length
@@ -2201,29 +2201,33 @@ export default function CoachDashboard({
               </div>
 
               {/* Sub-menu Navigation Bar */}
-              <div className="flex flex-wrap items-center gap-2 bg-slate-100 p-1.5 rounded-2xl w-fit">
+              <div className="flex flex-wrap items-center gap-2 bg-slate-100/80 p-1.5 rounded-2xl w-fit border border-slate-200/60 shadow-inner">
                 <button
                   onClick={() => setFinanceSubTab("spp")}
-                  className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer ${
+                  className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2 ${
                     financeSubTab === "spp"
-                      ? "bg-white text-[#E10600] shadow-sm"
-                      : "text-gray-500 hover:text-gray-900"
+                      ? "bg-white text-[#E10600] shadow-md shadow-slate-200/50"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
                   }`}
                 >
-                  💳 Tagihan SPP & Perorangan
+                  <DollarSign className="w-4 h-4 text-[#E10600]" />
+                  <span>Tagihan SPP & Perorangan</span>
                 </button>
 
                 <button
                   onClick={() => setFinanceSubTab("verify")}
-                  className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2 ${
                     financeSubTab === "verify"
-                      ? "bg-[#E10600] text-white shadow-sm"
-                      : "text-gray-500 hover:text-gray-900"
+                      ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md shadow-orange-500/20"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
                   }`}
                 >
-                  <span>⚠️ Verifikasi Pembayaran Struk</span>
+                  <CheckCircle className="w-4 h-4 text-amber-100" />
+                  <span>Verifikasi Pembayaran Struk</span>
                   {pendingPayments.length > 0 && (
-                    <span className="bg-white text-[#E10600] px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                      financeSubTab === "verify" ? "bg-white text-orange-600" : "bg-amber-500 text-white"
+                    }`}>
                       {pendingPayments.length}
                     </span>
                   )}
@@ -2231,13 +2235,14 @@ export default function CoachDashboard({
 
                 <button
                   onClick={() => setFinanceSubTab("report")}
-                  className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer ${
+                  className={`px-4 py-2.5 rounded-xl font-extrabold text-xs transition-all cursor-pointer flex items-center gap-2 ${
                     financeSubTab === "report"
-                      ? "bg-white text-emerald-600 shadow-sm"
-                      : "text-gray-500 hover:text-gray-900"
+                      ? "bg-white text-emerald-600 shadow-md shadow-slate-200/50"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
                   }`}
                 >
-                  📊 Laporan Keuangan
+                  <TrendingUp className="w-4 h-4 text-emerald-600" />
+                  <span>Laporan Keuangan</span>
                 </button>
               </div>
 
@@ -2256,7 +2261,10 @@ export default function CoachDashboard({
                 <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-6 shadow-sm flex flex-col gap-6">
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-black text-sm text-[#0F172A]">⚠️ Verifikasi Pembayaran (SPP & UKT)</h3>
+                      <h3 className="font-black text-sm text-[#0F172A] flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-500" />
+                        <span>Verifikasi Pembayaran (SPP & UKT)</span>
+                      </h3>
                       <span className="text-[10px] text-gray-400 font-bold">{pendingPayments.length} menunggu validasi</span>
                     </div>
                     {pendingPayments.length === 0 ? (
@@ -2302,7 +2310,7 @@ export default function CoachDashboard({
                                         rel="noopener noreferrer"
                                         className="bg-blue-50 text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg font-extrabold text-[10px] hover:bg-blue-100 transition-colors inline-flex items-center gap-1"
                                       >
-                                        🖼️ Lihat Bukti ↗
+                                        <Eye className="w-3 h-3" /> Lihat Bukti ↗
                                       </a>
                                     ) : (
                                       <span className="text-gray-300 text-[10px]">Belum upload</span>
@@ -2344,7 +2352,10 @@ export default function CoachDashboard({
 
                   {/* Digital Audit Trace / Validation History */}
                   <div className="border-t border-slate-100 pt-6">
-                    <h4 className="font-black text-xs text-[#0F172A] mb-4">📝 Jejak Digital Riwayat Validasi Pelatih</h4>
+                    <h4 className="font-black text-xs text-[#0F172A] mb-4 flex items-center gap-2">
+                      <FileCheck className="w-4 h-4 text-emerald-600" />
+                      <span>Jejak Digital Riwayat Validasi Pelatih</span>
+                    </h4>
                     {completedPayments.length === 0 ? (
                       <p className="text-[11px] text-gray-400">Belum ada riwayat validasi manual.</p>
                     ) : (
@@ -2378,83 +2389,136 @@ export default function CoachDashboard({
               )}
 
               {/* SUB TAB 3: Laporan Keuangan */}
-              {financeSubTab === "report" && (
-                <div className="flex flex-col gap-6">
-                  {/* Summary Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-gradient-to-br from-emerald-500 to-teal-700 text-white p-6 rounded-[24px] shadow-sm">
-                      <div className="text-[10px] font-black uppercase text-emerald-100 tracking-wider">Total Pendapatan Lunas</div>
-                      <div className="text-2xl font-black mt-2">
-                        Rp {payments.filter(p => p.status === "COMPLETED").reduce((sum, p) => sum + (p.amount || 0), 0).toLocaleString("id-ID")}
+              {financeSubTab === "report" && (() => {
+                const totalLunas = completedPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+                const totalPending = pendingPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
+                const totalPotensi = totalLunas + totalPending;
+
+                return (
+                  <div className="flex flex-col gap-6">
+                    {/* Summary Cards Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {/* Card 1: Total Pendapatan Lunas */}
+                      <div className="bg-gradient-to-br from-emerald-600 to-teal-800 text-white p-5 rounded-[24px] shadow-sm flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase text-emerald-100 tracking-wider">Total Pendapatan Lunas</span>
+                            <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
+                              <CheckCircle className="w-4 h-4 text-emerald-200" />
+                            </div>
+                          </div>
+                          <div className="text-2xl font-black mt-3">
+                            Rp {totalLunas.toLocaleString("id-ID")}
+                          </div>
+                        </div>
+                        <div className="text-[11px] text-emerald-100 mt-3 font-medium flex items-center gap-1">
+                          <span>✅ {completedPayments.length} Transaksi Terkonfirmasi Lunas</span>
+                        </div>
                       </div>
-                      <div className="text-[11px] text-emerald-100 mt-2 font-medium">SPP, UKT, Event & Tagihan Lainnya</div>
+
+                      {/* Card 2: Total Tagihan Pending / Belum Lunas */}
+                      <div className="bg-gradient-to-br from-amber-500 to-orange-600 text-white p-5 rounded-[24px] shadow-sm flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase text-amber-100 tracking-wider">Total Tagihan Pending</span>
+                            <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center">
+                              <Clock className="w-4 h-4 text-amber-200" />
+                            </div>
+                          </div>
+                          <div className="text-2xl font-black mt-3">
+                            Rp {totalPending.toLocaleString("id-ID")}
+                          </div>
+                        </div>
+                        <div className="text-[11px] text-amber-100 mt-3 font-medium flex items-center gap-1">
+                          <span>⏳ {pendingPayments.length} Tagihan Menunggu Bayar / Verifikasi</span>
+                        </div>
+                      </div>
+
+                      {/* Card 3: Total Potensi Pemasukan */}
+                      <div className="bg-white border border-slate-200 p-5 rounded-[24px] shadow-sm flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Potensi Pemasukan</span>
+                            <div className="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center">
+                              <TrendingUp className="w-4 h-4 text-blue-600" />
+                            </div>
+                          </div>
+                          <div className="text-2xl font-black text-slate-900 mt-3">
+                            Rp {totalPotensi.toLocaleString("id-ID")}
+                          </div>
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-3 font-medium">
+                          Akumulasi Lunas (Rp {totalLunas.toLocaleString("id-ID")}) + Pending
+                        </div>
+                      </div>
+
+                      {/* Card 4: Cetak & Export Laporan */}
+                      <div className="bg-slate-900 text-white p-5 rounded-[24px] shadow-sm flex flex-col justify-between">
+                        <div>
+                          <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Export PDF & Print</span>
+                          <div className="text-xs font-bold text-slate-200 mt-1">Cetak dokumen mutasi & rekap kas</div>
+                        </div>
+                        <button
+                          onClick={() => window.print()}
+                          className="w-full mt-3 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-extrabold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                        >
+                          <Download className="w-4 h-4" /> Cetak / Export Laporan
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="bg-white border border-slate-100 p-6 rounded-[24px] shadow-sm">
-                      <div className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Menunggu Verifikasi Struk</div>
-                      <div className="text-2xl font-black text-amber-600 mt-2">
-                        Rp {pendingPayments.reduce((sum, p) => sum + (p.amount || 0), 0).toLocaleString("id-ID")}
+                    {/* Rekap Mutasi Transaksi Table */}
+                    <div className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-extrabold text-[#0F172A] text-sm flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-blue-600" />
+                          <span>Rekap Riwayat Laporan Keuangan</span>
+                        </h3>
+                        <span className="text-xs text-gray-400 font-bold">{payments.length} Transaksi Tercatat</span>
                       </div>
-                      <div className="text-[11px] text-amber-600 mt-2 font-bold">{pendingPayments.length} Transaksi Struk Uploaded</div>
-                    </div>
-
-                    <div className="bg-white border border-slate-100 p-6 rounded-[24px] shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="text-[10px] font-black uppercase text-gray-400 tracking-wider">Cetak Laporan Keuangan</div>
-                        <div className="text-xs font-bold text-gray-700 mt-1">Export PDF / Print Ringkasan Mutasi Keuangan</div>
-                      </div>
-                      <button
-                        onClick={() => window.print()}
-                        className="w-full mt-3 bg-slate-900 hover:bg-slate-800 text-white py-2.5 rounded-xl font-extrabold text-xs shadow transition-all cursor-pointer flex items-center justify-center gap-2"
-                      >
-                        🖨️ Cetak / Export Laporan Keuangan
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Rekap Mutasi Transaksi Table */}
-                  <div className="bg-white border border-slate-100 rounded-[24px] p-6 shadow-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-extrabold text-[#0F172A] text-sm">📜 Rekap Riwayat Laporan Keuangan</h3>
-                      <span className="text-xs text-gray-400 font-bold">{payments.length} Transaksi Recorded</span>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs text-left">
-                        <thead>
-                          <tr className="bg-slate-50 text-gray-400 font-bold uppercase border-b border-slate-100">
-                            <th className="p-3">Tanggal</th>
-                            <th className="p-3">Siswa</th>
-                            <th className="p-3">Peruntukan</th>
-                            <th className="p-3">Nominal</th>
-                            <th className="p-3">Metode</th>
-                            <th className="p-3">Status</th>
-                            <th className="p-3 text-right">Divalidasi Oleh</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                          {payments.map((p, idx) => (
-                            <tr key={idx} className="hover:bg-slate-50/50">
-                              <td className="p-3 text-gray-500 font-medium">{p.createdAt ? new Date(p.createdAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' }) : "—"}</td>
-                              <td className="p-3 font-bold text-[#0F172A]">{p.member?.fullName || "—"}</td>
-                              <td className="p-3 font-medium text-gray-700">{p.purpose}</td>
-                              <td className="p-3 font-bold text-[#E10600]">Rp {(p.amount || 0).toLocaleString("id-ID")}</td>
-                              <td className="p-3 font-medium text-gray-600">{p.paymentMethod || "Transfer / Cash"}</td>
-                              <td className="p-3">
-                                <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
-                                  p.status === "COMPLETED" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"
-                                }`}>
-                                  {p.status === "COMPLETED" ? "LUNAS" : "PENDING"}
-                                </span>
-                              </td>
-                              <td className="p-3 text-right text-gray-500">{p.receiver?.name || "—"}</td>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs text-left">
+                          <thead>
+                            <tr className="bg-slate-50 text-gray-400 font-bold uppercase border-b border-slate-100">
+                              <th className="p-3">Tanggal</th>
+                              <th className="p-3">Siswa</th>
+                              <th className="p-3">Peruntukan</th>
+                              <th className="p-3">Nominal</th>
+                              <th className="p-3">Metode</th>
+                              <th className="p-3">Status</th>
+                              <th className="p-3 text-right">Divalidasi Oleh</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50">
+                            {payments.map((p, idx) => {
+                              const isCompleted = ["COMPLETED", "PAID", "LUNAS"].includes((p.status || "").toUpperCase());
+                              return (
+                                <tr key={idx} className="hover:bg-slate-50/50">
+                                  <td className="p-3 text-gray-500 font-medium">{p.createdAt ? new Date(p.createdAt).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' }) : "—"}</td>
+                                  <td className="p-3 font-bold text-[#0F172A]">{p.member?.fullName || "—"}</td>
+                                  <td className="p-3 font-medium text-gray-700">{p.purpose}</td>
+                                  <td className="p-3 font-bold text-[#E10600]">Rp {(p.amount || 0).toLocaleString("id-ID")}</td>
+                                  <td className="p-3 font-medium text-gray-600">{p.paymentMethod || "Transfer / Cash"}</td>
+                                  <td className="p-3">
+                                    <span className={`px-2.5 py-1 rounded-md font-extrabold text-[10px] ${
+                                      isCompleted
+                                        ? "bg-green-100 text-green-700 border border-green-200"
+                                        : "bg-amber-100 text-amber-700 border border-amber-200"
+                                    }`}>
+                                      {isCompleted ? "LUNAS" : "PENDING"}
+                                    </span>
+                                  </td>
+                                  <td className="p-3 text-right text-gray-500 font-medium">{p.receiver?.name || (isCompleted ? "Sistem" : "—")}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           )}
 

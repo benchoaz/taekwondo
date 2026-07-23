@@ -159,41 +159,54 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// DELETE /api/spp — Delete a specific SPP invoice (useful for testing/resetting trial data)
+// DELETE /api/spp — Delete specific SPP invoice(s)
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
+    const idsParam = searchParams.get("ids");
 
-    if (!id) {
-      return NextResponse.json({ error: "Invoice ID is required" }, { status: 400 });
+    let idsToDelete: string[] = [];
+    if (idsParam) {
+      idsToDelete = idsParam.split(",").filter(Boolean);
+    } else if (id) {
+      idsToDelete = [id];
+    } else {
+      try {
+        const body = await req.json();
+        if (Array.isArray(body.ids)) {
+          idsToDelete = body.ids;
+        }
+      } catch (e) {}
     }
 
-    const invoice = await prisma.sppInvoice.findUnique({
-      where: { id },
+    if (idsToDelete.length === 0) {
+      return NextResponse.json({ error: "Invoice ID or IDs are required" }, { status: 400 });
+    }
+
+    const invoices = await prisma.sppInvoice.findMany({
+      where: { id: { in: idsToDelete } },
+      select: { id: true, paymentId: true }
     });
 
-    if (!invoice) {
-      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
-    }
+    const invoiceIds = invoices.map(i => i.id);
+    const paymentIds = invoices.map(i => i.paymentId).filter(Boolean) as string[];
 
-    const paymentId = invoice.paymentId;
-
-    // Delete SppInvoice first
-    await prisma.sppInvoice.delete({
-      where: { id },
+    // Delete SppInvoices first
+    await prisma.sppInvoice.deleteMany({
+      where: { id: { in: invoiceIds } },
     });
 
-    // Delete associated payment if exists
-    if (paymentId) {
-      await prisma.payment.delete({
-        where: { id: paymentId },
-      }).catch((e) => console.error("Payment deletion warning:", e));
+    // Delete associated payments if exist
+    if (paymentIds.length > 0) {
+      await prisma.payment.deleteMany({
+        where: { id: { in: paymentIds } },
+      }).catch((e) => console.error("Payment bulk deletion warning:", e));
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, count: invoiceIds.length });
   } catch (error: any) {
-    console.error("Error deleting SPP Invoice:", error);
+    console.error("Error deleting SPP Invoices:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -50,6 +50,10 @@ export default function SppManagement() {
   const [selectedInvoice, setSelectedInvoice] = useState<SppInvoice | null>(null);
   const [isMarkingPaid, setIsMarkingPaid] = useState(false);
 
+  // Bulk delete states (Hapus Massal Tagihan khusus Admin)
+  const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<string[]>([]);
+  const [isDeletingBulk, setIsDeletingBulk] = useState<boolean>(false);
+
 
   // Prepaid billing states
   const [members, setMembers] = useState<any[]>([]);
@@ -313,6 +317,33 @@ export default function SppManagement() {
     } catch (e) {
       console.error(e);
       alert("Terjadi kesalahan.");
+    }
+  };
+
+  const handleBulkDeleteInvoices = async () => {
+    if (selectedInvoiceIds.length === 0) {
+      alert("Silakan pilih minimal satu tagihan untuk dihapus.");
+      return;
+    }
+    if (!confirm(`⚠️ PERINGATAN ADMIN: Apakah Anda yakin ingin menghapus ${selectedInvoiceIds.length} tagihan SPP yang dipilih? History transaksi terkait juga akan dihapus.`)) return;
+    setIsDeletingBulk(true);
+    try {
+      const res = await fetch(`/api/spp?ids=${selectedInvoiceIds.join(",")}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`✅ Berhasil menghapus ${data.count || selectedInvoiceIds.length} tagihan SPP.`);
+        setSelectedInvoiceIds([]);
+        fetchInvoices();
+      } else {
+        alert(data.error || "Gagal menghapus tagihan terpilih.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan.");
+    } finally {
+      setIsDeletingBulk(false);
     }
   };
 
@@ -684,6 +715,16 @@ export default function SppManagement() {
           <div className="flex items-center gap-3">
             <h3 className="font-extrabold text-[#0F172A]">Daftar Tagihan SPP</h3>
             <span className="bg-slate-100 text-slate-600 text-xs font-bold px-3 py-1 rounded-full">{filteredInvoices.length} Data</span>
+            {(userRole === "ADMIN" || userRole === "SUPERADMIN") && selectedInvoiceIds.length > 0 && (
+              <button
+                onClick={handleBulkDeleteInvoices}
+                disabled={isDeletingBulk}
+                className="bg-[#E10600] hover:bg-[#C00500] text-white px-4 py-1.5 rounded-xl font-bold text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ml-2 animate-bounce-subtle"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {isDeletingBulk ? "⏳ Menghapus..." : `Hapus ${selectedInvoiceIds.length} Tagihan Terpilih`}
+              </button>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-gray-400" />
@@ -717,6 +758,23 @@ export default function SppManagement() {
             <table className="w-full text-left border-collapse min-w-[700px]">
               <thead>
                 <tr className="bg-[#F8FAFC] border-b border-[#0F172A]/5">
+                  {(userRole === "ADMIN" || userRole === "SUPERADMIN") && (
+                    <th className="p-4 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        checked={filteredInvoices.length > 0 && selectedInvoiceIds.length === filteredInvoices.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedInvoiceIds(filteredInvoices.map(i => i.id));
+                          } else {
+                            setSelectedInvoiceIds([]);
+                          }
+                        }}
+                        className="w-4 h-4 rounded border-slate-300 text-[#E10600] focus:ring-[#E10600] cursor-pointer"
+                        title="Checklist Semua Tagihan"
+                      />
+                    </th>
+                  )}
                   <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Member</th>
                   <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Periode</th>
                   <th className="p-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Tagihan</th>
@@ -728,6 +786,20 @@ export default function SppManagement() {
               <tbody className="text-sm divide-y divide-[#0F172A]/5">
                 {filteredInvoices.map((inv) => (
                   <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
+                    {(userRole === "ADMIN" || userRole === "SUPERADMIN") && (
+                      <td className="p-4 w-10 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedInvoiceIds.includes(inv.id)}
+                          onChange={() => {
+                            setSelectedInvoiceIds(prev =>
+                              prev.includes(inv.id) ? prev.filter(x => x !== inv.id) : [...prev, inv.id]
+                            );
+                          }}
+                          className="w-4 h-4 rounded border-slate-300 text-[#E10600] focus:ring-[#E10600] cursor-pointer"
+                        />
+                      </td>
+                    )}
                     <td className="p-4">
                       <div className="font-bold text-[#0F172A]">{inv.member?.fullName}</div>
                       <div className="text-[10px] text-gray-500">No: {inv.member?.memberNumber}</div>

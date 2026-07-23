@@ -341,7 +341,145 @@ export default function SppManagement() {
         ))}
       </div>
 
-      {/* Action Cards */}
+      {/* ── SECTION TERATAS FOR COACH: Terbitkan Tagihan Perorangan & Laporan Uang Cash ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Card: Terbitkan Tagihan Perorangan */}
+        <div className="bg-white p-6 rounded-[24px] border-2 border-purple-200 shadow-md flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700">
+              <Send className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-base text-[#0F172A]">Terbitkan Tagihan Perorangan</h3>
+              <p className="text-xs text-gray-500">Rilis tagihan khusus untuk 1 siswa (Dobok, Private, Event)</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleIssueIndividualBilling} className="flex flex-col gap-3">
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Pilih Siswa Penerima Tagihan</label>
+              <select
+                value={selectedIndivMember}
+                onChange={e => setSelectedIndivMember(e.target.value)}
+                required
+                className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-[#E10600]"
+              >
+                <option value="">Pilih Anggota...</option>
+                {members.map(m => (
+                  <option key={m.memberId} value={m.memberId}>{m.name} ({m.memberNumber})</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Peruntukan Tagihan</label>
+              <input
+                type="text"
+                placeholder="Contoh: Pembelian Dobok Ukuran L / Private Class"
+                value={indivPurpose}
+                onChange={e => setIndivPurpose(e.target.value)}
+                required
+                className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Nominal (Rp)</label>
+                <input
+                  type="number"
+                  placeholder="Contoh: 150000"
+                  value={indivAmount}
+                  onChange={e => setIndivAmount(e.target.value)}
+                  required
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Jatuh Tempo (Opsional)</label>
+                <input
+                  type="date"
+                  value={indivDueDate}
+                  onChange={e => setIndivDueDate(e.target.value)}
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmittingIndiv}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold text-xs shadow-md transition-colors disabled:opacity-50 mt-1 cursor-pointer"
+            >
+              {isSubmittingIndiv ? "⏳ Menerbitkan..." : "✉️ Terbitkan Tagihan Siswa"}
+            </button>
+          </form>
+        </div>
+
+        {/* Card: Laporan Setoran Uang Tunai Pelatih */}
+        <div className="bg-white p-6 rounded-[24px] border-2 border-amber-200 shadow-md flex flex-col justify-between gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
+                <Banknote className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-[#0F172A]">Laporan Cash Pelatih</h3>
+                <p className="text-xs text-gray-500">Uang tunai yang diterima pelatih di lapangan</p>
+              </div>
+            </div>
+            <button
+              onClick={fetchCoachCash}
+              className="text-[10px] font-bold text-slate-500 hover:text-slate-800 bg-slate-100 px-3 py-1.5 rounded-lg cursor-pointer"
+            >
+              🔄 Refresh
+            </button>
+          </div>
+
+          <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-5 rounded-2xl text-white shadow-md">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-100">Total Uang Tunai Diterima</span>
+            <div className="text-2xl sm:text-3xl font-black mt-1">
+              Rp {totalCoachCash.toLocaleString("id-ID")}
+            </div>
+            <span className="text-[10px] text-amber-100 mt-1 block">
+              {coachCashData.length} Transaksi pembayaran tunai dicatat
+            </span>
+          </div>
+
+          {/* List Ringkas Transaksi Tunai */}
+          <div className="max-h-[160px] overflow-y-auto divide-y divide-slate-100 border border-slate-100 rounded-xl p-2 bg-[#F8FAFC]">
+            {isLoadingCoachCash ? (
+              <p className="text-xs text-center text-gray-400 py-4">Memuat data setoran...</p>
+            ) : coachCashData.length === 0 ? (
+              <p className="text-xs text-center text-gray-400 py-4">Belum ada transaksi tunai yang divalidasi oleh Anda.</p>
+            ) : (
+              coachCashData.map((item) => (
+                <div key={item.id} className="py-2 px-2 flex justify-between items-center text-xs">
+                  <div>
+                    <span className="font-bold text-[#0F172A] block">{item.memberName}</span>
+                    <span className="text-[9px] text-gray-400">{item.purpose}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-bold text-emerald-600 block">Rp {item.amount.toLocaleString("id-ID")}</span>
+                    <span className="text-[8px] text-gray-400">{new Date(item.paidAt).toLocaleDateString("id-ID")}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <button
+            onClick={() => {
+              window.print();
+            }}
+            className="w-full bg-slate-900 hover:bg-black text-white py-3 rounded-xl font-bold text-xs shadow-sm transition-colors cursor-pointer"
+          >
+            🖨️ Cetak / Export Rekap Setoran Cash
+          </button>
+        </div>
+      </div>
+
+      {/* Action Cards (Massal & Prabayar) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Generate Tagihan */}
         <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex flex-col gap-4">
@@ -487,144 +625,6 @@ export default function SppManagement() {
             className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-xs shadow-md hover:bg-emerald-700 transition-colors disabled:opacity-50"
           >
             {isSubmittingPrepaid ? "⏳ Menyimpan..." : "✅ Simpan Bayar di Muka"}
-          </button>
-        </div>
-      </div>
-
-      {/* ── SECTION FOR COACH: Terbitkan Tagihan Perorangan & Laporan Uang Cash ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Card: Terbitkan Tagihan Perorangan */}
-        <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
-              <Send className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-[#0F172A]">Terbitkan Tagihan Perorangan</h3>
-              <p className="text-xs text-gray-500">Rilis tagihan khusus untuk 1 siswa (Dobok, Private, Event)</p>
-            </div>
-          </div>
-
-          <form onSubmit={handleIssueIndividualBilling} className="flex flex-col gap-3">
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Pilih Siswa Penerima Tagihan</label>
-              <select
-                value={selectedIndivMember}
-                onChange={e => setSelectedIndivMember(e.target.value)}
-                required
-                className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-[#E10600]"
-              >
-                <option value="">Pilih Anggota...</option>
-                {members.map(m => (
-                  <option key={m.memberId} value={m.memberId}>{m.name} ({m.memberNumber})</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Peruntukan Tagihan</label>
-              <input
-                type="text"
-                placeholder="Contoh: Pembelian Dobok Ukuran L / Private Class"
-                value={indivPurpose}
-                onChange={e => setIndivPurpose(e.target.value)}
-                required
-                className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Nominal (Rp)</label>
-                <input
-                  type="number"
-                  placeholder="Contoh: 150000"
-                  value={indivAmount}
-                  onChange={e => setIndivAmount(e.target.value)}
-                  required
-                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Jatuh Tempo (Opsional)</label>
-                <input
-                  type="date"
-                  value={indivDueDate}
-                  onChange={e => setIndivDueDate(e.target.value)}
-                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmittingIndiv}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold text-xs shadow-md transition-colors disabled:opacity-50 mt-1 cursor-pointer"
-            >
-              {isSubmittingIndiv ? "⏳ Menerbitkan..." : "✉️ Terbitkan Tagihan Siswa"}
-            </button>
-          </form>
-        </div>
-
-        {/* Card: Laporan Setoran Uang Tunai Pelatih */}
-        <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex flex-col justify-between gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
-                <Banknote className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-[#0F172A]">Laporan Cash Pelatih</h3>
-                <p className="text-xs text-gray-500">Uang tunai yang diterima pelatih di lapangan</p>
-              </div>
-            </div>
-            <button
-              onClick={fetchCoachCash}
-              className="text-[10px] font-bold text-slate-500 hover:text-slate-800 bg-slate-100 px-3 py-1.5 rounded-lg cursor-pointer"
-            >
-              🔄 Refresh
-            </button>
-          </div>
-
-          <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-5 rounded-2xl text-white shadow-md">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-100">Total Uang Tunai Diterima</span>
-            <div className="text-2xl sm:text-3xl font-black mt-1">
-              Rp {totalCoachCash.toLocaleString("id-ID")}
-            </div>
-            <span className="text-[10px] text-amber-100 mt-1 block">
-              {coachCashData.length} Transaksi pembayaran tunai dicatat
-            </span>
-          </div>
-
-          {/* List Ringkas Transaksi Tunai */}
-          <div className="max-h-[160px] overflow-y-auto divide-y divide-slate-100 border border-slate-100 rounded-xl p-2 bg-[#F8FAFC]">
-            {isLoadingCoachCash ? (
-              <p className="text-xs text-center text-gray-400 py-4">Memuat data setoran...</p>
-            ) : coachCashData.length === 0 ? (
-              <p className="text-xs text-center text-gray-400 py-4">Belum ada transaksi tunai yang divalidasi oleh Anda.</p>
-            ) : (
-              coachCashData.map((item) => (
-                <div key={item.id} className="py-2 px-2 flex justify-between items-center text-xs">
-                  <div>
-                    <span className="font-bold text-[#0F172A] block">{item.memberName}</span>
-                    <span className="text-[9px] text-gray-400">{item.purpose}</span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-bold text-emerald-600 block">Rp {item.amount.toLocaleString("id-ID")}</span>
-                    <span className="text-[8px] text-gray-400">{new Date(item.paidAt).toLocaleDateString("id-ID")}</span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          <button
-            onClick={() => {
-              window.print();
-            }}
-            className="w-full bg-slate-900 hover:bg-black text-white py-3 rounded-xl font-bold text-xs shadow-sm transition-colors cursor-pointer"
-          >
-            🖨️ Cetak / Export Rekap Setoran Cash
           </button>
         </div>
       </div>

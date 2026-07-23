@@ -26,6 +26,7 @@ interface SppInvoice {
   dueDate: string;
   status: string;
   paymentId?: string;
+  paymentProofUrl?: string;
   payment?: Payment;
 }
 
@@ -349,7 +350,14 @@ export default function SppManagement() {
 
   // ─── Filter Logic ───────────────────────────────────────────────────
   const filteredInvoices = invoices.filter(inv => {
-    const statusMatch = filterStatus === "ALL" || inv.status === filterStatus;
+    let statusMatch = false;
+    if (filterStatus === "ALL") {
+      statusMatch = true;
+    } else if (filterStatus === "PENDING_PROOF") {
+      statusMatch = Boolean(inv.payment?.paymentProofUrl || inv.paymentProofUrl) && inv.status !== "PAID";
+    } else {
+      statusMatch = inv.status === filterStatus;
+    }
     const monthMatch = filterMonth === 0 || inv.month === filterMonth;
     return statusMatch && monthMatch;
   });
@@ -708,6 +716,29 @@ export default function SppManagement() {
         </div>
       </div>
 
+      {/* Banner Notifikasi Struk Transfer Masuk */}
+      {invoices.filter(i => (i.payment?.paymentProofUrl || i.paymentProofUrl) && i.status !== "PAID").length > 0 && (
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-5 rounded-[24px] shadow-lg mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 bg-white/20 rounded-2xl flex items-center justify-center text-xl shrink-0">
+              📩
+            </div>
+            <div>
+              <h4 className="font-extrabold text-sm text-white">
+                Ada {invoices.filter(i => (i.payment?.paymentProofUrl || i.paymentProofUrl) && i.status !== "PAID").length} Struk Transfer Masuk Perlu Verifikasi!
+              </h4>
+              <p className="text-xs text-blue-100 mt-0.5">Siswa telah mengunggah foto bukti transfer. Klik tombol "Lihat Bukti" untuk memeriksa foto & lakukan validasi lunas.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setFilterStatus("PENDING_PROOF")}
+            className="bg-white text-blue-700 hover:bg-blue-50 px-4.5 py-2.5 rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer whitespace-nowrap"
+          >
+            🔍 Lihat {invoices.filter(i => (i.payment?.paymentProofUrl || i.paymentProofUrl) && i.status !== "PAID").length} Struk Masuk
+          </button>
+        </div>
+      )}
+
       {/* Invoice List */}
       <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm overflow-hidden flex flex-col">
         {/* Header + Filter */}
@@ -742,6 +773,7 @@ export default function SppManagement() {
               className="bg-[#F8FAFC] border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-bold outline-none"
             >
               <option value="ALL">Semua Status</option>
+              <option value="PENDING_PROOF">📩 Ada Struk Transfer</option>
               <option value="UNPAID">Belum Bayar</option>
               <option value="OVERDUE">Menunggak</option>
               <option value="PAID">Lunas</option>
@@ -784,7 +816,9 @@ export default function SppManagement() {
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-[#0F172A]/5">
-                {filteredInvoices.map((inv) => (
+                {filteredInvoices.map((inv) => {
+                  const proofUrl = inv.payment?.paymentProofUrl || inv.paymentProofUrl;
+                  return (
                   <tr key={inv.id} className="hover:bg-slate-50 transition-colors">
                     {(userRole === "ADMIN" || userRole === "SUPERADMIN") && (
                       <td className="p-4 w-10 text-center">
@@ -814,30 +848,48 @@ export default function SppManagement() {
                       {new Date(inv.dueDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
                     </td>
                     <td className="p-4">
-                      {inv.status === "PAID" && (
-                        <span className="inline-flex items-center gap-1 bg-green-50 text-green-600 px-2.5 py-1 rounded-lg text-[10px] font-bold">
-                          <CheckCircle className="w-3 h-3" /> LUNAS
-                        </span>
-                      )}
-                      {inv.status === "UNPAID" && (
-                        <span className="inline-flex items-center gap-1 bg-orange-50 text-orange-600 px-2.5 py-1 rounded-lg text-[10px] font-bold">
-                          <Clock className="w-3 h-3" /> BELUM BAYAR
-                        </span>
-                      )}
-                      {inv.status === "OVERDUE" && (
-                        <span className="inline-flex items-center gap-1 bg-red-50 text-red-600 px-2.5 py-1 rounded-lg text-[10px] font-bold">
-                          <AlertCircle className="w-3 h-3" /> MENUNGGAK
-                        </span>
-                      )}
+                      <div className="flex flex-col gap-1 items-start">
+                        {inv.status === "PAID" && (
+                          <span className="inline-flex items-center gap-1 bg-green-50 text-green-600 px-2.5 py-1 rounded-lg text-[10px] font-bold">
+                            <CheckCircle className="w-3 h-3" /> LUNAS
+                          </span>
+                        )}
+                        {inv.status === "UNPAID" && (
+                          <span className="inline-flex items-center gap-1 bg-orange-50 text-orange-600 px-2.5 py-1 rounded-lg text-[10px] font-bold">
+                            <Clock className="w-3 h-3" /> BELUM BAYAR
+                          </span>
+                        )}
+                        {inv.status === "OVERDUE" && (
+                          <span className="inline-flex items-center gap-1 bg-red-50 text-red-600 px-2.5 py-1 rounded-lg text-[10px] font-bold">
+                            <AlertCircle className="w-3 h-3" /> MENUNGGAK
+                          </span>
+                        )}
+                        {proofUrl && inv.status !== "PAID" && (
+                          <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[9px] font-extrabold animate-pulse">
+                            📩 STRUK UPLOADED
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-4 text-center">
                       <div className="flex items-center justify-center gap-1.5">
+                        {proofUrl && (
+                          <a
+                            href={proofUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all shadow-sm"
+                            title="Lihat Foto Struk Pembayaran Transfer"
+                          >
+                            🖼️ Lihat Bukti
+                          </a>
+                        )}
                         {inv.status !== "PAID" ? (
                           <button
                             onClick={() => { setSelectedInvoice(inv); }}
-                            className="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors"
+                            className="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors shadow-sm"
                           >
-                            <Banknote className="w-3.5 h-3.5" /> Tandai Lunas
+                            <Banknote className="w-3.5 h-3.5" /> Validasi Lunas
                           </button>
                         ) : (
                           <span className="text-[10px] text-green-500 font-bold">✓ Sudah Lunas</span>
@@ -854,7 +906,8 @@ export default function SppManagement() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+                })}
               </tbody>
             </table>
           </div>

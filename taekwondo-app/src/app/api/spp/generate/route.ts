@@ -6,26 +6,33 @@ import { sendPushNotification } from "@/lib/firebase-admin";
 export async function POST(req: NextRequest) {
   try {
 
-    const { month, year } = await req.json();
+    const { month, year, memberId, amount } = await req.json();
     
     if (!month || !year) {
       return NextResponse.json({ error: "Month and year are required" }, { status: 400 });
     }
 
-    // Ambil setting untuk tahu biaya SPP
+    // Ambil setting untuk tahu biaya SPP (default jika amount tidak dikirim)
     const setting = await prisma.setting.findUnique({
       where: { id: "default" }
     });
     
-    const sppFee = setting?.sppFee || 100000; // default 100k
+    const sppFee = amount && !isNaN(Number(amount)) && Number(amount) > 0 
+      ? Number(amount) 
+      : (setting?.sppFee || 100000); // default 100k
 
-    // Ambil semua member aktif beserta relasi user-nya untuk fcmToken
-    const activeMembers = await prisma.member.findMany({
-      where: { 
-        status: { in: ["ACTIVE", "AKTIF"] }
-      },
-      include: { user: true }
-    });
+    // Filter member: perorangan (memberId) atau semua member aktif
+    const activeMembers = (memberId && memberId !== "ALL")
+      ? await prisma.member.findMany({
+          where: { id: memberId },
+          include: { user: true }
+        })
+      : await prisma.member.findMany({
+          where: { 
+            status: { in: ["ACTIVE", "AKTIF"] }
+          },
+          include: { user: true }
+        });
 
     const dueDate = new Date(year, month - 1, 10); // Jatuh tempo tanggal 10 bulan berjalan
 

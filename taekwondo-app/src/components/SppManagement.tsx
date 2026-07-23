@@ -39,6 +39,8 @@ export default function SppManagement() {
 
   const [targetMonth, setTargetMonth] = useState(new Date().getMonth() + 1);
   const [targetYear, setTargetYear] = useState(new Date().getFullYear());
+  const [targetMember, setTargetMember] = useState<string>("ALL"); // "ALL" atau specific member id
+  const [sppNominal, setSppNominal] = useState<number>(35000);
 
   // Filter
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
@@ -173,13 +175,22 @@ export default function SppManagement() {
   };
 
   const handleGenerateInvoices = async () => {
-    if (!confirm(`Generate tagihan SPP bulan ${monthNames[targetMonth - 1]} ${targetYear} untuk SEMUA member aktif?`)) return;
+    const targetLabel = targetMember === "ALL" 
+      ? "SEMUA member aktif" 
+      : `member (${members.find(m => m.id === targetMember || m.memberId === targetMember)?.name || "perorangan"})`;
+
+    if (!confirm(`Generate tagihan SPP bulan ${monthNames[targetMonth - 1]} ${targetYear} sebesar Rp${sppNominal.toLocaleString("id-ID")} untuk ${targetLabel}?`)) return;
     setIsGenerating(true);
     try {
       const res = await fetch("/api/spp/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ month: targetMonth, year: targetYear })
+        body: JSON.stringify({ 
+          month: targetMonth, 
+          year: targetYear,
+          memberId: targetMember,
+          amount: sppNominal
+        })
       });
       const data = await res.json();
       if (res.ok) {
@@ -190,6 +201,7 @@ export default function SppManagement() {
       }
     } catch (e) {
       console.error(e);
+      alert("Terjadi kesalahan.");
     } finally {
       setIsGenerating(false);
     }
@@ -481,41 +493,77 @@ export default function SppManagement() {
 
       {/* Action Cards (Massal & Prabayar) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Generate Tagihan */}
+        {/* Generate Tagihan SPP Baru (Massal / Perorangan) */}
         <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
               <DollarSign className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-[#0F172A]">Generate Tagihan Baru</h3>
-              <p className="text-xs text-gray-500">Buat tagihan otomatis untuk semua member aktif</p>
+              <h3 className="font-bold text-[#0F172A]">Generate Tagihan SPP</h3>
+              <p className="text-xs text-gray-500">Terbitkan SPP rutin (Massal / Perorangan)</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <select
-              value={targetMonth}
-              onChange={e => setTargetMonth(parseInt(e.target.value))}
-              className="w-1/2 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2 text-sm outline-none"
-            >
-              {monthNames.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
-            </select>
-            <select
-              value={targetYear}
-              onChange={e => setTargetYear(parseInt(e.target.value))}
-              className="w-1/2 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2 text-sm outline-none font-bold"
-            >
-              {Array.from({ length: 11 }, (_, i) => 2025 + i).map((yr) => (
-                <option key={yr} value={yr}>{yr}</option>
-              ))}
-            </select>
+
+          <div className="flex flex-col gap-3">
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Penerima Tagihan SPP</label>
+              <select
+                value={targetMember}
+                onChange={e => setTargetMember(e.target.value)}
+                className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="ALL">🌐 Semua Member Aktif (Massal)</option>
+                {members.map(m => (
+                  <option key={m.id || m.memberId} value={m.id || m.memberId}>
+                    👤 {m.name} ({m.memberNumber})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Bulan & Tahun</label>
+                <div className="flex gap-1">
+                  <select
+                    value={targetMonth}
+                    onChange={e => setTargetMonth(parseInt(e.target.value))}
+                    className="w-1/2 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-2 py-2 text-xs outline-none"
+                  >
+                    {monthNames.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
+                  </select>
+                  <select
+                    value={targetYear}
+                    onChange={e => setTargetYear(parseInt(e.target.value))}
+                    className="w-1/2 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-2 py-2 text-xs outline-none font-bold"
+                  >
+                    {Array.from({ length: 11 }, (_, i) => 2025 + i).map((yr) => (
+                      <option key={yr} value={yr}>{yr}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Nominal (Rp)</label>
+                <input
+                  type="number"
+                  value={sppNominal}
+                  onChange={e => setSppNominal(parseInt(e.target.value) || 35000)}
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-3 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="35000"
+                />
+              </div>
+            </div>
           </div>
+
           <button
             onClick={handleGenerateInvoices}
             disabled={isGenerating}
-            className="w-full bg-[#0F172A] text-white py-3 rounded-xl font-bold text-xs hover:bg-black transition-colors disabled:opacity-50"
+            className="w-full bg-[#0F172A] text-white py-3 rounded-xl font-bold text-xs hover:bg-black transition-colors disabled:opacity-50 mt-auto cursor-pointer"
           >
-            {isGenerating ? "⏳ Proses Generate..." : "⚡ Generate Tagihan"}
+            {isGenerating ? "⏳ Proses Generate..." : "⚡ Generate Tagihan SPP"}
           </button>
         </div>
 

@@ -1812,6 +1812,8 @@ export default function AdminDashboard({
           amount: parseFloat(sppAmount),
           purpose: `SPP Bulan ${periodString}`,
           dueDate: sppDueDate,
+          month: sppMonth,
+          year: sppYear,
         }),
       });
 

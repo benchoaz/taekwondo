@@ -16,13 +16,19 @@ const DEFAULT_BELTS = [
   { name: "Sabuk Hitam", level: "Dan 1", fullName: "Sabuk Hitam (Dan 1)" },
 ];
 
+function cleanBeltKey(str: string) {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .replace(/^sabuk\s+/, "")
+    .split("(")[0]
+    .trim();
+}
+
 function getBeltIndex(beltName: string, masterBelts: Array<{ name: string; fullName: string }>) {
   if (!beltName) return 0;
-  const clean = beltName.toLowerCase().replace("sabuk ", "").split(" (")[0].trim();
-  const idx = masterBelts.findIndex(b => {
-    const bNameClean = b.name.toLowerCase().replace("sabuk ", "").split(" (")[0].trim();
-    return bNameClean === clean || b.fullName.toLowerCase().includes(clean) || clean.includes(bNameClean);
-  });
+  const targetKey = cleanBeltKey(beltName);
+  const idx = masterBelts.findIndex(b => cleanBeltKey(b.name) === targetKey || cleanBeltKey(b.fullName) === targetKey);
   return idx !== -1 ? idx : 0;
 }
 
@@ -90,12 +96,11 @@ export async function GET(request: Request) {
     for (let i = 0; i <= currentBeltIdx; i++) {
       const beltInfo = masterBelts[i];
       const isWhiteBelt = i === 0;
+      const targetBeltKey = cleanBeltKey(beltInfo.name);
 
       if (isWhiteBelt) {
         // Sabuk Putih: Registered Date, No Cert
-        const whiteHist = dbHistories.find(h => 
-          h.toBelt.toLowerCase().includes("putih") || h.fromBelt.toLowerCase().includes("putih")
-        );
+        const whiteHist = dbHistories.find(h => cleanBeltKey(h.toBelt) === "putih" || cleanBeltKey(h.fromBelt) === "putih");
         unifiedHistory.push({
           id: whiteHist ? whiteHist.id : `white-init-${targetMemberId}`,
           fromBelt: "Pendaftaran Member",
@@ -108,18 +113,11 @@ export async function GET(request: Request) {
         });
       } else {
         const prevBeltInfo = masterBelts[i - 1];
-        const cleanBeltName = beltInfo.name.toLowerCase().replace("sabuk ", "");
 
-        // Find existing BeltHistory, Certificate, or UKT Entry
-        const matchedHistory = dbHistories.find(h => 
-          h.toBelt.toLowerCase().includes(cleanBeltName)
-        );
-        const matchedCert = dbCertificates.find(c => 
-          c.newBelt.toLowerCase().includes(cleanBeltName)
-        );
-        const matchedUkt = uktEntries.find(u => 
-          u.targetBelt.toLowerCase().includes(cleanBeltName)
-        );
+        // Strict matching using cleanBeltKey
+        const matchedHistory = dbHistories.find(h => cleanBeltKey(h.toBelt) === targetBeltKey);
+        const matchedCert = dbCertificates.find(c => cleanBeltKey(c.newBelt) === targetBeltKey);
+        const matchedUkt = uktEntries.find(u => cleanBeltKey(u.targetBelt) === targetBeltKey);
 
         let promotedDate = member.createdAt;
         if (matchedHistory) {
@@ -147,7 +145,7 @@ export async function GET(request: Request) {
           isWhiteBelt: false,
           certUrl: certUrl,
           canUploadCert: true,
-          description: "Lulus Ujian Kenaikan Tingkat (UKT)"
+          description: `Lulus Ujian Kenaikan Tingkat (UKT ${beltInfo.name})`
         });
       }
     }
@@ -247,9 +245,9 @@ export async function POST(request: Request) {
     }
 
     // Upsert or Create Certificate record
-    const existingCert = await prisma.certificate.findFirst({
-      where: { memberId: targetMemberId, newBelt: toBelt }
-    });
+    const targetKey = cleanBeltKey(toBelt);
+    const allCerts = await prisma.certificate.findMany({ where: { memberId: targetMemberId } });
+    const existingCert = allCerts.find(c => cleanBeltKey(c.newBelt) === targetKey);
 
     let certificate;
     if (existingCert) {
@@ -279,5 +277,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
 
 

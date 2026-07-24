@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { sendPushNotification } from '@/lib/firebase-admin';
+import { sendNotificationEmail } from '@/lib/email';
 
 export type NotificationType = 'EVENT' | 'SPP' | 'UKT' | 'ANNOUNCEMENT' | 'QUEST';
 
@@ -12,7 +13,7 @@ interface NotifyOptions {
 }
 
 /**
- * Send notification to a single user (saves to DB + sends FCM push via User.fcmToken)
+ * Send notification to a single user (saves to DB + sends FCM push + sends Email if active)
  */
 export async function notifyUser(opts: NotifyOptions) {
   await prisma.notification.create({
@@ -26,22 +27,36 @@ export async function notifyUser(opts: NotifyOptions) {
   });
 
   if (opts.userId !== 'ALL') {
-    // fcmToken is on User, not Member — find via Member.userId
-    const member = await prisma.member.findFirst({
-      where: { userId: opts.userId },
-      include: { user: { select: { fcmToken: true } } },
+    const user = await prisma.user.findUnique({
+      where: { id: opts.userId },
+      select: { email: true, fcmToken: true },
     });
-    if (member?.user?.fcmToken) {
-      await sendPushNotification(member.user.fcmToken, opts.title, opts.message, {
-        type: opts.type,
-        link: opts.link || '',
-      });
+
+    if (user) {
+      // 1. FCM Mobile Push
+      if (user.fcmToken) {
+        await sendPushNotification(user.fcmToken, opts.title, opts.message, {
+          type: opts.type,
+          link: opts.link || '',
+        }).catch((err) => console.error('FCM error:', err));
+      }
+
+      // 2. Email Notification (if active email)
+      if (user.email) {
+        await sendNotificationEmail({
+          to: user.email,
+          subject: opts.title,
+          title: opts.title,
+          message: opts.message,
+          link: opts.link,
+        }).catch((err) => console.error('Email error:', err));
+      }
     }
   }
 }
 
 /**
- * Broadcast notification to all active members (saves to DB as 'ALL' + sends FCM to each)
+ * Broadcast notification to all active members (saves to DB as 'ALL' + sends FCM + Email to each)
  */
 export async function notifyAllMembers(opts: Omit<NotifyOptions, 'userId'>) {
   await prisma.notification.create({
@@ -54,22 +69,34 @@ export async function notifyAllMembers(opts: Omit<NotifyOptions, 'userId'>) {
     },
   });
 
-  // Get all active members with FCM tokens via their User relation
+  // Get all active members with their User relation (email & fcmToken)
   const members = await prisma.member.findMany({
     where: {
       status: { notIn: ['PENDING_VERIFICATION', 'INACTIVE', 'REJECTED'] },
-      user: { fcmToken: { not: null } },
     },
-    include: { user: { select: { fcmToken: true } } },
+    include: { user: { select: { email: true, fcmToken: true } } },
   });
 
-  const pushPromises = members
-    .filter((m) => m.user?.fcmToken)
-    .map((m) =>
-      sendPushNotification(m.user!.fcmToken!, opts.title, opts.message, {
+  const promises = members.map(async (m) => {
+    // FCM Push
+    if (m.user?.fcmToken) {
+      await sendPushNotification(m.user.fcmToken, opts.title, opts.message, {
         type: opts.type,
         link: opts.link || '',
-      }).catch((err) => console.error('FCM error:', err))
-    );
-  await Promise.allSettled(pushPromises);
+      }).catch((err) => console.error('FCM error:', err));
+    }
+
+    // Email
+    if (m.user?.email) {
+      await sendNotificationEmail({
+        to: m.user.email,
+        subject: opts.title,
+        title: opts.title,
+        message: opts.message,
+        link: opts.link,
+      }).catch((err) => console.error('Email error:', err));
+    }
+  });
+
+  await Promise.allSettled(promises);
 }

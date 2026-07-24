@@ -1045,8 +1045,12 @@ export default function MemberDashboard({
           height: editHeight ? parseFloat(editHeight) : null,
           waistCircum: editWaistCircum ? parseFloat(editWaistCircum) : null,
         } : null);
+        setUserEmail(editEmail);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("userEmail", editEmail);
+        }
         setShowEditProfileModal(false);
-        alert("Profil berhasil diperbarui!");
+        alert("Profil berhasil diperbarui! Email login Anda telah diperbarui ke " + editEmail);
       } else {
         alert(data.error || "Gagal memperbarui profil");
       }

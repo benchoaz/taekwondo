@@ -33,7 +33,7 @@ export async function GET(request: Request) {
         title: '⚠️ SPP Terlambat!',
         message: `Tagihan SPP ${monthName} ${invoice.year} sebesar Rp${invoice.amount.toLocaleString('id-ID')} belum dibayar. Segera lakukan pembayaran!`,
         type: 'SPP',
-        link: '/m/spp',
+        link: '/',
       });
       sentCount++;
     }

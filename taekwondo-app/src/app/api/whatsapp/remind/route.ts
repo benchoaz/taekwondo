@@ -30,10 +30,9 @@ export async function POST(req: NextRequest) {
 
       if (invoice.member.phone) {
         const monthName = monthNames[invoice.month - 1];
-        // Asumsi paymentLink menggunakan paymentId
         const paymentLink = invoice.paymentId 
-          ? `https://taekwondo.com/payment/${invoice.paymentId}`
-          : `https://taekwondo.com/spp/pay/${invoice.member.id}/${invoice.month}/${invoice.year}`;
+          ? `https://whitetigerkraksaan.com/m/spp`
+          : `https://whitetigerkraksaan.com/m/spp`;
         
         await sendSppReminder(
           invoice.member.phone, 
@@ -44,6 +43,21 @@ export async function POST(req: NextRequest) {
           paymentLink
         );
         sentCount++;
+      }
+
+      // Send Push & Email Notification via notifyUser
+      try {
+        const { notifyUser } = await import("@/lib/notify");
+        const monthName = monthNames[invoice.month - 1];
+        await notifyUser({
+          userId: invoice.member.userId,
+          title: "⚠️ Pengingat Tagihan SPP",
+          message: `Halo ${invoice.member.fullName}, tagihan SPP bulan ${monthName} ${invoice.year} sebesar Rp ${invoice.amount.toLocaleString("id-ID")} belum dilunasi. Silakan lakukan pembayaran melalui aplikasi Web/Mobile.`,
+          type: "SPP",
+          link: "/",
+        });
+      } catch (notifyErr) {
+        console.error("Gagal mengirim notifyUser SPP:", notifyErr);
       }
     }
 

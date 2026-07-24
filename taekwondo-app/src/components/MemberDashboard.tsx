@@ -564,50 +564,7 @@ export default function MemberDashboard({
       ]
     },
     { 
-      name: "Merah Strip Hitam 1", 
-      level: "2 Geup", 
-      next: "Merah Strip Hitam 2 (1 Geup)", 
-      syllabus: [
-        {
-          title: "Poomsae Taegeuk 8 Jang",
-          type: "Official Poomsae (Jurus 8)",
-          philosophy: "Melambangkan 'Kon' (Bumi). Mewakili akhir dari rangkaian siklus dasar Taegeuk, kesuburan, kematangan jiwa, serta landasan kokoh bagi sabuk hitam.",
-          steps: [
-            "Lakukan langkah maju dengan tangkisan luar ganda dan pukulan dua kepalan meluncur ke rahang lawan.",
-            "Eksekusi tendangan lompat ganda (Dubon Ap Chagi) melayang di udara.",
-            "Terapkan Are Maki diikuti tangkisan atas silang.",
-            "Selesaikan baris akhir jurus dengan tangkisan pisau tangan ganda."
-          ],
-          tips: "Tendangan lompat ganda (Dubon Ap Chagi) harus meluncurkan tendangan pertama sebagai umpan rendah, dan tendangan kedua setinggi kepala sasaran di udara."
-        },
-        {
-          title: "Target Sparring & Double Kick Combo",
-          type: "Advanced Kicking (Tendangan)",
-          philosophy: "Penguasaan kombinasi tendangan beruntun tanpa menyentuh tanah untuk melumpuhkan pertahanan ganda lawan.",
-          steps: [
-            "Lokukan tendangan Dollyo Chagi kanan.",
-            "Tanpa menurunkan kaki penendang ke tanah, lakukan rotasi pinggul di udara untuk meluncurkan tendangan kiri (Narae Chagi).",
-            "Gabungkan dengan tendangan tipuan (Cut-kick) kaki depan.",
-            "Mendarat dengan kuda-kuda siap tempur."
-          ],
-          tips: "Gunakan ayunan lengan berlawanan arah tendangan untuk membantu memutar tubuh di udara agar tidak kehilangan keseimbangan."
-        },
-        {
-          title: "Tangkisan Oesanteul Maki",
-          type: "Basic Defense (Tangkisan)",
-          philosophy: "Tangkisan kombinasi satu tangan melakukan tangkisan atas (Eolgul) dan tangan lainnya melakukan tangkisan bawah (Are) menyerupai sayap burung elang.",
-          steps: [
-            "Tarik tangan atas di sisi telinga luar, tangan bawah menyilang di bahu berlawanan.",
-            "Sentakkan secara simultan keluar: satu lengan menangkis atas melingkar kepala, satu lengan menyapu ke bawah sejajar paha.",
-            "Pertahankan keseimbangan bahu tetap sejajar mendatar.",
-            "Gunakan kuda-kuda Duit Seogi."
-          ],
-          tips: "Pastikan kekuatan kedua tangkisan terbagi rata, jangan condong ke salah satu sisi tubuh."
-        }
-      ]
-    },
-    { 
-      name: "Merah Strip Hitam 2", 
+      name: "Merah Strip Hitam", 
       level: "1 Geup", 
       next: "Sabuk Hitam (1 Dan)", 
       syllabus: [
@@ -817,22 +774,29 @@ export default function MemberDashboard({
     fetchDashboardData();
   }, [userEmail]);
 
+  const cleanBeltKey = (str: string) => {
+    if (!str) return "";
+    return str
+      .toLowerCase()
+      .replace(/^sabuk\s+/, "")
+      .replace(/\s*\(\d+.*?\)/, "")
+      .replace(/\s+\d+$/, "")
+      .trim();
+  };
+
   // Get index of current belt in sequence
   const getCurrentIndex = () => {
-    // Strip leading "Sabuk " if it matches a strip belt name in sequence, or keep it.
-    // e.g. "Sabuk Kuning (9 Geup)" -> "Sabuk Kuning"
-    // "Sabuk Kuning Strip Hijau (8 Geup)" -> "Kuning Strip Hijau"
-    let cleanName = currentBelt.split(" (")[0];
-    if (cleanName.startsWith("Sabuk ") && (cleanName.includes("Strip") || cleanName.includes("strip"))) {
-      cleanName = cleanName.replace("Sabuk ", "");
-    }
-    const idx = beltSequence.findIndex(b => b.name.toLowerCase() === cleanName.toLowerCase());
+    const targetKey = cleanBeltKey(currentBelt);
+    const idx = beltSequence.findIndex(b => {
+      const bKey = cleanBeltKey(b.name);
+      return bKey === targetKey || targetKey.includes(bKey) || bKey.includes(targetKey);
+    });
     return idx !== -1 ? idx : 0;
   };
 
   const currentIndex = getCurrentIndex();
-  const currentBeltConfig = beltSequence[currentIndex];
-  const nextBeltInfo = currentBeltConfig.next;
+  const currentBeltConfig = beltSequence[currentIndex] || beltSequence[0];
+  const nextBeltInfo = currentBeltConfig.next || "Sabuk Hitam (1 Dan)";
 
   const uktFeesMap = settings?.uktFees || {};
   const uktFeeRate = uktFeesMap[nextBeltInfo] !== undefined && uktFeesMap[nextBeltInfo] !== null

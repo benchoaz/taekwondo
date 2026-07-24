@@ -858,17 +858,20 @@ export default function MemberDashboard({
     return list;
   };
 
-  const dynamicHistory = beltHistory.length > 0 ? beltHistory.map(bh => {
-    const d = new Date(bh.promotedAt);
+  const dynamicHistory = beltHistory.map(bh => {
+    const d = bh.promotedAt ? new Date(bh.promotedAt) : new Date();
     const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
     return {
       id: bh.id,
       from: bh.fromBelt,
       to: bh.toBelt,
       date: `${months[d.getMonth()]} ${d.getFullYear()}`,
-      certUrl: bh.certUrl
+      certUrl: bh.certUrl,
+      isWhiteBelt: bh.isWhiteBelt || bh.toBelt?.toLowerCase().includes("putih"),
+      canUploadCert: bh.canUploadCert !== false && !bh.toBelt?.toLowerCase().includes("putih"),
+      description: bh.description || (bh.isWhiteBelt || bh.toBelt?.toLowerCase().includes("putih") ? "Pendaftaran Member / Join Dojang" : "Lulus Ujian Kenaikan Tingkat (UKT)")
     };
-  }) : getDynamicHistory();
+  });
 
   const handleUploadCert = async (e: React.ChangeEvent<HTMLInputElement>, historyId: string) => {
     const file = e.target.files?.[0];
@@ -2086,26 +2089,22 @@ export default function MemberDashboard({
                   <div className="relative border-l border-slate-100 pl-8 flex flex-col gap-8 ml-4">
                     {dynamicHistory.map((item, idx) => (
                       <div key={idx} className="relative">
-                        <span className="absolute -left-[41px] top-1 w-5 h-5 bg-[#E10600] rounded-full border-4 border-white shadow-sm"></span>
+                        <span className={`absolute -left-[41px] top-1 w-5 h-5 rounded-full border-4 border-white shadow-sm ${item.isWhiteBelt ? 'bg-slate-300' : 'bg-[#E10600]'}`}></span>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div>
                             <h4 className="font-bold text-sm text-[#0F172A]">{item.to}</h4>
-                            <p className="text-gray-400 text-xs mt-0.5">Lulus Ujian Kenaikan Tingkat (UKT)</p>
+                            <p className="text-gray-400 text-xs mt-0.5">{item.description}</p>
                           </div>
                           <div className="flex flex-col items-end gap-2">
                             <span className="px-3 py-1 bg-slate-100 text-gray-500 rounded-full text-[10px] font-bold">{item.date}</span>
-                            {item.certUrl ? (
-                              <a href={item.certUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[10px] text-blue-600 font-bold hover:underline bg-blue-50 px-2 py-1 rounded-md">
+                            {item.isWhiteBelt ? null : item.certUrl ? (
+                              <a href={item.certUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[10px] text-blue-600 font-bold hover:underline bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">
                                 <Award className="w-3.5 h-3.5" />
                                 Lihat Sertifikat
                               </a>
                             ) : (
                               <button 
                                 onClick={() => {
-                                  if (item.id.startsWith('mock-')) {
-                                    alert("Silakan hubungi Admin untuk merekam riwayat sabuk Anda ke sistem sebelum mengunggah sertifikat secara mandiri.");
-                                    return;
-                                  }
                                   setUploadingHistoryId(item.id);
                                 }}
                                 className="flex items-center gap-1 text-[10px] text-slate-500 font-medium hover:text-slate-700 bg-slate-50 hover:bg-slate-100 px-2.5 py-1.5 rounded-md cursor-pointer transition-colors border border-slate-200 shadow-sm"

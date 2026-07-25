@@ -797,7 +797,13 @@ export default function MemberDashboard({
 
   const currentIndex = getCurrentIndex();
   const currentBeltConfig = beltSequence[currentIndex] || beltSequence[0];
-  const nextBeltInfo = currentBeltConfig.next || "Sabuk Hitam (1 Dan)";
+  // Derived values always from beltSequence (authoritative), not raw DB string
+  const currentBeltName = currentBeltConfig.name;        // e.g. "Kuning Strip Hijau"
+  const currentBeltLevel = currentBeltConfig.level;      // e.g. "8 Geup"
+  const nextBeltConfig = beltSequence[currentIndex + 1] || null;
+  const nextBeltInfo = nextBeltConfig
+    ? `${nextBeltConfig.name} (${nextBeltConfig.level})`
+    : "Sabuk Hitam (1 Dan)";
 
   const uktFeesMap = settings?.uktFees || {};
   const uktFeeRate = uktFeesMap[nextBeltInfo] !== undefined && uktFeesMap[nextBeltInfo] !== null
@@ -1906,12 +1912,14 @@ export default function MemberDashboard({
                 <div className="md:col-span-8 bg-white border border-[#0F172A]/5 rounded-[24px] p-5 sm:p-8 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6 min-h-[auto] sm:min-h-[220px]">
                   <div className="flex-grow max-w-md">
                     <span className="bg-blue-50 text-blue-600 text-[10px] font-black uppercase px-2.5 py-1 rounded-full block w-max mb-3 tracking-wider">Current Rank</span>
-                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#0F172A] mb-3 font-display">{currentBelt.split(" (")[0]}</h2>
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-[#0F172A] mb-3 font-display">
+                      {currentBeltName}
+                    </h2>
                     
                     <div className="my-4 flex items-center gap-2">
                       <span className="text-xs text-gray-400 font-bold uppercase shrink-0">Sabuk Aktif:</span>
                       <span className="bg-slate-100 text-[#0F172A] border border-[#0F172A]/5 rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider">
-                        {currentBelt}
+                        SABUK {currentBeltName.toUpperCase()} ({currentBeltLevel})
                       </span>
                     </div>
 
@@ -1942,10 +1950,10 @@ export default function MemberDashboard({
                       <TrendingUp className="w-4 h-4 text-[#E10600]" />
                     </div>
                     <span className="text-[#E10600] font-black text-3xl block font-display">
-                      {nextBeltInfo.split(" (")[0]}
+                      {nextBeltConfig ? nextBeltConfig.name : "Sabuk Hitam"}
                     </span>
                     <span className="text-gray-400 text-xs font-semibold block mt-1">
-                      {nextBeltInfo.includes("Geup") ? nextBeltInfo.split(" (")[1].replace(")", "") : "1 Dan"}
+                      {nextBeltConfig ? nextBeltConfig.level : "1 Dan"}
                     </span>
                   </div>
 

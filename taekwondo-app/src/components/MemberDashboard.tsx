@@ -3371,7 +3371,46 @@ export default function MemberDashboard({
                 />
               </div>
 
-              {/* Single Upload: Scan / Bukti Piagam Sertifikat (wajib untuk validasi) */}
+              {/* Upload 1: Foto Aksi / Selebrasi Atlet (opsional untuk Hall of Fame) */}
+              <div>
+                <label className="text-xs font-bold text-gray-700 mb-0.5 flex items-center gap-1.5">
+                  🏆 Foto Aksi / Selebrasi Atlet
+                  <span className="text-[10px] font-normal text-slate-400">(opsional · untuk pajangan Hall of Fame)</span>
+                </label>
+                <p className="text-[10px] text-gray-400 mb-2">Foto atlet berseragam Dobok, selebrasi medali, atau di atas podium. Dipajang di Hall of Fame.</p>
+                <div className="border-2 border-dashed border-amber-200 rounded-2xl p-4 bg-amber-50/20 flex flex-col items-center gap-2">
+                  {achPhotoUrl ? (
+                    <div className="flex flex-col items-center gap-2 w-full">
+                      <img src={achPhotoUrl} alt="Foto Aksi Hall of Fame" className="max-h-28 rounded-xl object-contain border border-amber-100" />
+                      <button type="button" onClick={() => setAchPhotoUrl(null)} className="text-[10px] text-red-400 hover:text-red-600 font-bold cursor-pointer">
+                        Hapus Foto Aksi
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1.5">
+                      <span className="text-xl">🥋</span>
+                      <label className="bg-white hover:bg-amber-50 border border-amber-200 px-4 py-1.5 rounded-xl text-xs font-bold text-amber-800 cursor-pointer transition-all inline-flex items-center gap-1.5">
+                        <Upload className="w-3.5 h-3.5 text-amber-600" />
+                        Pilih Foto Aksi / Podium
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const url = await uploadToServer(file, file.name);
+                            if (url) setAchPhotoUrl(url);
+                          }}
+                        />
+                      </label>
+                      <span className="text-[9px] text-gray-400">JPG atau PNG · Tampil gagah di Hall of Fame</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Upload 2: Scan / Bukti Piagam Sertifikat (wajib untuk validasi) */}
               <div>
                 <label className="text-xs font-bold text-gray-700 mb-0.5 flex items-center gap-1.5">
                   📜 Scan / Foto Piagam Sertifikat

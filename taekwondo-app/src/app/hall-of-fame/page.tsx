@@ -55,14 +55,15 @@ export default function HallOfFamePage() {
           data.forEach((ach: Achievement) => {
             const memberId = ach.member?.id || `unknown-${ach.id}`;
             const memberName = ach.member?.fullName || "Atlet White Tiger";
-            const selfieUrl = ach.member?.selfieUrl || ach.photoUrl || null;
             const currentBelt = ach.member?.currentBelt || "Atlet Resmi";
+            // Photo hierarchy: 1. Action/Podium photo from achievement (photoUrl), 2. Member selfie/profile photo (selfieUrl)
+            const heroPhotoUrl = ach.photoUrl || ach.member?.selfieUrl || null;
 
             if (!groupMap.has(memberId)) {
               groupMap.set(memberId, {
                 memberId,
                 fullName: memberName,
-                selfieUrl,
+                selfieUrl: heroPhotoUrl,
                 currentBelt,
                 achievements: [],
                 goldCount: 0,
@@ -74,9 +75,9 @@ export default function HallOfFamePage() {
             const group = groupMap.get(memberId)!;
             group.achievements.push(ach);
 
-            // Update photo if group selfieUrl was null
-            if (!group.selfieUrl && (ach.member?.selfieUrl || ach.photoUrl)) {
-              group.selfieUrl = ach.member?.selfieUrl || ach.photoUrl || null;
+            // Update photo if hero photo was null or if an action photo is available
+            if (ach.photoUrl || (!group.selfieUrl && ach.member?.selfieUrl)) {
+              group.selfieUrl = ach.photoUrl || ach.member?.selfieUrl || group.selfieUrl;
             }
 
             // Tally medals

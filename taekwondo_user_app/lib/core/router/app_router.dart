@@ -18,9 +18,9 @@ import '../../features/spp/presentation/spp_screen.dart';
 import '../../features/ukt/presentation/ukt_screen.dart';
 
 // ─── Halaman placeholder untuk fitur yang belum punya screen ──────────────────
-class _ComingSoonScreen extends StatelessWidget {
+class ComingSoonScreen extends StatelessWidget {
   final String title;
-  const _ComingSoonScreen({required this.title});
+  const ComingSoonScreen({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {

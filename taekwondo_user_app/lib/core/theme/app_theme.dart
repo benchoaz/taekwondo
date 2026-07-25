@@ -19,7 +19,6 @@ class AppTheme {
         seedColor: primaryRed,
         primary: primaryRed,
         surface: lightBg,
-        background: lightBg,
       ),
       textTheme: GoogleFonts.interTextTheme(),
       appBarTheme: const AppBarTheme(
@@ -48,7 +47,6 @@ class AppTheme {
         brightness: Brightness.dark,
         primary: primaryRed,
         surface: darkBg,
-        background: darkBg,
       ),
       textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
       appBarTheme: const AppBarTheme(

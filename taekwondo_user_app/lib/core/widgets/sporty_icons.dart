@@ -57,10 +57,6 @@ class _ScheduleIconPainter extends CustomPainter {
       ..strokeWidth = 2.5
       ..strokeCap = StrokeCap.round;
 
-    final fillPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
     // Draw clock outer ring
     canvas.drawCircle(Offset(size.width * 0.5, size.height * 0.5), size.width * 0.45, paint);
 

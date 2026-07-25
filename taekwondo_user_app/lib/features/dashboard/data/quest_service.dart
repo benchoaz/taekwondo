@@ -107,7 +107,7 @@ final questProvider = FutureProvider.autoDispose<List<QuestLog>>((ref) async {
 final questServiceProvider = Provider.autoDispose((ref) => QuestService(ref.watch(dioProvider)));
 
 class QuestService {
-  final dio; // Dio client
+  final Dio dio; // Dio client
 
   QuestService(this.dio);
 

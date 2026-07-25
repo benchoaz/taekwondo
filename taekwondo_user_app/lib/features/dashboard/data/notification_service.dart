@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/dio_client.dart';
 import '../../auth/data/auth_provider.dart';
@@ -13,9 +14,9 @@ final notificationProvider = FutureProvider.autoDispose<List<NotificationModel>>
       'userId': user.id,
     });
     
-    if (response.data != null && response.data['success'] == true) {
-      final List data = response.data['data'];
-      return data.map((e) => NotificationModel.fromJson(e)).toList();
+    if (response.statusCode == 200 && response.data != null) {
+      final List list = response.data is List ? response.data : (response.data['data'] ?? []);
+      return list.map((e) => NotificationModel.fromJson(e)).toList();
     }
     return [];
   } catch (e) {
@@ -26,7 +27,7 @@ final notificationProvider = FutureProvider.autoDispose<List<NotificationModel>>
 final notificationServiceProvider = Provider.autoDispose((ref) => NotificationService(ref.watch(dioProvider)));
 
 class NotificationService {
-  final dio;
+  final Dio dio;
 
   NotificationService(this.dio);
 

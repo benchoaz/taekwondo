@@ -32,7 +32,7 @@ rotate_logs() {
   fi
 
   # Hapus log podman lama (lebih dari 7 hari)
-  sudo podman logs --until 168h taekwondo_web > /dev/null 2>&1 || true
+  sudo podman logs --until 168h taekwondo_web_v3 > /dev/null 2>&1 || true
   log "Rotasi log selesai."
 }
 
@@ -42,7 +42,7 @@ rotate_logs() {
 check_containers() {
   log "=== [2/7] HEALTH CHECK CONTAINERS ==="
   
-  for SERVICE in taekwondo_db taekwondo_waha taekwondo_web; do
+  for SERVICE in taekwondo_db_v3 taekwondo_waha_v3 taekwondo_web_v3; do
     STATUS=$(sudo podman inspect --format='{{.State.Status}}' "$SERVICE" 2>/dev/null || echo "not_found")
     
     if [ "$STATUS" = "running" ]; then
@@ -64,8 +64,8 @@ check_containers() {
   if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "307" ] || [ "$HTTP_CODE" = "302" ]; then
     log "✅ Web server HTTP: $HTTP_CODE OK"
   else
-    log "🔴 Web server tidak merespons (HTTP: $HTTP_CODE) — restart taekwondo_web..."
-    sudo podman restart taekwondo_web 2>&1 | tee -a "$LOG_FILE"
+    log "🔴 Web server tidak merespons (HTTP: $HTTP_CODE) — restart taekwondo_web_v3..."
+    sudo podman restart taekwondo_web_v3 2>&1 | tee -a "$LOG_FILE"
   fi
 }
 
@@ -117,7 +117,7 @@ backup_database() {
   
   BACKUP_FILE="$BACKUP_DIR/db_backup_$(date '+%Y%m%d_%H%M%S').sql.gz"
   
-  sudo podman exec taekwondo_db pg_dump -U "$DB_USER" "$DB_NAME" 2>/dev/null | gzip > "$BACKUP_FILE"
+  sudo podman exec taekwondo_db_v3 pg_dump -U "$DB_USER" "$DB_NAME" 2>/dev/null | gzip > "$BACKUP_FILE"
   
   if [ -s "$BACKUP_FILE" ]; then
     BACKUP_SIZE=$(du -sh "$BACKUP_FILE" | cut -f1)
@@ -158,12 +158,12 @@ cleanup_containers() {
 check_database() {
   log "=== [6/7] CEK DATABASE ==="
   
-  DB_STATUS=$(sudo podman exec taekwondo_db pg_isready -U "$DB_USER" -d "$DB_NAME" 2>&1)
+  DB_STATUS=$(sudo podman exec taekwondo_db_v3 pg_isready -U "$DB_USER" -d "$DB_NAME" 2>&1)
   if echo "$DB_STATUS" | grep -q "accepting connections"; then
     log "✅ Database PostgreSQL: OK"
   else
     log "🔴 Database tidak responsif: $DB_STATUS"
-    sudo podman restart taekwondo_db
+    sudo podman restart taekwondo_db_v3
     sleep 10
     log "   Database direstart."
   fi

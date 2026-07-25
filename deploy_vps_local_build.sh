@@ -20,7 +20,7 @@ sshpass -e ssh $SSH_OPTS $HOST "
   
   # Load image yang sudah di-build dari lokal
   echo 'Memuat image ke dalam podman VPS...'
-  podman load -i taekwondo_web.tar
+  sudo podman load -i taekwondo_web.tar
   
   # Edit docker-compose.yml untuk menggunakan image lokal (menghapus blok build)
   sed -i '/build:/d' docker-compose.yml
@@ -30,12 +30,13 @@ sshpass -e ssh $SSH_OPTS $HOST "
   
   # Jalankan podman compose tanpa build
   echo 'Menjalankan ulang layanan web...'
-  podman-compose down && podman-compose up -d
+  sudo podman rm -f taekwondo_web_v3 2>/dev/null || true
+  sudo podman-compose down && sudo podman-compose up -d
   
   echo 'Menunggu container siap (10 detik)...'
   sleep 10
   
   # Eksekusi migrasi
-  podman exec taekwondo_web_v3 npx prisma migrate deploy
+  sudo podman exec taekwondo_web_v3 npx prisma migrate deploy
 "
 echo "Deployment Selesai!"

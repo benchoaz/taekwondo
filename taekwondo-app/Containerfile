@@ -19,6 +19,7 @@ COPY . .
 
 # Generate Prisma Client & Build
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DATABASE_URL="postgresql://taekwondo_user:taekwondo_password@localhost:5432/taekwondo_academy"
 RUN npx prisma generate
 RUN npm run build
 
@@ -40,6 +41,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 COPY --chown=nextjs:nodejs firebase-service-account.json ./firebase-service-account.json
 
 USER nextjs

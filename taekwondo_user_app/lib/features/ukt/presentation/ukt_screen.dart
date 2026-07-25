@@ -318,9 +318,9 @@ class _UktScreenState extends ConsumerState<UktScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: bannerColor.withOpacity(0.1),
+        color: bannerColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: bannerColor.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: bannerColor.withValues(alpha: 0.3), width: 1.5),
       ),
       child: Row(
         children: [
@@ -535,7 +535,7 @@ class _UktScreenState extends ConsumerState<UktScreen> {
                     decoration: BoxDecoration(
                       color: const Color(0xFF0F172A),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: hasFile ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.1)),
+                      border: Border.all(color: hasFile ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.1)),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -73,7 +73,7 @@ export async function GET(request: Request) {
 
     // ── 2. CEK SPP LUNAS ──
     if (requireSppLunas) {
-      const sppTunggakan = await prisma.sPPRecord.findFirst({
+      const sppTunggakan = await prisma.sppInvoice.findFirst({
         where: { memberId: member.id, status: { in: ["UNPAID", "OVERDUE"] } },
         orderBy: { dueDate: "asc" }
       });

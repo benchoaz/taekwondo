@@ -84,6 +84,7 @@ interface UserData {
   memberId?: string | null;
   coachId?: string | null;
   name: string;
+  username?: string;
   email: string;
   role: string;
   status: string;
@@ -122,6 +123,10 @@ interface PaymentData {
   createdAt: string;
   paymentProofUrl?: string | null;
   dueDate?: string | null;
+  receiver?: {
+    name?: string;
+    email?: string;
+  } | null;
   member?: {
     fullName: string;
     memberNumber: string;

@@ -18,7 +18,7 @@ async function main() {
         take: 5,
         orderBy: { completedAt: "desc" },
         include: {
-          user: { select: { name: true, email: true } },
+          member: { select: { fullName: true } },
           quest: { select: { title: true } }
         }
       });

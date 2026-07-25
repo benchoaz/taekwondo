@@ -18,8 +18,10 @@ subprojects {
         if (project.hasProperty("android")) {
             val androidExt = project.property("android")
             try {
-                androidExt?.javaClass?.getMethod("setNdkPath", String::class.java)?.invoke(androidExt, "/home/beni/development/ndk/27.0.12077973")
-                androidExt?.javaClass?.getMethod("setNdkVersion", String::class.java)?.invoke(androidExt, "27.0.12077973")
+                val localNdkPath = "/home/beni/development/ndk/27.0.12077973"
+                if (java.io.File(localNdkPath).exists()) {
+                    androidExt?.javaClass?.getMethod("setNdkPath", String::class.java)?.invoke(androidExt, localNdkPath)
+                }
             } catch (e: Exception) {
                 // Ignore if not applicable
             }

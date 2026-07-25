@@ -233,7 +233,7 @@ export default function LandingPage({
 
           <div className="hidden lg:flex items-center gap-8 font-medium text-sm text-[#0F172A]">
             <a href="#events" onClick={(e) => { e.preventDefault(); document.getElementById('events')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="hover:text-[#E10600] transition-colors">Informasi</a>
-            <a href="#achievements" onClick={(e) => { e.preventDefault(); document.getElementById('achievements')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="hover:text-[#E10600] transition-colors">Prestasi</a>
+            <Link href="/hall-of-fame" className="hover:text-[#E10600] transition-colors font-bold text-[#E10600]">Hall of Fame</Link>
             <a href="#coaches" onClick={(e) => { e.preventDefault(); document.getElementById('coaches')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="hover:text-[#E10600] transition-colors">Pelatih</a>
             <a href="#gallery" className="hover:text-[#E10600] transition-colors">Galeri</a>
             <button onClick={() => onNavigate("schedule-view")} className="hover:text-[#E10600] transition-colors cursor-pointer text-left">Jadwal</button>
@@ -439,127 +439,30 @@ export default function LandingPage({
         </div>
       </section>
 
-      {/* ── SECTION: PRESTASI (HALL OF FAME) ── */}
-        <section className="py-24 bg-gradient-to-b from-[#0F172A] to-[#1e293b] text-white relative overflow-hidden" id="achievements">
-          {/* Decorative Glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[500px] bg-yellow-500/10 blur-[120px] rounded-full pointer-events-none"></div>
+      {/* ── SECTION: PRESTASI (HALL OF FAME PREVIEW) ── */}
+      <section className="py-24 bg-[#0a0908] text-[#ece4d3] relative overflow-hidden font-jost" id="achievements">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[900px] h-[500px] bg-[#c6a15b]/10 blur-[150px] rounded-full pointer-events-none"></div>
 
-          <div className="max-w-7xl mx-auto px-6 relative z-10">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <span className="text-yellow-400 font-bold tracking-wider text-sm uppercase mb-3 block">Hall of Fame</span>
-              <h2 className="text-4xl md:text-5xl font-black text-white mb-6 font-display">Prestasi Member Kami</h2>
-              <p className="text-slate-300 text-lg">
-                Merupakan sebuah kebanggaan bagi kami untuk mencetak para juara. Dedikasi, disiplin, dan pantang menyerah adalah kunci kemenangan sejati.
-              </p>
-            </div>
+        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
+          <span className="font-jost text-xs font-black tracking-[0.3em] uppercase text-[#c6a15b] mb-3 block">
+            WHITE TIGER KRAKSAAN
+          </span>
+          <h2 className="font-cinzel text-4xl md:text-5xl font-bold text-[#ece4d3] mb-4">
+            HALL OF <span className="text-[#e6c883]">FAME</span>
+          </h2>
+          <p className="font-jost text-[#8d8676] text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
+            Dinding penghormatan resmi atlet sang juara. Dedikasi, disiplin, dan perjuangan mengukir medali kebanggaan Dojang.
+          </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
-              {dbAchievements.length > 0 ? (
-                dbAchievements.slice(0, 2).map((ach, index) => (
-                  <div key={ach.id} className="group relative bg-gradient-to-b from-slate-800/80 to-[#0F172A] border border-slate-700 hover:border-yellow-500/50 rounded-[2rem] overflow-hidden backdrop-blur-xl transition-all duration-700 hover:-translate-y-3 hover:shadow-[0_20px_40px_-15px_rgba(234,179,8,0.3)] flex flex-col">
-                  {/* Top Rank Badge */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 z-30 bg-gradient-to-b from-yellow-400 to-yellow-600 px-6 py-1.5 rounded-b-xl shadow-lg shadow-yellow-500/30">
-                    <span className="text-[#0F172A] font-black text-sm uppercase tracking-widest">
-                      {index === 0 ? "🏆 Top #1" : "🥈 Top #2"}
-                    </span>
-                  </div>
-
-                  {/* Glowing core behind card on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/0 via-yellow-500/0 to-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-0"></div>
-                  
-                  {/* Media / Certificate Section */}
-                  <div className="h-64 overflow-hidden relative flex-shrink-0 bg-slate-900">
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/40 to-transparent z-10"></div>
-                    {(ach.photoUrl || ach.certificateUrl) ? (
-                      <Image 
-                        src={ach.photoUrl || ach.certificateUrl || ""} 
-                        alt="Prestasi" 
-                        fill
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                        className="object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out" 
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:opacity-40 transition-opacity duration-700">
-                        <Award className="w-32 h-32 text-yellow-500 blur-sm" />
-                        <Award className="w-32 h-32 text-yellow-400 absolute" />
-                      </div>
-                    )}
-                    
-                    {/* Medal Overlay Top Right */}
-                    <div className="absolute top-5 right-5 z-20">
-                      <div className={`p-3 rounded-full shadow-2xl backdrop-blur-md border border-white/10 ${
-                        ach.rank === "Emas" ? "bg-gradient-to-br from-yellow-300 to-yellow-600 shadow-yellow-500/50" :
-                        ach.rank === "Perak" ? "bg-gradient-to-br from-slate-200 to-slate-500 shadow-slate-400/50" :
-                        "bg-gradient-to-br from-amber-500 to-orange-700 shadow-orange-500/50"
-                      }`}>
-                        <Award className="w-6 h-6 text-white drop-shadow-md" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Content Section */}
-                  <div className="p-8 relative z-20 flex-grow flex flex-col -mt-16">
-                    {/* Athlete Info */}
-                    <div className="flex items-end gap-4 mb-6">
-                      <div className="relative">
-                        <div className="absolute inset-0 rounded-full bg-yellow-500 blur-md opacity-0 group-hover:opacity-60 transition-opacity duration-500"></div>
-                        {ach.member?.selfieUrl ? (
-                          <Image src={ach.member.selfieUrl} alt="Member" width={96} height={96} className="rounded-full object-cover border-4 border-[#0F172A] shadow-xl relative z-10" />
-                        ) : (
-                          <div className="w-24 h-24 rounded-full bg-slate-800 border-4 border-[#0F172A] flex items-center justify-center shadow-xl relative z-10">
-                            <User className="w-12 h-12 text-slate-400 group-hover:text-yellow-400 transition-colors" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="pb-3">
-                        <h3 className="font-black text-2xl text-white tracking-tight drop-shadow-md">{ach.member?.fullName}</h3>
-                        <span className="text-sm font-bold text-yellow-400 tracking-wider uppercase">{ach.member?.currentBelt}</span>
-                      </div>
-                    </div>
-
-                    {/* Achievement Details */}
-                    <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50 group-hover:border-slate-600 transition-colors flex-grow flex flex-col justify-between relative overflow-hidden">
-                      <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-yellow-500/10 to-transparent rounded-bl-full pointer-events-none"></div>
-                      <div>
-                        <h4 className="font-extrabold text-white text-xl leading-snug mb-2 group-hover:text-yellow-300 transition-colors">{ach.title}</h4>
-                        <p className="text-sm text-slate-300 font-medium leading-relaxed mb-4">{ach.eventName}</p>
-                      </div>
-                      
-                      <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-700/50">
-                        <div className="flex items-center gap-2 text-xs font-bold text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
-                          <Calendar className="w-3.5 h-3.5 text-yellow-500" />
-                          {new Date(ach.date).toLocaleDateString("id-ID", { day: 'numeric', month: "long", year: "numeric" })}
-                        </div>
-                        <span className={`text-xs font-black uppercase tracking-widest ${
-                          ach.rank === "Emas" ? "text-yellow-400" :
-                          ach.rank === "Perak" ? "text-slate-300" :
-                          "text-amber-500"
-                        }`}>{ach.rank}</span>
-                      </div>
-                    </div>
-                  </div>
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-1 md:col-span-2 py-16 px-6 text-center border-2 border-dashed border-slate-700 rounded-[2rem] bg-slate-800/30 backdrop-blur-sm">
-                  <Award className="w-16 h-16 text-slate-500 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-xl font-bold text-slate-300 mb-2">Belum ada Hall of Fame</h3>
-                  <p className="text-slate-500">Jadilah yang pertama mengukir sejarah dan masuk ke dalam daftar kehormatan White Tiger Taekwondo.</p>
-                </div>
-              )}
-            </div>
-
-            <div className="mt-16 text-center relative z-20">
-              <Link 
-                href="/hall-of-fame"
-                className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-[#0F172A] px-10 py-4 rounded-full text-lg font-black shadow-xl shadow-yellow-500/20 transition-all duration-300 hover:scale-105 hover:shadow-yellow-500/40"
-              >
-                Lihat Seluruh Sang Juara
-                <ChevronRight className="w-6 h-6" />
-              </Link>
-            </div>
-          </div>
-        </section>
+          <Link
+            href="/hall-of-fame"
+            className="inline-flex items-center gap-3 border-2 border-[#c6a15b] bg-[#131110] text-[#e6c883] hover:bg-[#c6a15b] hover:text-[#0a0908] font-bold text-sm uppercase tracking-[0.2em] px-8 py-4 rounded-xl transition-all shadow-xl hover:shadow-[0_0_25px_rgba(198,161,91,0.4)] group"
+          >
+            <span>Buka Dinding Kehormatan (Hall of Fame)</span>
+            <span className="group-hover:translate-x-1 transition-transform">→</span>
+          </Link>
+        </div>
+      </section>
 
       {/* Coaches Section */}
       <section className="py-24 bg-slate-50" id="coaches">

@@ -242,39 +242,54 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, count: createdPayments.length, data: createdPayments });
     }
 
-    // If individual billing by coach for 1 member
+    // If individual or mass custom billing by coach/admin
     if (action === "individual-billing" && memberId && amount && purpose) {
-      const newPayment = await prisma.payment.create({
-        data: {
-          memberId,
-          amount: parseFloat(amount),
-          purpose,
-          status: "PENDING",
-          dueDate: dueDate ? new Date(dueDate) : null,
-        },
-        include: {
-          member: {
-            include: { user: true }
-          }
-        }
-      });
-
-      try {
-        if (newPayment.member && newPayment.member.userId) {
-          const { notifyUser } = await import("@/lib/notify");
-          await notifyUser({
-            title: "Tagihan Baru Diterbitkan 📝",
-            message: `Tagihan baru "${purpose}" sebesar Rp ${parseFloat(amount).toLocaleString('id-ID')} telah diterbitkan oleh pelatih.`,
-            type: "SPP",
-            userId: newPayment.member.userId,
-            link: "/m/spp",
-          });
-        }
-      } catch (notifyErr) {
-        console.error("Gagal notifyUser individual-billing:", notifyErr);
+      let targetMemberIds: string[] = [];
+      if (memberId === "ALL") {
+        const activeMembers = await prisma.member.findMany({
+          where: { status: "ACTIVE" },
+          select: { id: true }
+        });
+        targetMemberIds = activeMembers.map(m => m.id);
+      } else {
+        targetMemberIds = [memberId];
       }
 
-      return NextResponse.json({ success: true, data: newPayment });
+      const createdPayments = [];
+      for (const mId of targetMemberIds) {
+        const newPayment = await prisma.payment.create({
+          data: {
+            memberId: mId,
+            amount: parseFloat(amount),
+            purpose,
+            status: "PENDING",
+            dueDate: dueDate ? new Date(dueDate) : null,
+          },
+          include: {
+            member: {
+              include: { user: true }
+            }
+          }
+        });
+        createdPayments.push(newPayment);
+
+        try {
+          if (newPayment.member && newPayment.member.userId) {
+            const { notifyUser } = await import("@/lib/notify");
+            await notifyUser({
+              title: "Tagihan Baru Diterbitkan 📝",
+              message: `Tagihan baru "${purpose}" sebesar Rp ${parseFloat(amount).toLocaleString('id-ID')} telah diterbitkan.`,
+              type: "SPP",
+              userId: newPayment.member.userId,
+              link: "/",
+            });
+          }
+        } catch (notifyErr) {
+          console.error("Gagal notifyUser individual-billing:", notifyErr);
+        }
+      }
+
+      return NextResponse.json({ success: true, count: createdPayments.length, data: createdPayments.length === 1 ? createdPayments[0] : createdPayments });
     }
 
     if (!memberId || !amount || !purpose) {

@@ -76,79 +76,88 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
     }
 
-    const member = await prisma.member.findUnique({
-      where: { id: memberId },
-    });
-
-    if (!member) {
-      return NextResponse.json({ error: "Anggota tidak ditemukan" }, { status: 404 });
+    let targetMembers = [];
+    if (memberId === "ALL") {
+      targetMembers = await prisma.member.findMany({
+        where: { status: "ACTIVE" }
+      });
+    } else {
+      const singleMember = await prisma.member.findUnique({
+        where: { id: memberId },
+      });
+      if (!singleMember) {
+        return NextResponse.json({ error: "Anggota tidak ditemukan" }, { status: 404 });
+      }
+      targetMembers = [singleMember];
     }
 
     const { sendSppReceipt } = await import("@/lib/whatsapp");
     const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
     const createdInvoices = [];
 
-    for (const month of months) {
-      const existing = await prisma.sppInvoice.findUnique({
-        where: {
-          memberId_month_year: {
-            memberId,
+    for (const member of targetMembers) {
+      for (const month of months) {
+        const existing = await prisma.sppInvoice.findUnique({
+          where: {
+            memberId_month_year: {
+              memberId: member.id,
+              month,
+              year
+            }
+          }
+        });
+
+        if (existing) continue;
+
+        const monthName = monthNames[month - 1];
+        const dueDate = new Date(year, month - 1, 10);
+
+        const payment = await prisma.payment.create({
+          data: {
+            memberId: member.id,
+            amount: parseFloat(amount),
+            purpose: `SPP Bulan ${monthName} ${year}`,
+            status: "COMPLETED",
+            dueDate,
+            paidAt: new Date(),
+          }
+        });
+
+        const invoice = await prisma.sppInvoice.create({
+          data: {
+            memberId: member.id,
             month,
-            year
+            year,
+            amount: parseFloat(amount),
+            dueDate,
+            status: "PAID",
+            paymentId: payment.id
+          }
+        });
+
+        createdInvoices.push(invoice);
+
+        if (member.phone) {
+          try {
+            await sendSppReceipt(member.phone, member.fullName, monthName, year, parseFloat(amount));
+          } catch (waError) {
+            console.error("Gagal mengirim WhatsApp receipt:", waError);
           }
         }
-      });
 
-      if (existing) continue;
-
-      const monthName = monthNames[month - 1];
-      const dueDate = new Date(year, month - 1, 10);
-
-      const payment = await prisma.payment.create({
-        data: {
-          memberId,
-          amount: parseFloat(amount),
-          purpose: `SPP SPP Bulan ${monthName} ${year}`,
-          status: "COMPLETED",
-          dueDate,
-          paidAt: new Date(),
-        }
-      });
-
-      const invoice = await prisma.sppInvoice.create({
-        data: {
-          memberId,
-          month,
-          year,
-          amount: parseFloat(amount),
-          dueDate,
-          status: "PAID",
-          paymentId: payment.id
-        }
-      });
-
-      createdInvoices.push(invoice);
-
-      if (member.phone) {
+        // Kirim push notification ke member
         try {
-          await sendSppReceipt(member.phone, member.fullName, monthName, year, parseFloat(amount));
-        } catch (waError) {
-          console.error("Gagal mengirim WhatsApp receipt:", waError);
+          const { notifyUser } = await import("@/lib/notify");
+          await notifyUser({
+            title: "Pembayaran SPP Lunas (Prabayar) ✅",
+            message: `Pembayaran SPP Anda untuk bulan ${monthName} ${year} sebesar Rp ${parseFloat(amount).toLocaleString('id-ID')} telah dikonfirmasi oleh admin.`,
+            type: "SPP",
+            userId: member.userId,
+            link: "/"
+          });
+        } catch (fcmErr) {
+          console.error("FCM Notify Error:", fcmErr);
         }
-      }
-
-      // Kirim push notification ke member
-      try {
-        const { notifyUser } = await import("@/lib/notify");
-        await notifyUser({
-          userId: member.userId,
-          title: "💳 Pembayaran SPP Diterima",
-          message: `Pembayaran SPP Anda untuk bulan ${monthName} ${year} sebesar Rp ${parseFloat(amount).toLocaleString('id-ID')} telah dikonfirmasi oleh admin.`,
-          type: "SPP",
-          link: "/spp",
-        });
-      } catch (notifyErr) {
-        console.error("Gagal mengirim push notif SPP:", notifyErr);
       }
     }
 

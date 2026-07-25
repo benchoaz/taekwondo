@@ -136,7 +136,22 @@ export default function SppManagement() {
     fetchMembers();
     fetchProfile();
     fetchCoachCash();
+    fetchSettings();
   }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch("/api/settings");
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.sppFee) {
+          setSppNominal(data.sppFee);
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching settings:", e);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -282,7 +297,7 @@ export default function SppManagement() {
           memberId: selectedPrepaidMember,
           year: prepaidYear,
           months: selectedPrepaidMonths,
-          amount: prepaidAmount
+          amount: sppNominal
         })
       });
       const data = await res.json();
@@ -401,8 +416,8 @@ export default function SppManagement() {
               <Send className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base text-[#0F172A]">Terbitkan Tagihan Perorangan</h3>
-              <p className="text-xs text-gray-500">Rilis tagihan khusus untuk 1 siswa (Dobok, Private, Event)</p>
+              <h3 className="font-extrabold text-base text-[#0F172A]">Terbitkan Tagihan Khusus</h3>
+              <p className="text-xs text-gray-500">Rilis tagihan perorangan / massal (Dobok, Private, Event, Lomba)</p>
             </div>
           </div>
 
@@ -416,8 +431,9 @@ export default function SppManagement() {
                 className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-[#E10600]"
               >
                 <option value="">Pilih Anggota...</option>
+                <option value="ALL">🌐 Semua Member Aktif (Massal)</option>
                 {members.map(m => (
-                  <option key={m.memberId} value={m.memberId}>{m.name} ({m.memberNumber})</option>
+                  <option key={m.memberId} value={m.memberId}>👤 {m.name} ({m.memberNumber})</option>
                 ))}
               </select>
             </div>
@@ -426,7 +442,7 @@ export default function SppManagement() {
               <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Peruntukan Tagihan</label>
               <input
                 type="text"
-                placeholder="Contoh: Pembelian Dobok Ukuran L / Private Class"
+                placeholder="Contoh: Pembelian Dobok Ukuran L / Kejuaraan / Private Class"
                 value={indivPurpose}
                 onChange={e => setIndivPurpose(e.target.value)}
                 required
@@ -460,40 +476,33 @@ export default function SppManagement() {
             <button
               type="submit"
               disabled={isSubmittingIndiv}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold text-xs shadow-md transition-colors disabled:opacity-50 mt-1 cursor-pointer"
+              className="w-full bg-purple-700 text-white py-3 rounded-xl font-bold text-xs shadow-md hover:bg-purple-800 transition-colors disabled:opacity-50 mt-1 cursor-pointer flex items-center justify-center gap-2"
             >
-              {isSubmittingIndiv ? "⏳ Menerbitkan..." : "✉️ Terbitkan Tagihan Siswa"}
+              <Send className="w-4 h-4" />
+              {isSubmittingIndiv ? "⏳ Menerbitkan..." : "⚡ Terbitkan Tagihan Khusus"}
             </button>
           </form>
         </div>
 
         {/* Card: Laporan Setoran Uang Tunai Pelatih */}
-        <div className="bg-white p-6 rounded-[24px] border-2 border-amber-200 shadow-md flex flex-col justify-between gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
-                <Banknote className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-extrabold text-base text-[#0F172A]">Laporan Cash Pelatih</h3>
-                <p className="text-xs text-gray-500">Uang tunai yang diterima pelatih di lapangan</p>
-              </div>
+        <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <Banknote className="w-5 h-5" />
             </div>
-            <button
-              onClick={fetchCoachCash}
-              className="text-[10px] font-bold text-slate-500 hover:text-slate-800 bg-slate-100 px-3 py-1.5 rounded-lg cursor-pointer"
-            >
-              🔄 Refresh
-            </button>
+            <div>
+              <h3 className="font-extrabold text-base text-[#0F172A]">Rekap Setoran Uang Tunai</h3>
+              <p className="text-xs text-gray-500">Histori uang cash yang Anda terima dari siswa di lapangan</p>
+            </div>
           </div>
 
-          <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-5 rounded-2xl text-white shadow-md">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-100">Total Uang Tunai Diterima</span>
-            <div className="text-2xl sm:text-3xl font-black mt-1">
-              Rp {totalCoachCash.toLocaleString("id-ID")}
+          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center justify-between">
+            <div>
+              <span className="text-[10px] text-gray-500 font-bold uppercase block">Total Cash Terkumpul</span>
+              <span className="text-xl font-black text-emerald-700">Rp {totalCoachCash.toLocaleString("id-ID")}</span>
             </div>
-            <span className="text-[10px] text-amber-100 mt-1 block">
-              {coachCashData.length} Transaksi pembayaran tunai dicatat
+            <span className="text-xs font-bold bg-white text-emerald-700 px-3 py-1.5 rounded-xl border border-emerald-200 shadow-xs">
+              {coachCashData.length} Transaksi
             </span>
           </div>
 
@@ -640,7 +649,7 @@ export default function SppManagement() {
             </div>
             <div>
               <h3 className="font-bold text-[#0F172A]">Input Bayar di Muka</h3>
-              <p className="text-xs text-gray-500">Menerbitkan & melunasi langsung bulan depan</p>
+              <p className="text-xs text-gray-500">Menerbitkan & melunasi langsung bulan depan (Massal / Perorangan)</p>
             </div>
           </div>
           
@@ -651,6 +660,7 @@ export default function SppManagement() {
               className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2 text-xs font-bold outline-none"
             >
               <option value="">Pilih Anggota...</option>
+              <option value="ALL">🌐 Semua Member Aktif (Massal)</option>
               {members.map(m => (
                 <option key={m.memberId} value={m.memberId}>{m.name} ({m.memberNumber})</option>
               ))}
@@ -660,19 +670,15 @@ export default function SppManagement() {
               <select
                 value={prepaidYear}
                 onChange={e => setPrepaidYear(parseInt(e.target.value))}
-                className="w-1/2 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2 text-xs font-bold outline-none"
+                className="w-1/2 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-3 py-2 text-xs font-bold outline-none"
               >
                 {Array.from({ length: 11 }, (_, i) => 2025 + i).map((yr) => (
                   <option key={yr} value={yr}>{yr}</option>
                 ))}
               </select>
-              <input
-                type="number"
-                placeholder="Nominal"
-                value={prepaidAmount}
-                onChange={e => setPrepaidAmount(parseInt(e.target.value) || 100000)}
-                className="w-1/2 bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-2 text-xs font-bold outline-none"
-              />
+              <div className="w-1/2 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl px-3 py-2 text-[11px] font-bold flex items-center justify-center shadow-xs">
+                Rp {sppNominal.toLocaleString("id-ID")}/bln
+              </div>
             </div>
           </div>
 
@@ -704,12 +710,24 @@ export default function SppManagement() {
                 );
               })}
             </div>
+
+            {selectedPrepaidMonths.length > 0 && (
+              <div className="mt-2.5 p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+                <span className="text-[10px] text-emerald-700 font-semibold block">Total Pelunasan Prabayar:</span>
+                <span className="text-xs font-black text-emerald-800 block">
+                  Rp {(selectedPrepaidMonths.length * sppNominal).toLocaleString("id-ID")}
+                </span>
+                <span className="text-[9px] text-emerald-600 block">
+                  ({selectedPrepaidMonths.length} bulan × Rp {sppNominal.toLocaleString("id-ID")})
+                </span>
+              </div>
+            )}
           </div>
 
           <button
             onClick={handleSavePrepaid}
             disabled={isSubmittingPrepaid || !selectedPrepaidMember || selectedPrepaidMonths.length === 0}
-            className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-xs shadow-md hover:bg-emerald-700 transition-colors disabled:opacity-50"
+            className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold text-xs shadow-md hover:bg-emerald-700 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isSubmittingPrepaid ? "⏳ Menyimpan..." : "✅ Simpan Bayar di Muka"}
           </button>

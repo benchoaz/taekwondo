@@ -3324,18 +3324,18 @@ export default function MemberDashboard({
       {/* Achievement Modal */}
       {showAchievementModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-slide-up">
-            <div className="bg-[#E10600] px-6 py-4 flex items-center justify-between">
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-slide-up max-h-[90vh] flex flex-col">
+            <div className="bg-[#E10600] px-6 py-4 flex items-center justify-between shrink-0">
               <h3 className="font-display font-black text-white text-lg">Tambah Prestasi</h3>
               <button onClick={() => setShowAchievementModal(false)} className="text-white/80 hover:text-white transition-colors cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleSaveAchievement} className="p-6 flex flex-col gap-4">
+            <form onSubmit={handleSaveAchievement} className="p-5 flex flex-col gap-3.5 overflow-y-auto">
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-1.5 block">Kategori / Medali</label>
+                <label className="text-xs font-bold text-gray-500 mb-1 block">Kategori / Medali</label>
                 <select 
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#E10600] focus:border-transparent outline-none transition-all"
+                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#E10600] focus:border-transparent outline-none transition-all"
                   value={achRank} onChange={e => setAchRank(e.target.value)} required
                 >
                   <option value="Emas">Emas (Juara 1)</option>
@@ -3345,28 +3345,28 @@ export default function MemberDashboard({
                 </select>
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-1.5 block">Nama Kejuaraan</label>
+                <label className="text-xs font-bold text-gray-500 mb-1 block">Nama Kejuaraan</label>
                 <input 
                   type="text" 
                   placeholder="Contoh: Kejurda DKI Jakarta 2024"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#E10600] focus:border-transparent outline-none transition-all"
+                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-[#E10600] focus:border-transparent outline-none transition-all"
                   value={achEventName} onChange={e => setAchEventName(e.target.value)} required
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-1.5 block">Kategori Lomba (Judul)</label>
+                <label className="text-xs font-bold text-gray-500 mb-1 block">Kategori Lomba (Judul)</label>
                 <input 
                   type="text" 
                   placeholder="Contoh: Kyorugi Putra U-45"
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#E10600] focus:border-transparent outline-none transition-all"
+                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-[#E10600] focus:border-transparent outline-none transition-all"
                   value={achTitle} onChange={e => setAchTitle(e.target.value)} required
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-1.5 block">Tanggal Kejuaraan</label>
+                <label className="text-xs font-bold text-gray-500 mb-1 block">Tanggal Kejuaraan</label>
                 <input 
                   type="date" 
-                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:ring-2 focus:ring-[#E10600] focus:border-transparent outline-none transition-all"
+                  className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 focus:ring-2 focus:ring-[#E10600] focus:border-transparent outline-none transition-all"
                   value={achDate} onChange={e => setAchDate(e.target.value)} required
                 />
               </div>
@@ -3375,23 +3375,25 @@ export default function MemberDashboard({
               <div>
                 <label className="text-xs font-bold text-gray-700 mb-0.5 flex items-center gap-1.5">
                   🏆 Foto Aksi / Selebrasi Atlet
-                  <span className="text-[10px] font-normal text-slate-400">(opsional · untuk pajangan Hall of Fame)</span>
+                  <span className="text-[10px] font-normal text-slate-400">(opsional · Hall of Fame)</span>
                 </label>
-                <p className="text-[10px] text-gray-400 mb-2">Foto atlet berseragam Dobok, selebrasi medali, atau di atas podium. Dipajang di Hall of Fame.</p>
-                <div className="border-2 border-dashed border-amber-200 rounded-2xl p-4 bg-amber-50/20 flex flex-col items-center gap-2">
+                <div className="border border-dashed border-amber-300 rounded-xl p-3 bg-amber-50/20 flex flex-col items-center gap-1.5">
                   {achPhotoUrl ? (
-                    <div className="flex flex-col items-center gap-2 w-full">
-                      <img src={achPhotoUrl} alt="Foto Aksi Hall of Fame" className="max-h-28 rounded-xl object-contain border border-amber-100" />
+                    <div className="flex flex-col items-center gap-1.5 w-full">
+                      <img src={achPhotoUrl} alt="Foto Aksi Hall of Fame" className="max-h-20 rounded-lg object-contain border border-amber-200" />
                       <button type="button" onClick={() => setAchPhotoUrl(null)} className="text-[10px] text-red-400 hover:text-red-600 font-bold cursor-pointer">
                         Hapus Foto Aksi
                       </button>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center gap-1.5">
-                      <span className="text-xl">🥋</span>
-                      <label className="bg-white hover:bg-amber-50 border border-amber-200 px-4 py-1.5 rounded-xl text-xs font-bold text-amber-800 cursor-pointer transition-all inline-flex items-center gap-1.5">
-                        <Upload className="w-3.5 h-3.5 text-amber-600" />
-                        Pilih Foto Aksi / Podium
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🥋</span>
+                        <span className="text-[10px] text-gray-500">Tampil gagah di Hall of Fame</span>
+                      </div>
+                      <label className="bg-white hover:bg-amber-50 border border-amber-300 px-3 py-1 rounded-lg text-xs font-bold text-amber-800 cursor-pointer transition-all inline-flex items-center gap-1 shrink-0">
+                        <Upload className="w-3 h-3 text-amber-600" />
+                        Upload Foto
                         <input
                           type="file"
                           accept="image/*"
@@ -3404,7 +3406,6 @@ export default function MemberDashboard({
                           }}
                         />
                       </label>
-                      <span className="text-[9px] text-gray-400">JPG atau PNG · Tampil gagah di Hall of Fame</span>
                     </div>
                   )}
                 </div>
@@ -3414,18 +3415,17 @@ export default function MemberDashboard({
               <div>
                 <label className="text-xs font-bold text-gray-700 mb-0.5 flex items-center gap-1.5">
                   📜 Scan / Foto Piagam Sertifikat
-                  <span className="text-[10px] font-normal text-red-500">* wajib untuk validasi</span>
+                  <span className="text-[10px] font-normal text-red-500">* wajib</span>
                 </label>
-                <p className="text-[10px] text-gray-400 mb-2">Upload foto/scan lembar piagam resmi sebagai syarat verifikasi prestasi oleh Admin & Pelatih.</p>
-                <div className="border-2 border-dashed border-blue-200 rounded-2xl p-4 bg-blue-50/30 flex flex-col items-center gap-2">
+                <div className="border border-dashed border-blue-300 rounded-xl p-3 bg-blue-50/20 flex flex-col items-center gap-1.5">
                   {achCertificateUrl ? (
-                    <div className="flex flex-col items-center gap-2 w-full">
+                    <div className="flex flex-col items-center gap-1.5 w-full">
                       {achCertificateUrl.startsWith("data:image") || achCertificateUrl.endsWith(".jpg") || achCertificateUrl.endsWith(".png") || achCertificateUrl.includes("/storage/") ? (
-                        <img src={achCertificateUrl} alt="Piagam" className="max-h-28 rounded-xl object-contain border border-blue-100" />
+                        <img src={achCertificateUrl} alt="Piagam" className="max-h-20 rounded-lg object-contain border border-blue-100" />
                       ) : (
-                        <div className="flex items-center gap-2 bg-green-50 border border-green-100 px-4 py-3 rounded-xl w-full">
-                          <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                          <span className="text-xs font-bold text-green-700">Dokumen Piagam Tersimpan</span>
+                        <div className="flex items-center gap-2 bg-green-50 border border-green-100 px-3 py-2 rounded-lg w-full">
+                          <Check className="w-3.5 h-3.5 text-green-500 flex-shrink-0" />
+                          <span className="text-xs font-bold text-green-700">Piagam Tersimpan</span>
                         </div>
                       )}
                       <button type="button" onClick={() => setAchCertificateUrl(null)} className="text-[10px] text-red-400 hover:text-red-600 font-bold cursor-pointer">
@@ -3433,11 +3433,14 @@ export default function MemberDashboard({
                       </button>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center gap-1.5">
-                      <FileText className="w-7 h-7 text-blue-400" />
-                      <label className="bg-white hover:bg-blue-50 border border-blue-200 px-4 py-1.5 rounded-xl text-xs font-bold text-blue-700 cursor-pointer transition-all inline-flex items-center gap-1.5">
-                        <Upload className="w-3.5 h-3.5 text-blue-600" />
-                        Pilih Scan Piagam
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-5 h-5 text-blue-400 flex-shrink-0" />
+                        <span className="text-[10px] text-gray-500">Foto/scan piagam resmi</span>
+                      </div>
+                      <label className="bg-white hover:bg-blue-50 border border-blue-300 px-3 py-1 rounded-lg text-xs font-bold text-blue-700 cursor-pointer transition-all inline-flex items-center gap-1 shrink-0">
+                        <Upload className="w-3 h-3 text-blue-600" />
+                        Upload Piagam
                         <input
                           type="file"
                           accept="image/*,application/pdf"
@@ -3450,26 +3453,25 @@ export default function MemberDashboard({
                           }}
                         />
                       </label>
-                      <span className="text-[9px] text-slate-400">JPG, PNG atau PDF · Untuk verifikasi internal saja</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-2">
+              <div className="flex gap-3 mt-3 pt-2 border-t border-slate-100 sticky bottom-0 bg-white z-10">
                 <button 
                   type="button" 
                   onClick={() => setShowAchievementModal(false)}
-                  className="w-full bg-slate-100 text-gray-500 py-3 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition-colors"
+                  className="w-full bg-slate-100 text-gray-500 py-2.5 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition-colors"
                 >
                   Batal
                 </button>
                 <button 
                   type="submit" 
                   disabled={isSavingAchievement}
-                  className="w-full bg-[#E10600] text-white py-3 rounded-xl font-bold text-xs shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50 hover:bg-red-700"
+                  className="w-full bg-[#E10600] text-white py-2.5 rounded-xl font-bold text-xs shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50 hover:bg-red-700"
                 >
-                  {isSavingAchievement ? "Menyimpan..." : "Kirim Pengajuan"}
+                  {isSavingAchievement ? "Menyimpan..." : "Simpan Prestasi"}
                 </button>
               </div>
             </form>

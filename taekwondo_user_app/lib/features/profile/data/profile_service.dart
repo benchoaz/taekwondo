@@ -105,6 +105,23 @@ class ProfileService {
     }
   }
 
+  /// Update nama pengguna / member di server
+  Future<bool> updateName(String name) async {
+    try {
+      final dio = _ref.read(dioProvider);
+      final response = await dio.put(
+        '/profile',
+        data: {
+          'name': name.trim(),
+        },
+      );
+      return response.statusCode == 200 && response.data['success'] == true;
+    } catch (e) {
+      debugPrint('[ProfileService] Update name error: $e');
+      return false;
+    }
+  }
+
   Future<bool> uploadProfilePicture(XFile file) async {
     final dio = _ref.read(dioProvider);
     

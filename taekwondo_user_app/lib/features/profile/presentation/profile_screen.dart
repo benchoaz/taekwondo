@@ -375,6 +375,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   letterSpacing: 1,
                 ),
               ),
+              GestureDetector(
+                onTap: () => _showEditNameModal(context, ref, profile, themeColor),
+                child: Container(
+                  margin: const EdgeInsets.only(left: 8),
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                  ),
+                  child: const Icon(Icons.edit_outlined, color: Colors.white70, size: 14),
+                ),
+              ),
               if (emblemUrl != null) ...[
                 const SizedBox(width: 8),
                 DynamicAssetWidget(
@@ -904,6 +917,124 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   },
                   child: Text(
                     'Simpan Perubahan',
+                    style: GoogleFonts.spaceGrotesk(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEditNameModal(BuildContext context, WidgetRef ref, ProfileData profile, Color themeColor) {
+    final controller = TextEditingController(text: profile.name);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1E222D),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            left: 24,
+            right: 24,
+            top: 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Perbarui Nama Pengguna',
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Nama ini akan tersimpan ke server dan muncul di aplikasi serta web.',
+                style: GoogleFonts.hankenGrotesk(
+                  fontSize: 12,
+                  color: const Color(0xFF8A93A6),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'NAMA LENGKAP',
+                style: GoogleFonts.hankenGrotesk(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: controller,
+                style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 16),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xFF2A303F),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: themeColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () async {
+                    final newName = controller.text.trim();
+                    if (newName.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Nama tidak boleh kosong')),
+                      );
+                      return;
+                    }
+
+                    Navigator.pop(ctx);
+                    final success = await ref.read(profileServiceProvider).updateName(newName);
+                    if (mounted) {
+                      if (success) {
+                        ref.invalidate(profileProvider);
+                        ref.invalidate(authProvider);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Nama berhasil diperbarui dan tersimpan di server!'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Gagal memperbarui nama di server')),
+                        );
+                      }
+                    }
+                  },
+                  child: Text(
+                    'Simpan Nama',
                     style: GoogleFonts.spaceGrotesk(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

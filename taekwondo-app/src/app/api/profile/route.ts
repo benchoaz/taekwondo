@@ -114,10 +114,16 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { phone, password } = body;
+    const { phone, password, name, fullName } = body;
 
     const updateData: any = {};
     const memberUpdateData: any = {};
+
+    const newName = (name || fullName)?.toString().trim();
+    if (newName && newName.length > 0) {
+      updateData.name = newName;
+      memberUpdateData.fullName = newName;
+    }
 
     if (phone !== undefined) {
       memberUpdateData.phone = phone;

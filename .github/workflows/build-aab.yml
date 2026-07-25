@@ -1,12 +1,22 @@
 name: Build Flutter AAB
 
 on:
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+  push:
+    branches: [ main ]
+    paths:
+      - 'taekwondo_user_app/**'
+      - '.github/workflows/build-aab.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
+    name: Build AAB (Android App Bundle)
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -14,25 +24,52 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: 'zulu'
           java-version: '17'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.7'
           channel: 'stable'
+          flutter-version: 'any'
 
       - name: Install Dependencies
-        working-directory: taekwondo_user_app
-        run: flutter pub get
+        run: |
+          cd taekwondo_user_app
+          flutter pub get
+
+      - name: Setup Android Keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE || secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS || secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "Setting up signed release keystore..."
+            printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '\r\n' | base64 --decode > taekwondo_user_app/android/key.jks
+            mkdir -p taekwondo_user_app/android/app
+            cp taekwondo_user_app/android/key.jks taekwondo_user_app/android/app/key.jks
+            cat <<EOF > taekwondo_user_app/android/key.properties
+            storePassword=$KEYSTORE_PASSWORD
+            keyPassword=$KEY_PASSWORD
+            keyAlias=$KEY_ALIAS
+            storeFile=key.jks
+            EOF
+            chmod 600 taekwondo_user_app/android/key.jks
+          else
+            echo "Notice: ANDROID_KEYSTORE secret is not set, proceeding with default build."
+          fi
 
       - name: Build AAB
-        working-directory: taekwondo_user_app
-        run: flutter build appbundle --release
+        run: |
+          cd taekwondo_user_app
+          flutter build appbundle --release --no-tree-shake-icons
 
-      - name: Upload Artifact
+      - name: Upload AAB Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-release
+          name: taekwondo-release-aab
           path: taekwondo_user_app/build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
+

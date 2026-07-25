@@ -433,6 +433,7 @@ export default function AdminDashboard({
 
   // Financial Administration State
   const [payments, setPayments] = useState<PaymentData[]>([]);
+  const [sppInvoices, setSppInvoices] = useState<any[]>([]);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState("");
@@ -826,13 +827,20 @@ export default function AdminDashboard({
   const fetchPayments = async () => {
     setIsLoadingPayments(true);
     try {
-      const res = await fetch("/api/payments");
-      if (res.ok) {
-        const data = await res.json();
+      const [resPay, resSpp] = await Promise.all([
+        fetch("/api/payments"),
+        fetch("/api/spp")
+      ]);
+      if (resPay.ok) {
+        const data = await resPay.json();
         if (Array.isArray(data)) setPayments(data);
       }
+      if (resSpp.ok) {
+        const sppData = await resSpp.json();
+        if (Array.isArray(sppData)) setSppInvoices(sppData);
+      }
     } catch (e) {
-      console.error("Error fetching payments:", e);
+      console.error("Error fetching payments/spp:", e);
     } finally {
       setIsLoadingPayments(false);
     }
@@ -1729,15 +1737,28 @@ export default function AdminDashboard({
     let pendingCount = 0;
     let pengeluaranTotal = 0;
 
+    const countedPaymentIds = new Set<string>();
+
     payments.forEach(p => {
       if (p.status === "COMPLETED") {
         kasBersih += p.amount;
-        if (p.purpose.toLowerCase().includes("spp")) sppTotal += p.amount;
-        else if (p.purpose.toLowerCase().includes("ukt")) uktTotal += p.amount;
-        else if (p.purpose.toLowerCase().includes("lomba") || p.purpose.toLowerCase().includes("kejuaraan")) perlombaanTotal += p.amount;
-        else if (p.purpose.toLowerCase().includes("pertemuan") || p.purpose.toLowerCase().includes("iuran")) iuranTotal += p.amount;
-      } else if (p.status === "PENDING") {
+        const lp = p.purpose.toLowerCase();
+        if (lp.includes("spp")) sppTotal += p.amount;
+        else if (lp.includes("ukt")) uktTotal += p.amount;
+        else if (lp.includes("lomba") || lp.includes("kejuaraan") || lp.includes("tournament")) perlombaanTotal += p.amount;
+        else if (lp.includes("pertemuan") || lp.includes("iuran") || lp.includes("presensi") || lp.includes("latihan")) iuranTotal += p.amount;
+        else sppTotal += p.amount; // Fallback routine revenue
+      } else if (p.status === "PENDING" || p.status === "OVERDUE") {
         piutangTotal += p.amount;
+        pendingCount++;
+        countedPaymentIds.add(p.id);
+      }
+    });
+
+    // Accumulate un-initiated SppInvoice receivables (UNPAID or OVERDUE)
+    sppInvoices.forEach(inv => {
+      if ((inv.status === "UNPAID" || inv.status === "OVERDUE") && (!inv.paymentId || !countedPaymentIds.has(inv.paymentId))) {
+        piutangTotal += inv.amount;
         pendingCount++;
       }
     });

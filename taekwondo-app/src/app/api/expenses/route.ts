@@ -21,12 +21,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Amount and description are required" }, { status: 400 });
     }
 
+    const userHeaderId = request.headers.get("x-user-id");
+    let adminName = recordedBy;
+    if (!adminName && userHeaderId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userHeaderId },
+        select: { name: true, email: true }
+      });
+      if (user) adminName = user.name || user.email;
+    }
+
     const newExpense = await prisma.expense.create({
       data: {
         amount: parseFloat(amount),
         description,
         date: date ? new Date(date) : new Date(),
-        recordedBy: recordedBy || "Admin"
+        recordedBy: adminName || "Admin Bendahara"
       }
     });
 

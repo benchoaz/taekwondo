@@ -125,6 +125,7 @@ export default function MemberDashboard({
   const [achEventName, setAchEventName] = useState("");
   const [achDate, setAchDate] = useState("");
   const [achRank, setAchRank] = useState("Emas");
+  const [achPhotoUrl, setAchPhotoUrl] = useState<string | null>(null);
   const [achCertificateUrl, setAchCertificateUrl] = useState<string | null>(null);
   const [isSavingAchievement, setIsSavingAchievement] = useState(false);
 
@@ -1722,7 +1723,7 @@ export default function MemberDashboard({
           eventName: achEventName,
           date: achDate,
           rank: achRank,
-          photoUrl: null, // You can upload medal/photo if needed, but we'll focus on certificate
+          photoUrl: achPhotoUrl,
           certificateUrl: achCertificateUrl,
           status: "PENDING"
         })
@@ -1736,6 +1737,7 @@ export default function MemberDashboard({
         setAchEventName("");
         setAchDate("");
         setAchRank("Emas");
+        setAchPhotoUrl(null);
         setAchCertificateUrl(null);
       } else {
         const err = await res.json();
@@ -3356,37 +3358,73 @@ export default function MemberDashboard({
                 />
               </div>
 
+              {/* Upload 1: Foto Selebrasi / Podium Juara */}
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-1.5 block">Unggah Bukti Piagam / Sertifikat</label>
-                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-5 bg-[#F8FAFC] flex flex-col items-center gap-3">
-                  {achCertificateUrl ? (
+                <label className="text-xs font-bold text-gray-700 mb-0.5 flex items-center gap-1.5">
+                  🏆 Foto Podium / Selebrasi Juara
+                  <span className="text-[10px] font-normal text-slate-400">(opsional · tampil publik)</span>
+                </label>
+                <p className="text-[10px] text-gray-400 mb-2">Foto atlet dikalungi medali atau di atas podium. Foto ini akan tampil di galeri & profil.</p>
+                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 bg-[#F8FAFC] flex flex-col items-center gap-2">
+                  {achPhotoUrl ? (
                     <div className="flex flex-col items-center gap-2 w-full">
-                      {achCertificateUrl.startsWith("data:image") || achCertificateUrl.endsWith(".jpg") || achCertificateUrl.endsWith(".png") ? (
-                        <img
-                          src={achCertificateUrl}
-                          alt="Piagam"
-                          className="max-h-28 rounded-xl object-contain border border-slate-100"
-                        />
-                      ) : (
-                        <div className="flex items-center gap-2 bg-green-50 border border-green-100 px-4 py-3 rounded-xl w-full">
-                          <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
-                          <span className="text-xs font-bold text-green-700">Dokumen Tersimpan</span>
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => setAchCertificateUrl(null)}
-                        className="text-[10px] text-red-400 hover:text-red-600 font-bold cursor-pointer"
-                      >
-                        Hapus Dokumen
+                      <img src={achPhotoUrl} alt="Foto Podium" className="max-h-28 rounded-xl object-contain border border-slate-100" />
+                      <button type="button" onClick={() => setAchPhotoUrl(null)} className="text-[10px] text-red-400 hover:text-red-600 font-bold cursor-pointer">
+                        Hapus Foto Podium
                       </button>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      <FileText className="w-8 h-8 text-slate-300" />
-                      <label className="bg-white hover:bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all inline-flex items-center gap-1.5">
+                    <div className="flex flex-col items-center gap-1.5">
+                      <span className="text-2xl">🥇</span>
+                      <label className="bg-white hover:bg-slate-50 border border-slate-200 px-4 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all inline-flex items-center gap-1.5">
                         <Upload className="w-3.5 h-3.5 text-slate-500" />
-                        Pilih Piagam
+                        Pilih Foto Podium
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const url = await uploadToServer(file, file.name);
+                            if (url) setAchPhotoUrl(url);
+                          }}
+                        />
+                      </label>
+                      <span className="text-[9px] text-gray-400">JPG atau PNG · Maks 2MB</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Upload 2: Scan / Bukti Piagam Sertifikat (wajib untuk validasi) */}
+              <div>
+                <label className="text-xs font-bold text-gray-700 mb-0.5 flex items-center gap-1.5">
+                  📜 Scan / Foto Piagam Sertifikat
+                  <span className="text-[10px] font-normal text-red-500">* wajib untuk validasi</span>
+                </label>
+                <p className="text-[10px] text-gray-400 mb-2">Upload foto/scan dokumen piagam resmi sebagai syarat verifikasi oleh Admin & Pelatih. Tidak tampil publik.</p>
+                <div className="border-2 border-dashed border-blue-200 rounded-2xl p-4 bg-blue-50/30 flex flex-col items-center gap-2">
+                  {achCertificateUrl ? (
+                    <div className="flex flex-col items-center gap-2 w-full">
+                      {achCertificateUrl.startsWith("data:image") || achCertificateUrl.endsWith(".jpg") || achCertificateUrl.endsWith(".png") || achCertificateUrl.includes("/storage/") ? (
+                        <img src={achCertificateUrl} alt="Piagam" className="max-h-28 rounded-xl object-contain border border-blue-100" />
+                      ) : (
+                        <div className="flex items-center gap-2 bg-green-50 border border-green-100 px-4 py-3 rounded-xl w-full">
+                          <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                          <span className="text-xs font-bold text-green-700">Dokumen Piagam Tersimpan</span>
+                        </div>
+                      )}
+                      <button type="button" onClick={() => setAchCertificateUrl(null)} className="text-[10px] text-red-400 hover:text-red-600 font-bold cursor-pointer">
+                        Hapus Piagam
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1.5">
+                      <FileText className="w-7 h-7 text-blue-400" />
+                      <label className="bg-white hover:bg-blue-50 border border-blue-200 px-4 py-1.5 rounded-xl text-xs font-bold text-blue-700 cursor-pointer transition-all inline-flex items-center gap-1.5">
+                        <Upload className="w-3.5 h-3.5 text-blue-600" />
+                        Pilih Scan Piagam
                         <input
                           type="file"
                           accept="image/*,application/pdf"
@@ -3399,6 +3437,7 @@ export default function MemberDashboard({
                           }}
                         />
                       </label>
+                      <span className="text-[9px] text-slate-400">JPG, PNG atau PDF · Untuk verifikasi internal saja</span>
                     </div>
                   )}
                 </div>

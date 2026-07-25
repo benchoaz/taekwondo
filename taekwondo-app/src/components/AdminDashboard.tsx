@@ -477,6 +477,7 @@ export default function AdminDashboard({
   const [achDate, setAchDate] = useState("");
   const [achRank, setAchRank] = useState("Emas");
   const [achPhotoUrl, setAchPhotoUrl] = useState<string | null>(null);
+  const [achCertUrl, setAchCertUrl] = useState<string | null>(null);
   const [isSavingAchievement, setIsSavingAchievement] = useState(false);
 
   // Hero Slider State
@@ -1535,6 +1536,7 @@ export default function AdminDashboard({
       setAchDate(ach.date ? new Date(ach.date).toISOString().split("T")[0] : "");
       setAchRank(ach.rank || "Emas");
       setAchPhotoUrl(ach.photoUrl || null);
+      setAchCertUrl(ach.certificateUrl || null);
     } else {
       setEditingAchievement(null);
       setAchMemberId("");
@@ -1543,6 +1545,7 @@ export default function AdminDashboard({
       setAchDate("");
       setAchRank("Emas");
       setAchPhotoUrl(null);
+      setAchCertUrl(null);
     }
     setShowAchievementModal(true);
   };
@@ -1563,6 +1566,7 @@ export default function AdminDashboard({
           date: achDate,
           rank: achRank,
           photoUrl: achPhotoUrl,
+          certificateUrl: achCertUrl,
           status: "APPROVED"
         })
       });
@@ -3534,8 +3538,15 @@ export default function AdminDashboard({
                           </div>
                           <div className="flex gap-2">
                             {ach.certificateUrl && (
-                              <a href={ach.certificateUrl} target="_blank" rel="noreferrer" className="p-2 bg-slate-800 text-slate-300 hover:text-white rounded-xl transition-colors" title="Lihat Bukti">
-                                <FileText className="w-4 h-4" />
+                              <a 
+                                href={ach.certificateUrl} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="px-3 py-1.5 bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 border border-blue-500/30 text-xs font-bold rounded-xl transition-colors inline-flex items-center gap-1.5" 
+                                title="Lihat Bukti Scan Piagam untuk Validasi Admin/Pelatih"
+                              >
+                                <FileText className="w-3.5 h-3.5 text-blue-400" />
+                                Validasi Piagam
                               </a>
                             )}
                             <button onClick={() => handleOpenAchievementModal(ach)} className="p-2 bg-slate-800 text-blue-400 hover:bg-slate-700 rounded-xl transition-colors" title="Edit">
@@ -5305,24 +5316,26 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              {/* Upload Foto Medali/Prestasi */}
+              {/* 1. Upload Foto Selebrasi / Podium Juara (Publik) */}
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-[#0F172A] uppercase">Foto Dokumentasi (Opsional)</label>
-                <p className="text-[10px] text-gray-400">Pajang foto sang juara dengan medalinya.</p>
-                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-5 bg-[#F8FAFC] flex flex-col items-center gap-3">
+                <label className="text-xs font-bold text-[#0F172A] uppercase flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-amber-500" /> Foto Selebrasi / Podium Juara <span className="text-[10px] font-normal text-slate-400 lowercase">(publik)</span>
+                </label>
+                <p className="text-[10px] text-gray-400">Foto atlet saat berada di atas podium / dikalungi medali (Dipajang di Galeri & Profil Member).</p>
+                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 bg-[#F8FAFC] flex flex-col items-center gap-2">
                   {achPhotoUrl ? (
                     <div className="flex flex-col items-center gap-2 w-full">
-                      <img src={achPhotoUrl} alt="Foto Prestasi" className="max-h-32 rounded-xl object-contain border border-slate-100" />
+                      <img src={achPhotoUrl} alt="Foto Medali" className="max-h-28 rounded-xl object-contain border border-slate-100" />
                       <button type="button" onClick={() => setAchPhotoUrl(null)} className="text-[10px] text-red-400 hover:text-red-600 font-bold">
-                        Hapus Foto
+                        Hapus Foto Podium
                       </button>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      <Award className="w-8 h-8 text-slate-300" />
-                      <label className="bg-white hover:bg-slate-50 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all inline-flex items-center gap-1.5">
+                    <div className="flex flex-col items-center gap-1.5">
+                      <Award className="w-7 h-7 text-amber-400" />
+                      <label className="bg-white hover:bg-slate-50 border border-slate-200 px-4 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all inline-flex items-center gap-1.5 shadow-sm">
                         <Upload className="w-3.5 h-3.5 text-slate-500" />
-                        Pilih Foto
+                        Pilih Foto Podium
                         <input
                           type="file"
                           accept="image/*"
@@ -5336,6 +5349,50 @@ export default function AdminDashboard({
                         />
                       </label>
                       <span className="text-[9px] text-gray-400">JPG atau PNG · Maks 2MB</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 2. Upload Scan / Bukti Piagam Sertifikat (Internal Validasi) */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-[#0F172A] uppercase flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-blue-500" /> File / Scan Piagam Sertifikat <span className="text-[10px] font-normal text-blue-600 lowercase">(khusus validasi)</span>
+                </label>
+                <p className="text-[10px] text-gray-400">Foto/Scan dokumen resmi piagam penghargaan sebagai syarat bukti verifikasi Admin & Pelatih.</p>
+                <div className="border-2 border-dashed border-blue-100 rounded-2xl p-4 bg-blue-50/30 flex flex-col items-center gap-2">
+                  {achCertUrl ? (
+                    <div className="flex flex-col items-center gap-2 w-full">
+                      {achCertUrl.startsWith("data:image") || achCertUrl.endsWith(".jpg") || achCertUrl.endsWith(".png") || achCertUrl.includes("/storage/") ? (
+                        <img src={achCertUrl} alt="Scan Piagam" className="max-h-28 rounded-xl object-contain border border-blue-100" />
+                      ) : (
+                        <div className="flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-xl text-xs font-bold">
+                          <FileText className="w-4 h-4 text-blue-600" /> Dokumen Piagam Terlampir
+                        </div>
+                      )}
+                      <button type="button" onClick={() => setAchCertUrl(null)} className="text-[10px] text-red-400 hover:text-red-600 font-bold">
+                        Hapus File Piagam
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1.5">
+                      <FileText className="w-7 h-7 text-blue-400" />
+                      <label className="bg-white hover:bg-slate-50 border border-blue-200 px-4 py-1.5 rounded-xl text-xs font-bold text-blue-700 cursor-pointer transition-all inline-flex items-center gap-1.5 shadow-sm">
+                        <Upload className="w-3.5 h-3.5 text-blue-600" />
+                        Pilih Scan Piagam
+                        <input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const url = await uploadToServer(file, file.name, "gallery");
+                            if (url) setAchCertUrl(url);
+                          }}
+                        />
+                      </label>
+                      <span className="text-[9px] text-slate-400">JPG, PNG atau PDF · Hanya untuk internal verifikasi</span>
                     </div>
                   )}
                 </div>

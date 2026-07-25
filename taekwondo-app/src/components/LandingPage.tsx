@@ -67,8 +67,8 @@ export default function LandingPage({
       .catch(err => console.error("Error fetching settings:", err))
       .finally(() => setIsSettingsLoaded(true));
 
-    // Fetch Latest Announcement
-    fetch("/api/announcements")
+    // Fetch Latest Active Announcement
+    fetch("/api/announcements?active=true")
       .then(res => res.json())
       .then(data => {
         if (data && data.success && data.announcement) {
@@ -285,7 +285,11 @@ export default function LandingPage({
             {React.createElement('marquee', {
               className: "text-xs font-bold font-sans tracking-wide",
               scrollamount: "4"
-            } as any, `${announcement.title}: ${announcement.message}`)}
+            } as any, `${announcement.title}: ${announcement.message}${
+              announcement.expiresAt
+                ? `  [Berlaku s.d. ${new Date(announcement.expiresAt).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })} WIB]`
+                : ""
+            }`)}
           </div>
         </div>
       )}

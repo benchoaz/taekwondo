@@ -69,7 +69,8 @@ export async function GET(req: NextRequest) {
       : null;
 
     const profileData = {
-      name: user.member.fullName || user.name,
+      name: user.name || user.member.fullName, // Display Name / Nickname di APK
+      fullName: user.member.fullName || user.name, // Nama Lengkap Resmi Member
       email: user.email,
       memberNumber: user.member.memberNumber,
       currentBelt: user.member.currentBelt,
@@ -114,15 +115,23 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { phone, password, name, fullName } = body;
+    const { phone, password, name, nickname, fullName } = body;
 
     const updateData: any = {};
     const memberUpdateData: any = {};
 
-    const newName = (name || fullName)?.toString().trim();
-    if (newName && newName.length > 0) {
-      updateData.name = newName;
-      memberUpdateData.fullName = newName;
+    // Nickname / Nama Tampilan APK (User.name)
+    const newNickname = (nickname || name)?.toString().trim();
+    if (newNickname && newNickname.length > 0) {
+      updateData.name = newNickname;
+    }
+
+    // Nama Lengkap Resmi (Member.fullName)
+    if (fullName !== undefined) {
+      const newFullName = fullName?.toString().trim();
+      if (newFullName && newFullName.length > 0) {
+        memberUpdateData.fullName = newFullName;
+      }
     }
 
     if (phone !== undefined) {

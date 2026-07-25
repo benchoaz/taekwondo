@@ -956,7 +956,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Perbarui Nama Pengguna',
+                'Perbarui Nama Panggilan (Nickname)',
                 style: GoogleFonts.spaceGrotesk(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -965,7 +965,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Nama ini akan tersimpan ke server dan muncul di aplikasi serta web.',
+                'Nama panggilan / nickname yang ditampilkan pada kartu profil aplikasi APK.',
                 style: GoogleFonts.hankenGrotesk(
                   fontSize: 12,
                   color: const Color(0xFF8A93A6),
@@ -973,7 +973,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               const SizedBox(height: 20),
               Text(
-                'NAMA LENGKAP',
+                'NAMA PANGGILAN (NICKNAME)',
                 style: GoogleFonts.hankenGrotesk(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,

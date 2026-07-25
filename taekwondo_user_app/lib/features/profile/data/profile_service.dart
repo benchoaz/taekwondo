@@ -29,7 +29,8 @@ class ProfileAchievement {
 }
 
 class ProfileData {
-  final String name;
+  final String name; // Nickname / Nama Panggilan di APK
+  final String fullName; // Nama Lengkap Resmi Member
   final String memberNumber;
   final String currentBelt;
   final int progress;
@@ -42,6 +43,7 @@ class ProfileData {
 
   ProfileData({
     required this.name,
+    required this.fullName,
     required this.memberNumber,
     required this.currentBelt,
     required this.progress,
@@ -60,7 +62,8 @@ class ProfileData {
         [];
 
     return ProfileData(
-      name: json['name'] ?? '',
+      name: json['name'] ?? json['fullName'] ?? '',
+      fullName: json['fullName'] ?? json['name'] ?? '',
       memberNumber: json['memberNumber'] ?? '',
       currentBelt: json['currentBelt'] ?? '',
       progress: json['progress'] ?? 0,

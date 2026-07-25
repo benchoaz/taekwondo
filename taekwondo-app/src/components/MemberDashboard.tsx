@@ -3371,52 +3371,13 @@ export default function MemberDashboard({
                 />
               </div>
 
-              {/* Upload 1: Foto Selebrasi / Podium Juara */}
-              <div>
-                <label className="text-xs font-bold text-gray-700 mb-0.5 flex items-center gap-1.5">
-                  🏆 Foto Podium / Selebrasi Juara
-                  <span className="text-[10px] font-normal text-slate-400">(opsional · tampil publik)</span>
-                </label>
-                <p className="text-[10px] text-gray-400 mb-2">Foto atlet dikalungi medali atau di atas podium. Foto ini akan tampil di galeri & profil.</p>
-                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 bg-[#F8FAFC] flex flex-col items-center gap-2">
-                  {achPhotoUrl ? (
-                    <div className="flex flex-col items-center gap-2 w-full">
-                      <img src={achPhotoUrl} alt="Foto Podium" className="max-h-28 rounded-xl object-contain border border-slate-100" />
-                      <button type="button" onClick={() => setAchPhotoUrl(null)} className="text-[10px] text-red-400 hover:text-red-600 font-bold cursor-pointer">
-                        Hapus Foto Podium
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-1.5">
-                      <span className="text-2xl">🥇</span>
-                      <label className="bg-white hover:bg-slate-50 border border-slate-200 px-4 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all inline-flex items-center gap-1.5">
-                        <Upload className="w-3.5 h-3.5 text-slate-500" />
-                        Pilih Foto Podium
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            const url = await uploadToServer(file, file.name);
-                            if (url) setAchPhotoUrl(url);
-                          }}
-                        />
-                      </label>
-                      <span className="text-[9px] text-gray-400">JPG atau PNG · Maks 2MB</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Upload 2: Scan / Bukti Piagam Sertifikat (wajib untuk validasi) */}
+              {/* Single Upload: Scan / Bukti Piagam Sertifikat (wajib untuk validasi) */}
               <div>
                 <label className="text-xs font-bold text-gray-700 mb-0.5 flex items-center gap-1.5">
                   📜 Scan / Foto Piagam Sertifikat
                   <span className="text-[10px] font-normal text-red-500">* wajib untuk validasi</span>
                 </label>
-                <p className="text-[10px] text-gray-400 mb-2">Upload foto/scan dokumen piagam resmi sebagai syarat verifikasi oleh Admin & Pelatih. Tidak tampil publik.</p>
+                <p className="text-[10px] text-gray-400 mb-2">Upload foto/scan lembar piagam resmi sebagai syarat verifikasi prestasi oleh Admin & Pelatih.</p>
                 <div className="border-2 border-dashed border-blue-200 rounded-2xl p-4 bg-blue-50/30 flex flex-col items-center gap-2">
                   {achCertificateUrl ? (
                     <div className="flex flex-col items-center gap-2 w-full">

@@ -788,9 +788,14 @@ export default function MemberDashboard({
   // Get index of current belt in sequence
   const getCurrentIndex = () => {
     const targetKey = cleanBeltKey(currentBelt);
-    const idx = beltSequence.findIndex(b => {
+    // 1. Exact match first (prevents "kuning strip hijau" matching "kuning")
+    let idx = beltSequence.findIndex(b => cleanBeltKey(b.name) === targetKey);
+    if (idx !== -1) return idx;
+
+    // 2. Fallback: match if full word matches
+    idx = beltSequence.findIndex(b => {
       const bKey = cleanBeltKey(b.name);
-      return bKey === targetKey || targetKey.includes(bKey) || bKey.includes(targetKey);
+      return bKey.length > 0 && (targetKey.startsWith(bKey + " ") || bKey.startsWith(targetKey + " "));
     });
     return idx !== -1 ? idx : 0;
   };

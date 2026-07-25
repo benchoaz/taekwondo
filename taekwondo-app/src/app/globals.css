@@ -8,6 +8,14 @@
   --surface: #FFFFFF;
 }
 
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+.font-jost {
+  font-family: 'Jost', sans-serif;
+}
+
 body {
   color: var(--secondary);
   background-color: var(--background);

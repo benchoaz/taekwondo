@@ -1,218 +1,421 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { ChevronLeft, Award, Calendar, User, Sparkles } from "lucide-react";
+import { ChevronLeft, Award, Calendar, ExternalLink, X, Trophy, ShieldAlert, Sparkles } from "lucide-react";
+
+interface Achievement {
+  id: string;
+  title: string;
+  eventName: string;
+  date: string;
+  rank?: string | null;
+  photoUrl?: string | null;
+  certificateUrl?: string | null;
+  member?: {
+    id: string;
+    fullName: string;
+    selfieUrl?: string | null;
+    currentBelt?: string | null;
+  } | null;
+}
+
+// Helper to extract initials for fallback avatar
+function getInitials(name?: string | null): string {
+  if (!name) return "WT";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// Helper to categorize Kyorugi vs Poomsae or General
+function getCategory(title: string): string {
+  const t = title.toUpperCase();
+  if (t.includes("POOMSAE")) return "Poomsae";
+  if (t.includes("KYORUGI") || t.includes("FIGHT")) return "Kyorugi";
+  return "Taekwondo";
+}
+
+// Helper to estimate scope / level from event name
+function getScopeLevel(eventName: string): string {
+  const e = eventName.toUpperCase();
+  if (e.includes("NASIONAL") || e.includes("NATIONAL") || e.includes("KEJURNAS") || e.includes("GRADE B") || e.includes("GRADE A")) return "Nasional";
+  if (e.includes("PROVINSI") || e.includes("JATIM") || e.includes("KEJURDA") || e.includes("PROV")) return "Provinsi";
+  if (e.includes("KABUPATEN") || e.includes("KAB") || e.includes("KOTA") || e.includes("PROBOLINGGO")) return "Kabupaten";
+  return "Kejuaraan Resmi";
+}
 
 export default function HallOfFamePage() {
-  const [achievements, setAchievements] = useState<any[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
 
   useEffect(() => {
     fetch("/api/achievements?status=APPROVED")
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         if (Array.isArray(data)) setAchievements(data);
       })
-      .catch(err => console.error("Error fetching achievements:", err))
+      .catch((err) => console.error("Error fetching achievements:", err))
       .finally(() => setIsLoading(false));
   }, []);
 
+  // Handle ESC key to close modal
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setSelectedAchievement(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedAchievement) {
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKeyDown);
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedAchievement, handleKeyDown]);
+
   return (
-    <div className="min-h-screen bg-[#0F172A] font-sans selection:bg-[#E10600]/30 selection:text-white pb-24">
-      {/* Navbar/Header Simple */}
-      <nav className="fixed w-full z-50 transition-all duration-500 bg-[#0F172A]/80 backdrop-blur-md border-b border-white/5 py-4">
+    <div className="min-h-screen bg-[#0a0908] text-[#ece4d3] font-jost selection:bg-[#c6a15b]/30 selection:text-[#e6c883] pb-24 relative overflow-x-hidden">
+      {/* Background Plaque Pattern & Atmosphere */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 bg-radial from-[#1b1815]/60 via-[#0a0908] to-[#0a0908]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[500px] bg-[#c6a15b]/5 blur-[160px] rounded-full" />
+      </div>
+
+      {/* Navbar/Header */}
+      <nav className="fixed w-full z-40 bg-[#0a0908]/90 backdrop-blur-md border-b border-[#c6a15b]/20 py-4">
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors group">
-            <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-              <ChevronLeft className="w-5 h-5" />
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-[#8d8676] hover:text-[#e6c883] transition-colors group text-xs font-semibold tracking-[0.2em] uppercase"
+          >
+            <div className="w-8 h-8 rounded-sm border border-[#c6a15b]/30 bg-[#131110] flex items-center justify-center group-hover:border-[#e6c883] transition-colors">
+              <ChevronLeft className="w-4 h-4 text-[#c6a15b] group-hover:text-[#e6c883]" />
             </div>
-            <span className="font-bold text-sm tracking-wide">Kembali ke Beranda</span>
+            <span>Beranda</span>
           </Link>
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="Logo" className="h-8 w-auto brightness-0 invert" onError={(e) => { e.currentTarget.style.display='none'; }} />
-            <span className="font-black text-white tracking-widest text-lg font-display">WHITE TIGER</span>
+            <img
+              src="/logo.png"
+              alt="Logo"
+              className="h-8 w-auto brightness-0 invert"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+            <span className="font-cinzel font-bold text-[#ece4d3] tracking-[0.25em] text-base md:text-lg">
+              WHITE TIGER
+            </span>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-40 pb-16 relative overflow-hidden">
-        {/* Decorative Glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-yellow-500/10 blur-[150px] rounded-full pointer-events-none"></div>
-        
-        <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 px-4 py-2 rounded-full mb-6">
-            <Sparkles className="w-4 h-4 text-yellow-400" />
-            <span className="text-yellow-400 font-bold tracking-widest text-xs uppercase">Dinding Kehormatan</span>
-          </div>
-          <h1 className="text-5xl md:text-7xl font-black text-white mb-6 font-display tracking-tight drop-shadow-xl">
-            Hall of <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-500">Fame</span>
+      <section className="pt-36 pb-14 relative z-10 text-center px-6">
+        <div className="max-w-4xl mx-auto flex flex-col items-center">
+          {/* Eyebrow */}
+          <span className="font-jost text-[11px] md:text-xs font-black tracking-[0.3em] uppercase text-[#c6a15b] mb-3 inline-block border-b border-[#c6a15b]/30 pb-1">
+            WHITE TIGER KRAKSAAN
+          </span>
+
+          {/* Title */}
+          <h1 className="font-cinzel text-4xl md:text-6xl font-bold tracking-wider text-[#ece4d3] mb-4">
+            HALL OF <span className="text-[#e6c883]">FAME</span>
           </h1>
-          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-            Menghargai keringat, darah, dan air mata para atlet kami yang telah berjuang membawa pulang medali kebanggaan.
+
+          {/* Description */}
+          <p className="font-jost text-[#8d8676] text-sm md:text-base max-w-xl leading-relaxed mb-8">
+            Dinding penghormatan resmi untuk mengabadikan dedikasi, perjuangan, dan perolehan medali kebanggaan para atlet White Tiger Kraksaan.
           </p>
+
+          {/* Decorative Divider with Central Diamond */}
+          <div className="flex items-center gap-4 w-full max-w-md my-2">
+            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#c6a15b]/40 to-[#c6a15b]/40" />
+            <div className="w-2.5 h-2.5 rotate-45 border border-[#e6c883] bg-[#7c1f26] shrink-0 shadow-[0_0_8px_rgba(230,200,131,0.5)]" />
+            <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent via-[#c6a15b]/40 to-[#c6a15b]/40" />
+          </div>
         </div>
       </section>
 
-      {/* Gallery Section */}
+      {/* Grid Content */}
       <section className="max-w-7xl mx-auto px-6 relative z-10">
         {isLoading ? (
-          <div className="flex justify-center items-center py-32">
-            <div className="w-12 h-12 border-4 border-yellow-500/30 border-t-yellow-500 rounded-full animate-spin"></div>
+          <div className="flex flex-col justify-center items-center py-32 gap-4">
+            <div className="w-10 h-10 border-2 border-[#c6a15b]/20 border-t-[#e6c883] rounded-full animate-spin" />
+            <span className="font-jost text-xs font-bold tracking-[0.25em] text-[#8d8676] uppercase">
+              Memuat Piagam Kehormatan...
+            </span>
           </div>
         ) : achievements.length === 0 ? (
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-3xl p-16 text-center backdrop-blur-sm">
-            <Award className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-2xl font-bold text-white mb-2">Belum Ada Rekam Jejak</h3>
-            <p className="text-slate-400">Prestasi sang juara akan segera diukir di sini.</p>
+          <div className="bg-[#131110] border border-[#c6a15b]/30 p-16 text-center max-w-lg mx-auto shadow-2xl">
+            <Trophy className="w-12 h-12 text-[#c6a15b] mx-auto mb-4 opacity-70" />
+            <h3 className="font-cinzel text-xl font-bold text-[#ece4d3] mb-2">Belum Ada Rekam Jejak</h3>
+            <p className="text-[#8d8676] text-xs">Ukiran prestasi resmi atlet akan dipublikasikan di sini.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {achievements.map((ach) => (
-              <div key={ach.id} className="group relative bg-gradient-to-b from-slate-800/80 to-[#0F172A] border border-slate-700 hover:border-yellow-500/50 rounded-[2rem] overflow-hidden backdrop-blur-xl transition-all duration-700 hover:-translate-y-3 hover:shadow-[0_20px_40px_-15px_rgba(234,179,8,0.3)] flex flex-col">
-                {/* Glowing core behind card on hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/0 via-yellow-500/0 to-yellow-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-0"></div>
-                
-                {/* Media / Certificate Section */}
-                <div className="h-64 overflow-hidden relative flex-shrink-0 bg-slate-900">
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/40 to-transparent z-10"></div>
-                  {(ach.photoUrl || ach.certificateUrl) ? (
-                    <img 
-                      src={ach.photoUrl || ach.certificateUrl} 
-                      alt="Prestasi" 
-                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out" 
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:opacity-40 transition-opacity duration-700">
-                      <Award className="w-32 h-32 text-yellow-500 blur-sm" />
-                      <Award className="w-32 h-32 text-yellow-400 absolute" />
-                    </div>
-                  )}
-                  
-                  {/* Medal Overlay Top Right */}
-                  <div className="absolute top-5 right-5 z-20">
-                    <div className={`p-4 rounded-full shadow-2xl backdrop-blur-md border border-white/10 ${
-                      ach.rank === "Emas" ? "bg-gradient-to-br from-yellow-300 to-yellow-600 shadow-yellow-500/50" :
-                      ach.rank === "Perak" ? "bg-gradient-to-br from-slate-200 to-slate-500 shadow-slate-400/50" :
-                      "bg-gradient-to-br from-amber-500 to-orange-700 shadow-orange-500/50"
-                    }`}>
-                      <Award className="w-8 h-8 text-white drop-shadow-md" />
-                    </div>
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {achievements.map((ach) => {
+              const category = getCategory(ach.title);
+              const rankText = ach.rank || "Juara";
 
-                {/* Content Section */}
-                <div className="p-8 relative z-20 flex-grow flex flex-col -mt-16">
-                  {/* Athlete Info */}
-                  <div className="flex items-end gap-4 mb-6">
-                    <div className="relative">
-                      <div className="absolute inset-0 rounded-full bg-yellow-500 blur-md opacity-0 group-hover:opacity-60 transition-opacity duration-500"></div>
-                      {ach.member?.selfieUrl ? (
-                        <img src={ach.member.selfieUrl} alt="Member" className="w-24 h-24 rounded-full object-cover border-4 border-[#0F172A] shadow-xl relative z-10" />
-                      ) : (
-                        <div className="w-24 h-24 rounded-full bg-slate-800 border-4 border-[#0F172A] flex items-center justify-center shadow-xl relative z-10">
-                          <User className="w-12 h-12 text-slate-400 group-hover:text-yellow-400 transition-colors" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="pb-3 flex-grow">
-                      <h3 className="font-black text-2xl text-white tracking-tight drop-shadow-md">{ach.member?.fullName}</h3>
-                      <div className="flex flex-wrap items-center gap-2 mt-1">
-                        <span className="text-[10px] font-bold text-yellow-400 tracking-wider uppercase bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded-md">{ach.member?.currentBelt}</span>
-                        {(() => {
-                          const memberId = ach.member?.id;
-                          if (!memberId) return null;
-                          const memberAchievements = achievements.filter(a => a.member?.id === memberId);
-                          const gold = memberAchievements.filter(a => a.rank === "Emas").length;
-                          const silver = memberAchievements.filter(a => a.rank === "Perak").length;
-                          const bronze = memberAchievements.filter(a => a.rank === "Perunggu" || a.rank === "Amber" || (!["Emas", "Perak"].includes(a.rank || ""))).length;
-                          
-                          if (gold === 0 && silver === 0 && bronze === 0) return null;
+              return (
+                <div
+                  key={ach.id}
+                  onClick={() => setSelectedAchievement(ach)}
+                  className="group relative bg-gradient-to-b from-[#131110] to-[#1b1815] border border-[#c6a15b]/20 hover:border-[#e6c883] p-6 transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_15px_35px_-10px_rgba(198,161,91,0.25)] cursor-pointer flex flex-col justify-between"
+                >
+                  {/* Corner Brackets (Sudut Siku Emas) */}
+                  <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-[#c6a15b]/50 group-hover:border-[#e6c883] transition-colors" />
+                  <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[#c6a15b]/50 group-hover:border-[#e6c883] transition-colors" />
+                  <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-[#c6a15b]/50 group-hover:border-[#e6c883] transition-colors" />
+                  <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-[#c6a15b]/50 group-hover:border-[#e6c883] transition-colors" />
 
-                          return (
-                            <div className="flex items-center gap-1.5 bg-slate-950/80 border border-white/10 px-2.5 py-1 rounded-lg backdrop-blur-md shadow-inner">
-                              {gold > 0 && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-yellow-400" title={`${gold} Medali Emas`}>
-                                  <svg className="w-3.5 h-3.5 filter drop-shadow-[0_0_2px_rgba(250,204,21,0.5)]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="12" cy="12" r="10" fill="url(#goldGradient)" stroke="#FACC15" strokeWidth="1.5"/>
-                                    <path d="M12 6L13.5 9.5H17L14.2 11.5L15.5 15L12 13L8.5 15L9.8 11.5L7 9.5H10.5L12 6Z" fill="#713F12"/>
-                                    <defs>
-                                      <linearGradient id="goldGradient" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
-                                        <stop stopColor="#FEF08A"/>
-                                        <stop offset="0.5" stopColor="#CA8A04"/>
-                                        <stop offset="1" stopColor="#854D0E"/>
-                                      </linearGradient>
-                                    </defs>
-                                  </svg>
-                                  {gold}
-                                </span>
-                              )}
-                              {silver > 0 && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-slate-200" title={`${silver} Medali Perak`}>
-                                  <svg className="w-3.5 h-3.5 filter drop-shadow-[0_0_2px_rgba(226,232,240,0.5)]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="12" cy="12" r="10" fill="url(#silverGradient)" stroke="#E2E8F0" strokeWidth="1.5"/>
-                                    <path d="M12 6L13.5 9.5H17L14.2 11.5L15.5 15L12 13L8.5 15L9.8 11.5L7 9.5H10.5L12 6Z" fill="#334155"/>
-                                    <defs>
-                                      <linearGradient id="silverGradient" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
-                                        <stop stopColor="#F8FAFC"/>
-                                        <stop offset="0.5" stopColor="#94A3B8"/>
-                                        <stop offset="1" stopColor="#475569"/>
-                                      </linearGradient>
-                                    </defs>
-                                  </svg>
-                                  {silver}
-                                </span>
-                              )}
-                              {bronze > 0 && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-500" title={`${bronze} Medali Perunggu`}>
-                                  <svg className="w-3.5 h-3.5 filter drop-shadow-[0_0_2px_rgba(249,115,22,0.5)]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <circle cx="12" cy="12" r="10" fill="url(#bronzeGradient)" stroke="#F97316" strokeWidth="1.5"/>
-                                    <path d="M12 6L13.5 9.5H17L14.2 11.5L15.5 15L12 13L8.5 15L9.8 11.5L7 9.5H10.5L12 6Z" fill="#7C2D12"/>
-                                    <defs>
-                                      <linearGradient id="bronzeGradient" x1="4" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
-                                        <stop stopColor="#FFEDD5"/>
-                                        <stop offset="0.5" stopColor="#EA580C"/>
-                                        <stop offset="1" stopColor="#9A3412"/>
-                                      </linearGradient>
-                                    </defs>
-                                  </svg>
-                                  {bronze}
-                                </span>
-                              )}
+                  {/* Top: Medal Circular Photo Frame */}
+                  <div className="flex flex-col items-center text-center">
+                    <div className="relative mb-5">
+                      {/* Ring Gradasi Emas-Merah */}
+                      <div className="p-[3px] rounded-full bg-gradient-to-tr from-[#7c1f26] via-[#c6a15b] to-[#e6c883] shadow-lg group-hover:shadow-[0_0_15px_rgba(230,200,131,0.4)] transition-shadow">
+                        <div className="p-[2px] bg-[#131110] rounded-full">
+                          {ach.member?.selfieUrl ? (
+                            <img
+                              src={ach.member.selfieUrl}
+                              alt={ach.member.fullName}
+                              loading="lazy"
+                              className="w-24 h-24 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-24 h-24 rounded-full bg-[#1b1815] flex items-center justify-center border border-[#c6a15b]/20">
+                              <span className="font-cinzel font-bold text-lg text-[#e6c883]">
+                                {getInitials(ach.member?.fullName)}
+                              </span>
                             </div>
-                          );
-                        })()}
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Small Circular Club Seal Badge */}
+                      <div
+                        className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-[#7c1f26] border-2 border-[#c6a15b] flex items-center justify-center text-[9px] font-black text-[#e6c883] font-cinzel shadow-md"
+                        title="White Tiger Club Seal"
+                      >
+                        WTK
                       </div>
                     </div>
+
+                    {/* Member Name */}
+                    <h3 className="font-cinzel text-base font-bold text-[#ece4d3] group-hover:text-[#e6c883] transition-colors leading-tight mb-1">
+                      {ach.member?.fullName || "Atlet White Tiger"}
+                    </h3>
+
+                    {/* Category & Event Subtitle */}
+                    <p className="font-jost text-[11px] tracking-[0.15em] text-[#8d8676] uppercase line-clamp-1 mb-1">
+                      {category} · {rankText}
+                    </p>
+                    <p className="font-jost text-[10px] text-[#8d8676]/80 line-clamp-1 italic">
+                      {ach.eventName}
+                    </p>
+
+                    {/* Divider Line */}
+                    <div className="w-7 h-[1.5px] bg-[#c6a15b]/40 my-3 group-hover:w-12 group-hover:bg-[#e6c883] transition-all" />
                   </div>
 
-                  {/* Achievement Details */}
-                  <div className="bg-slate-900/50 rounded-2xl p-6 border border-slate-700/50 group-hover:border-slate-600 transition-colors flex-grow flex flex-col justify-between relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-yellow-500/10 to-transparent rounded-bl-full pointer-events-none"></div>
-                    <div>
-                      <h4 className="font-extrabold text-white text-xl leading-snug mb-2 group-hover:text-yellow-300 transition-colors">{ach.title}</h4>
-                      <p className="text-sm text-slate-300 font-medium leading-relaxed mb-4">{ach.eventName}</p>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-700/50">
-                      <div className="flex items-center gap-2 text-xs font-bold text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
-                        <Calendar className="w-3.5 h-3.5 text-yellow-500" />
-                        {new Date(ach.date).toLocaleDateString("id-ID", { day: 'numeric', month: "long", year: "numeric" })}
-                      </div>
-                      <span className={`text-xs font-black uppercase tracking-widest ${
-                        ach.rank === "Emas" ? "text-yellow-400" :
-                        ach.rank === "Perak" ? "text-slate-300" :
-                        "text-amber-500"
-                      }`}>{ach.rank}</span>
-                    </div>
+                  {/* Hover Button Text */}
+                  <div className="mt-2 text-center overflow-hidden">
+                    <span className="font-jost text-[10px] font-bold tracking-[0.25em] text-[#e6c883] uppercase opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 inline-flex items-center gap-1">
+                      Lihat Detail →
+                    </span>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>
+
+      {/* Modal Detail Prestasi */}
+      {selectedAchievement && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md transition-opacity duration-300 overflow-y-auto"
+          onClick={() => setSelectedAchievement(null)}
+        >
+          <div
+            className="bg-gradient-to-b from-[#131110] to-[#1b1815] border border-[#c6a15b]/40 text-[#ece4d3] shadow-2xl relative w-full max-w-4xl overflow-hidden font-jost my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Corner Brackets on Modal */}
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#e6c883] z-20 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#e6c883] z-20 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#e6c883] z-20 pointer-events-none" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#e6c883] z-20 pointer-events-none" />
+
+            {/* Close Button (✕) */}
+            <button
+              onClick={() => setSelectedAchievement(null)}
+              className="absolute top-4 right-4 z-30 w-8 h-8 border border-[#c6a15b]/40 hover:border-[#e6c883] bg-[#0a0908]/80 text-[#c6a15b] hover:text-[#e6c883] flex items-center justify-center transition-transform duration-300 hover:rotate-90"
+              title="Tutup (Esc)"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* 2-Column Content Layout (Mobile: 1 column photo top, info bottom) */}
+            <div className="flex flex-col lg:flex-row items-stretch">
+              {/* MOBILE ONLY: Photo Banner */}
+              <div className="lg:hidden w-full bg-[#0a0908] p-6 border-b border-[#c6a15b]/20 flex flex-col items-center">
+                <div className="bg-gradient-to-b from-[#c6a15b] via-[#e6c883] to-[#c6a15b] p-2 relative shadow-xl max-w-[240px] w-full">
+                  {/* Corner overlays */}
+                  <div className="absolute top-0 left-0 w-3 h-3 bg-[#0a0908]" />
+                  <div className="absolute top-0 right-0 w-3 h-3 bg-[#0a0908]" />
+                  <div className="absolute bottom-0 left-0 w-3 h-3 bg-[#0a0908]" />
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#0a0908]" />
+                  {selectedAchievement.member?.selfieUrl || selectedAchievement.photoUrl ? (
+                    <img
+                      src={selectedAchievement.photoUrl || selectedAchievement.member?.selfieUrl || ""}
+                      alt={selectedAchievement.member?.fullName || "Foto Member"}
+                      className="w-full h-48 object-cover border border-[#0a0908]"
+                    />
+                  ) : (
+                    <div className="w-full h-48 bg-[#1b1815] flex flex-col items-center justify-center border border-[#0a0908]">
+                      <span className="font-cinzel text-3xl font-bold text-[#e6c883]">
+                        {getInitials(selectedAchievement.member?.fullName)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <p className="font-cinzel text-xs font-bold text-[#e6c883] tracking-[0.2em] uppercase text-center mt-3">
+                  {selectedAchievement.member?.fullName}
+                </p>
+              </div>
+
+              {/* LEFT COLUMN (Info 60%) */}
+              <div className="lg:w-[60%] p-6 md:p-8 flex flex-col justify-between border-r border-[#c6a15b]/20">
+                <div>
+                  {/* Eyebrow */}
+                  <span className="font-jost text-[10px] md:text-xs font-extrabold uppercase tracking-[0.25em] text-[#e6c883] block mb-2">
+                    {getCategory(selectedAchievement.title)} · {selectedAchievement.rank || "Juara"}
+                  </span>
+
+                  {/* Name */}
+                  <h2 className="font-cinzel text-2xl md:text-3xl font-bold text-[#ece4d3] leading-tight mb-2">
+                    {selectedAchievement.member?.fullName || "Atlet White Tiger"}
+                  </h2>
+
+                  {/* Subtitle Event */}
+                  <p className="font-jost text-sm text-[#8d8676] mb-6">
+                    {selectedAchievement.eventName}
+                  </p>
+
+                  {/* 2x2 Statistics Grid */}
+                  <div className="border-y border-[#c6a15b]/30 py-4 my-6 grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="font-jost text-[9px] font-bold uppercase tracking-[0.2em] text-[#c6a15b] block mb-1">
+                        TINGKAT
+                      </span>
+                      <span className="font-jost text-xs font-bold text-[#ece4d3]">
+                        {getScopeLevel(selectedAchievement.eventName)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-jost text-[9px] font-bold uppercase tracking-[0.2em] text-[#c6a15b] block mb-1">
+                        TAHUN
+                      </span>
+                      <span className="font-jost text-xs font-bold text-[#ece4d3]">
+                        {new Date(selectedAchievement.date).getFullYear()}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-jost text-[9px] font-bold uppercase tracking-[0.2em] text-[#c6a15b] block mb-1">
+                        CABANG
+                      </span>
+                      <span className="font-jost text-xs font-bold text-[#ece4d3]">
+                        {getCategory(selectedAchievement.title)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="font-jost text-[9px] font-bold uppercase tracking-[0.2em] text-[#c6a15b] block mb-1">
+                        PERINGKAT
+                      </span>
+                      <span className="font-jost text-xs font-bold text-[#e6c883]">
+                        {selectedAchievement.rank || "Juara"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Narrative Description */}
+                  <div className="mb-6">
+                    <p className="font-jost text-xs md:text-sm text-[#8d8676] leading-relaxed">
+                      Pencapaian kehormatan atas nama <strong className="text-[#ece4d3] font-semibold">{selectedAchievement.member?.fullName}</strong> dalam kategori <strong className="text-[#ece4d3] font-semibold">{selectedAchievement.title}</strong> pada ajang {selectedAchievement.eventName}. Merupakan kebanggaan resmi dojang White Tiger Kraksaan.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Certificate Action Button */}
+                <div className="pt-4 border-t border-[#c6a15b]/20">
+                  {selectedAchievement.certificateUrl || selectedAchievement.photoUrl ? (
+                    <a
+                      href={selectedAchievement.certificateUrl || selectedAchievement.photoUrl || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="border-2 border-[#c6a15b] text-[#e6c883] hover:bg-[#c6a15b] hover:text-[#0a0908] font-bold text-xs uppercase tracking-[0.2em] px-6 py-3 transition-all inline-flex items-center gap-2 group cursor-pointer"
+                    >
+                      <span>Lihat Sertifikat / Bukti</span>
+                      <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    </a>
+                  ) : (
+                    <div className="inline-flex items-center gap-2 text-xs text-[#8d8676] italic">
+                      <ShieldAlert className="w-4 h-4 text-[#c6a15b]" />
+                      <span>Sertifikat fisik telah diverifikasi oleh pengurus Dojang.</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* DESKTOP ONLY: RIGHT COLUMN (Photo Framed 40%) */}
+              <div className="hidden lg:flex lg:w-[40%] bg-[#0a0908] p-8 items-center justify-center flex-col">
+                {/* Certificate Frame */}
+                <div className="bg-gradient-to-b from-[#c6a15b] via-[#e6c883] to-[#c6a15b] p-3 relative shadow-2xl w-full max-w-xs">
+                  {/* Corner overlays (fcorner effect) */}
+                  <div className="absolute top-0 left-0 w-4 h-4 bg-[#0a0908]" />
+                  <div className="absolute top-0 right-0 w-4 h-4 bg-[#0a0908]" />
+                  <div className="absolute bottom-0 left-0 w-4 h-4 bg-[#0a0908]" />
+                  <div className="absolute bottom-0 right-0 w-4 h-4 bg-[#0a0908]" />
+
+                  {/* Inner Photo or Fallback */}
+                  {selectedAchievement.member?.selfieUrl || selectedAchievement.photoUrl ? (
+                    <img
+                      src={selectedAchievement.photoUrl || selectedAchievement.member?.selfieUrl || ""}
+                      alt={selectedAchievement.member?.fullName || "Foto Member"}
+                      className="w-full h-64 object-cover border border-[#0a0908]"
+                    />
+                  ) : (
+                    <div className="w-full h-64 bg-[#1b1815] flex flex-col items-center justify-center border border-[#0a0908]">
+                      <span className="font-cinzel text-4xl font-bold text-[#e6c883]">
+                        {getInitials(selectedAchievement.member?.fullName)}
+                      </span>
+                      <span className="font-jost text-[10px] text-[#8d8676] uppercase tracking-[0.2em] mt-2">
+                        WHITE TIGER ATLET
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Caption below photo */}
+                <p className="font-cinzel text-xs font-bold text-[#e6c883] tracking-[0.2em] uppercase text-center mt-4">
+                  {selectedAchievement.member?.fullName}
+                </p>
+                <p className="font-jost text-[10px] text-[#8d8676] uppercase tracking-[0.15em] text-center mt-1">
+                  {selectedAchievement.member?.currentBelt || "ATLET RESMI"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

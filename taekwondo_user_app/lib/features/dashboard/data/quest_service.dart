@@ -132,6 +132,36 @@ class QuestService {
     }
   }
 
+  /// Stream upload video dari file lokal (hemat RAM & bebas OOM crash)
+  Future<String> uploadVideoFile(String filePath, String filename) async {
+    final formData = FormData.fromMap({
+      'type': 'video',
+      'file': await MultipartFile.fromFile(filePath, filename: filename),
+    });
+
+    final cleanDio = Dio(BaseOptions(
+      baseUrl: dio.options.baseUrl,
+      connectTimeout: const Duration(minutes: 5),
+      sendTimeout: const Duration(minutes: 5),
+      receiveTimeout: const Duration(minutes: 5),
+    ));
+
+    const storage = FlutterSecureStorage();
+    final token = await storage.read(key: 'auth_token');
+    if (token != null) {
+      cleanDio.options.headers['Authorization'] = 'Bearer $token';
+    }
+
+    final response = await cleanDio.post(
+      '/upload',
+      data: formData,
+    );
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      return response.data['url'];
+    }
+    throw Exception('Gagal mengunggah video');
+  }
+
   Future<String> uploadVideo(List<int> bytes, String filename) async {
 
     final formData = FormData.fromMap({

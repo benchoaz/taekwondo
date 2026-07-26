@@ -326,13 +326,12 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
           throw Exception('Gagal mengompres video.');
         }
 
-        final Uint8List compressedBytes = await mediaInfo.file!.readAsBytes();
         final String finalFileName = 'compressed_${originalName.split('.').first}.mp4';
 
         final questService = ref.read(questServiceProvider);
         
-        // 2. Upload video yang sudah dikompres dengan timeout 3 menit
-        final videoUrl = await questService.uploadVideo(compressedBytes, finalFileName);
+        // 2. Upload video stream langsung dari file terkompresi (Memory Safe)
+        final videoUrl = await questService.uploadVideoFile(mediaInfo.file!.path, finalFileName);
         
         // 3. Selesaikan misi
         await questService.completeQuest(qLog.id, videoUrl: videoUrl, notes: "Misi disetor lewat dashboard");

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Video, User, FileText, Loader2, Calendar, Search, ChevronDown, ChevronUp, CheckSquare, Clock } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Video, User, FileText, Loader2, Calendar, Search, ChevronDown, ChevronUp, CheckSquare, Clock, ExternalLink } from "lucide-react";
 
 interface QuestLog {
   id: string;
@@ -280,64 +280,141 @@ export default function CoachQuestLogs() {
                             </div>
                           </div>
 
-                          {/* Media & Notes */}
-                          <div className="w-full md:w-72 shrink-0 flex flex-col gap-3">
-                            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                              <span className="font-black text-slate-400 uppercase text-[9px] tracking-wider flex items-center gap-1 mb-1">
-                                <FileText className="w-3.5 h-3.5" /> Catatan Murid
-                              </span>
-                              <p className="text-slate-700 text-xs italic">
-                                {log.notes || "Tidak ada catatan."}
-                              </p>
-                            </div>
-                            {log.completed && log.quest.requireVideo && (
-                              log.videoUrl ? (
-                                <button
-                                  onClick={() => setSelectedVideo(log.videoUrl)}
-                                  className="w-full py-2 px-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 flex items-center justify-center gap-1.5 text-xs font-black transition-all"
-                                >
-                                  <Video className="w-4 h-4" /> PUTAR VIDEO
-                                </button>
-                              ) : (
-                                <div className="py-2 px-3 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center text-xs font-bold">
-                                  Video Belum Diunggah
+                            {/* Media & Notes */}
+                            <div className="w-full md:w-72 shrink-0 flex flex-col gap-3">
+                              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <span className="font-black text-slate-400 uppercase text-[9px] tracking-wider flex items-center gap-1 mb-1">
+                                  <FileText className="w-3.5 h-3.5" /> Catatan Murid
+                                </span>
+                                <div className="text-slate-700 text-xs italic break-words">
+                                  {log.notes ? (
+                                    (() => {
+                                      const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                      const parts = log.notes.split(urlRegex);
+                                      return parts.map((part, i) => {
+                                        if (part.match(urlRegex)) {
+                                          return (
+                                            <a
+                                              key={i}
+                                              href={part}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-blue-600 hover:text-blue-800 font-bold underline not-italic inline-flex items-center gap-1 ml-1"
+                                            >
+                                              {part.length > 35 ? part.substring(0, 35) + "..." : part}
+                                              <ExternalLink className="w-3 h-3 inline shrink-0" />
+                                            </a>
+                                          );
+                                        }
+                                        return <span key={i}>{part}</span>;
+                                      });
+                                    })()
+                                  ) : (
+                                    "Tidak ada catatan."
+                                  )}
                                 </div>
-                              )
-                            )}
+                              </div>
+
+                              {(() => {
+                                const targetUrl = log.videoUrl || (log.notes?.match(/https?:\/\/[^\s]+/)?.[0]);
+                                if (log.completed && targetUrl) {
+                                  return (
+                                    <button
+                                      onClick={() => setSelectedVideo(targetUrl)}
+                                      className="w-full py-2.5 px-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 flex items-center justify-center gap-1.5 text-xs font-black transition-all shadow-sm"
+                                    >
+                                      <Video className="w-4 h-4" /> PUTAR / BUKAT VIDEO
+                                    </button>
+                                  );
+                                }
+                                if (log.completed && log.quest.requireVideo && !targetUrl) {
+                                  return (
+                                    <div className="py-2 px-3 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center text-xs font-bold">
+                                      Video Belum Diunggah
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
+                            </div>
+
                           </div>
-
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-      </div>
-
-      {/* Video Modal Player */}
-      {selectedVideo && (
-        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 backdrop-blur-md">
-          <div className="bg-slate-900 border-2 border-slate-700 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl relative">
-            <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
-              <span className="font-black text-xs text-red-500 uppercase tracking-widest flex items-center gap-1.5">
-                <Video className="w-4 h-4 animate-pulse" /> Rekaman Latihan Murid
-              </span>
-              <button
-                onClick={() => setSelectedVideo(null)}
-                className="text-xs font-black bg-slate-800 text-slate-300 hover:text-white px-3.5 py-1.5 rounded-xl border border-slate-700 transition-colors"
-              >
-                TUTUP
-              </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-            <div className="relative aspect-video bg-black flex items-center justify-center">
-              <video src={selectedVideo} controls autoPlay className="w-full h-full object-contain" />
-            </div>
-          </div>
+          )}
+
         </div>
+
+        {/* Video Modal Player */}
+        {selectedVideo && (
+          <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 backdrop-blur-md">
+            <div className="bg-slate-900 border-2 border-slate-700 rounded-3xl w-full max-w-3xl overflow-hidden shadow-2xl relative">
+              <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+                <span className="font-black text-xs text-red-500 uppercase tracking-widest flex items-center gap-1.5">
+                  <Video className="w-4 h-4 animate-pulse" /> Rekaman Latihan Murid
+                </span>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={selectedVideo}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-bold bg-slate-800 text-blue-400 hover:text-blue-300 px-3 py-1.5 rounded-xl border border-slate-700 transition-colors inline-flex items-center gap-1"
+                  >
+                    Buka Tab Baru <ExternalLink className="w-3 h-3" />
+                  </a>
+                  <button
+                    onClick={() => setSelectedVideo(null)}
+                    className="text-xs font-black bg-slate-800 text-slate-300 hover:text-white px-3.5 py-1.5 rounded-xl border border-slate-700 transition-colors"
+                  >
+                    TUTUP
+                  </button>
+                </div>
+              </div>
+              <div className="relative aspect-video bg-black flex items-center justify-center">
+                {(() => {
+                  const url = selectedVideo;
+                  // Google Drive
+                  if (url.includes("drive.google.com")) {
+                    const match = url.match(/\/file\/d\/([^\/]+)/) || url.match(/id=([^&]+)/);
+                    const fileId = match ? match[1] : null;
+                    if (fileId) {
+                      return (
+                        <iframe
+                          src={`https://drive.google.com/file/d/${fileId}/preview`}
+                          className="w-full h-full border-0"
+                          allow="autoplay"
+                        ></iframe>
+                      );
+                    }
+                  }
+                  // YouTube
+                  if (url.includes("youtube.com") || url.includes("youtu.be")) {
+                    const match = url.match(/(?:v=|\/live\/|\/shorts\/|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+                    const ytId = match ? match[1] : null;
+                    if (ytId) {
+                      return (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${ytId}?autoplay=1`}
+                          className="w-full h-full border-0"
+                          allow="autoplay; encrypted-media"
+                          allowFullScreen
+                        ></iframe>
+                      );
+                    }
+                  }
+                  // Native HTML5 Video
+                  return (
+                    <video src={selectedVideo} controls autoPlay className="w-full h-full object-contain" />
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
       )}
 
     </div>

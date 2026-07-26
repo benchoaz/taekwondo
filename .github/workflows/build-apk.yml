@@ -1,16 +1,20 @@
-name: Build Android APK
+name: Build Android APK & AAB
 
 on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'taekwondo_user_app/**'
+      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
-# Batalkan otomatis build sebelumnya jika ada commit baru di branch yang sama
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build APK
+    name: Build APK & AAB
     runs-on: ubuntu-latest
 
     steps:
@@ -34,45 +38,44 @@ jobs:
           cd taekwondo_user_app
           flutter pub get
 
-      - name: Clean Build Cache
-        run: |
-          cd taekwondo_user_app
-          flutter clean
-          flutter pub get
-
-      - name: Setup Android Keystore
+      - name: Setup Android Keystore (Optional Signed Release)
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE || secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || secrets.ANDROID_KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS || secrets.ANDROID_KEY_ALIAS }}
         run: |
-          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
-            echo "ERROR: ANDROID_KEYSTORE secret is empty."
-            exit 1
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "Keystore secret detected, setting up signed build configuration..."
+            printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '\r\n' | base64 --decode > taekwondo_user_app/android/key.jks
+            mkdir -p taekwondo_user_app/android/app
+            cp taekwondo_user_app/android/key.jks taekwondo_user_app/android/app/key.jks
+            printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=key.jks\n' \
+              "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" "$KEY_ALIAS" > taekwondo_user_app/android/key.properties
+            chmod 600 taekwondo_user_app/android/key.jks
+          else
+            echo "Notice: ANDROID_KEYSTORE secret is not set, proceeding with default release build."
           fi
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '\r\n' | base64 --decode > taekwondo_user_app/android/key.jks
-          ls -lh taekwondo_user_app/android/key.jks
-          mkdir -p taekwondo_user_app/android/app
-          cp taekwondo_user_app/android/key.jks taekwondo_user_app/android/app/key.jks
-          printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=key.jks\n' \
-            "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" "$KEY_ALIAS" > taekwondo_user_app/android/key.properties
-          chmod 600 taekwondo_user_app/android/key.jks
 
-      - name: Build Release APK & AAB
+      - name: Build Release APK
         run: |
           cd taekwondo_user_app
           flutter build apk --release --no-tree-shake-icons
+
+      - name: Build Release AAB (App Bundle for Play Store)
+        run: |
+          cd taekwondo_user_app
           flutter build appbundle --release --no-tree-shake-icons
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: taekwondo-release-apk
+          name: WhiteTiger-Release-APK
           path: taekwondo_user_app/build/app/outputs/flutter-apk/app-release.apk
 
-      - name: Upload AAB Artifact
+      - name: Upload AAB Artifact (Play Store)
         uses: actions/upload-artifact@v4
         with:
-          name: taekwondo-release-aab
+          name: WhiteTiger-Release-AAB
           path: taekwondo_user_app/build/app/outputs/bundle/release/app-release.aab
+

@@ -28,8 +28,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Allow specific GET requests for Landing Page
-  if (pathname === '/api/coaches' && request.method === 'GET') {
+  // 2. Allow specific public GET requests for Landing Page & Hall of Fame
+  const publicGetRoutes = [
+    '/api/settings',
+    '/api/hero-slides',
+    '/api/coaches',
+    '/api/announcements',
+    '/api/achievements',
+    '/api/gallery',
+    '/api/landing-stats',
+  ];
+  if (request.method === 'GET' && publicGetRoutes.includes(pathname)) {
     return NextResponse.next();
   }
 

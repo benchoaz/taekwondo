@@ -59,7 +59,7 @@ export default function LandingPage({
 
   useEffect(() => {
     // Fetch Settings
-    fetch("/api/settings")
+    fetch("/api/settings", { cache: "no-store" })
       .then(res => res.json())
       .then(data => {
         if (data && !data.error) setSettings(data);
@@ -298,9 +298,9 @@ export default function LandingPage({
       <section className="relative w-full min-h-[819px] flex items-center justify-center overflow-hidden bg-[#0F172A]">
         <div className="absolute inset-0 z-0">
           <div 
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-[20s] hover:scale-110" 
+            className="absolute inset-0 bg-cover bg-center transition-transform duration-[20s] hover:scale-110 opacity-40" 
             style={{ 
-              backgroundImage: isSettingsLoaded ? `url('${settings.heroBgUrl || '/hero-fighters.png'}')` : 'none'
+              backgroundImage: isSettingsLoaded ? `url('${settings.heroBgUrl || 'https://images.unsplash.com/photo-1555597673-b21d5c935865?auto=format&fit=crop&w=1920&q=80'}')` : 'none'
             }}
           ></div>
           <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/60 via-[#0F172A]/80 to-[#0F172A]"></div>

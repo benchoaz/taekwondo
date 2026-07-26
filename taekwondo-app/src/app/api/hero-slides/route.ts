@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
+
 // GET - public: fetch all active slides ordered by `order`
 export async function GET() {
   try {
@@ -8,7 +10,13 @@ export async function GET() {
       where: { isActive: true },
       orderBy: { order: "asc" },
     });
-    return NextResponse.json(slides);
+    return NextResponse.json(slides, {
+      headers: {
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

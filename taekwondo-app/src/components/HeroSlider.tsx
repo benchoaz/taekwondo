@@ -52,7 +52,7 @@ export default function HeroSlider() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    fetch("/api/hero-slides")
+    fetch("/api/hero-slides", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {

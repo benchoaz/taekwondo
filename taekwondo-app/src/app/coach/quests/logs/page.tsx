@@ -38,6 +38,33 @@ export default function CoachQuestLogs() {
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const [expandedStudents, setExpandedStudents] = useState<Record<string, boolean>>({});
 
+  const handleQuestApproval = async (logId: string, action: "APPROVE" | "REJECT") => {
+    const notes = prompt(
+      action === "APPROVE" ? "Catatan persetujuan (opsional):" : "Masukkan alasan penolakan / masukan untuk murid (wajib):"
+    );
+    if (action === "REJECT" && !notes) {
+      alert("Alasan penolakan wajib diisi agar murid tahu apa yang harus diperbaiki.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/coach/quest-logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logId, action, notes })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(action === "APPROVE" ? "✅ Misi disetujui, reward +XP & Dojang Coins telah dikirim ke murid!" : "❌ Misi ditolak. Murid telah diberi notifikasi untuk merekam/mengirim ulang.");
+        fetchLogs();
+      } else {
+        alert(data.error || "Gagal memproses verifikasi.");
+      }
+    } catch (e) {
+      alert("Terjadi kesalahan sistem.");
+    }
+  };
+
   useEffect(() => {
     fetchLogs();
   }, [filter, dateFilter]);
@@ -317,24 +344,39 @@ export default function CoachQuestLogs() {
 
                               {(() => {
                                 const targetUrl = log.videoUrl || (log.notes?.match(/https?:\/\/[^\s]+/)?.[0]);
-                                if (log.completed && targetUrl) {
-                                  return (
-                                    <button
-                                      onClick={() => setSelectedVideo(targetUrl)}
-                                      className="w-full py-2.5 px-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 flex items-center justify-center gap-1.5 text-xs font-black transition-all shadow-sm"
-                                    >
-                                      <Video className="w-4 h-4" /> PUTAR / BUKAT VIDEO
-                                    </button>
-                                  );
-                                }
-                                if (log.completed && log.quest.requireVideo && !targetUrl) {
-                                  return (
-                                    <div className="py-2 px-3 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center text-xs font-bold">
-                                      Video Belum Diunggah
-                                    </div>
-                                  );
-                                }
-                                return null;
+                                return (
+                                  <div className="flex flex-col gap-2">
+                                    {targetUrl && (
+                                      <button
+                                        onClick={() => setSelectedVideo(targetUrl)}
+                                        className="w-full py-2 px-3 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 flex items-center justify-center gap-1.5 text-xs font-black transition-all shadow-sm cursor-pointer"
+                                      >
+                                        <Video className="w-4 h-4" /> PUTAR / BUKA VIDEO
+                                      </button>
+                                    )}
+
+                                    {!log.completed ? (
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <button
+                                          onClick={() => handleQuestApproval(log.id, "APPROVE")}
+                                          className="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1 text-xs font-black transition-all shadow-sm cursor-pointer"
+                                        >
+                                          <CheckCircle2 className="w-3.5 h-3.5" /> SETUJUI
+                                        </button>
+                                        <button
+                                          onClick={() => handleQuestApproval(log.id, "REJECT")}
+                                          className="flex-1 py-2 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-1 text-xs font-black transition-all shadow-sm cursor-pointer"
+                                        >
+                                          <AlertCircle className="w-3.5 h-3.5" /> TOLAK
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      <div className="py-1.5 px-3 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-center text-xs font-black flex items-center justify-center gap-1">
+                                        <CheckCircle2 className="w-3.5 h-3.5" /> SUDAH DISETUJUI
+                                      </div>
+                                    )}
+                                  </div>
+                                );
                               })()}
                             </div>
 

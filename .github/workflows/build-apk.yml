@@ -58,11 +58,15 @@ jobs:
           fi
 
       - name: Build Release APK
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+UseG1GC'"
         run: |
           cd taekwondo_user_app
           flutter build apk --release --no-tree-shake-icons
 
       - name: Build Release AAB (App Bundle for Play Store)
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+UseG1GC'"
         run: |
           cd taekwondo_user_app
           flutter build appbundle --release --no-tree-shake-icons

@@ -26,12 +26,14 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+          cache: 'gradle'
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           flutter-version: 'any'
+          cache: true
 
       - name: Install Dependencies
         run: |
@@ -76,10 +78,12 @@ jobs:
         with:
           name: WhiteTiger-Release-APK
           path: taekwondo_user_app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
 
       - name: Upload AAB Artifact (Play Store)
         uses: actions/upload-artifact@v4
         with:
           name: WhiteTiger-Release-AAB
           path: taekwondo_user_app/build/app/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
 

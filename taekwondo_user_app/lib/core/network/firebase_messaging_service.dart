@@ -1,5 +1,6 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:dio/dio.dart';
 import '../../features/auth/domain/user_model.dart';
 
@@ -12,7 +13,17 @@ final GlobalKey<NavigatorState> globalNavigatorKey = GlobalKey<NavigatorState>()
 
 class FirebaseMessagingService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   final Dio _dio;
+
+  static const AndroidNotificationChannel _highImportanceChannel = AndroidNotificationChannel(
+    'high_importance_channel',
+    'Notifikasi Penting',
+    description: 'Channel untuk notifikasi prioritas tinggi & heads-up banner',
+    importance: Importance.max,
+    playSound: true,
+    enableVibration: true,
+  );
 
   FirebaseMessagingService(this._dio);
 
@@ -24,10 +35,35 @@ class FirebaseMessagingService {
       sound: true,
     );
 
+    // 2. Buat Notification Channel di Android OS untuk Heads-Up Notification
+    final androidImplementation = _localNotifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+    if (androidImplementation != null) {
+      await androidImplementation.createNotificationChannel(_highImportanceChannel);
+    }
+
+    // Inisialisasi Flutter Local Notifications
+    const initializationSettings = InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+    );
+    await _localNotifications.initialize(
+      settings: initializationSettings,
+      onDidReceiveNotificationResponse: (response) {
+        debugPrint('Notification tapped with payload: ${response.payload}');
+      },
+    );
+
+    // Set Foreground presentation options untuk iOS
+    await _messaging.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       debugPrint('FCM: Permission granted');
 
-      // 2. Ambil FCM Token
+      // 3. Ambil FCM Token
       try {
         final String? token = await _messaging.getToken();
         if (token != null) {
@@ -38,14 +74,38 @@ class FirebaseMessagingService {
         debugPrint('Failed to get FCM token: $e');
       }
 
-      // 3. Refresh token otomatis jika diperbaharui Firebase
+      // 4. Refresh token otomatis jika diperbaharui Firebase
       _messaging.onTokenRefresh.listen((newToken) {
         _sendTokenToServer(newToken, user.id);
       });
 
-      // 4. Foreground message handler — tampilkan snackbar + refresh data
+      // 5. Foreground message handler — tampilkan local heads-up notification + snackbar
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         debugPrint('FCM Foreground: ${message.notification?.title}');
+        
+        // Tampilkan Heads-Up Notification Lokal via FlutterLocalNotifications
+        final notification = message.notification;
+        if (notification != null) {
+          _localNotifications.show(
+            id: notification.hashCode,
+            title: notification.title,
+            body: notification.body,
+            notificationDetails: NotificationDetails(
+              android: AndroidNotificationDetails(
+                _highImportanceChannel.id,
+                _highImportanceChannel.name,
+                channelDescription: _highImportanceChannel.description,
+                importance: Importance.max,
+                priority: Priority.high,
+                icon: '@mipmap/ic_launcher',
+                playSound: true,
+                enableVibration: true,
+              ),
+            ),
+            payload: message.data.toString(),
+          );
+        }
+
         _handleIncomingMessage(message);
       });
 

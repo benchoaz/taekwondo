@@ -41,12 +41,34 @@ export async function sendPushNotification(token: string, title: string, body: s
   }
   
   try {
-    const message = {
+    const message: any = {
       notification: {
         title,
         body,
       },
       data,
+      android: {
+        priority: 'high',
+        notification: {
+          channelId: 'high_importance_channel',
+          priority: 'high',
+          defaultSound: true,
+          defaultVibrateTimings: true,
+          visibility: 'public',
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            alert: {
+              title,
+              body,
+            },
+            sound: 'default',
+            badge: 1,
+          },
+        },
+      },
       token,
     };
     

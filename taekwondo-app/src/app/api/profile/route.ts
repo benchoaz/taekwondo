@@ -115,10 +115,18 @@ export async function PUT(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { phone, password, name, nickname, fullName } = body;
+    const { phone, password, name, nickname, fullName, dateOfBirth } = body;
 
     const updateData: any = {};
     const memberUpdateData: any = {};
+
+    // Tanggal Lahir (Member.dateOfBirth)
+    if (dateOfBirth) {
+      const parsedDate = new Date(dateOfBirth);
+      if (!isNaN(parsedDate.getTime())) {
+        memberUpdateData.dateOfBirth = parsedDate;
+      }
+    }
 
     // Nickname / Nama Tampilan APK (User.name)
     const newNickname = (nickname || name)?.toString().trim();

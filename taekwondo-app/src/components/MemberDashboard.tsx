@@ -98,6 +98,10 @@ export default function MemberDashboard({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [editSelfieUrl, setEditSelfieUrl] = useState<string | null>(null);
   const [editCertDocUrl, setEditCertDocUrl] = useState<string | null>(null);
+  const [editDateOfBirth, setEditDateOfBirth] = useState("");
+  const [editCurrentBelt, setEditCurrentBelt] = useState("");
+  const [editUktCertUrl, setEditUktCertUrl] = useState<string | null>(null);
+  const [latestBeltClaim, setLatestBeltClaim] = useState<any>(null);
   const [editWeight, setEditWeight] = useState("");
   const [editHeight, setEditHeight] = useState("");
   const [editWaistCircum, setEditWaistCircum] = useState("");
@@ -1027,6 +1031,33 @@ export default function MemberDashboard({
 
     setIsSavingProfile(true);
     try {
+      // 1. Cek apakah ada klaim sabuk baru
+      const isClaimingNewBelt = editCurrentBelt && profile.currentBelt && editCurrentBelt.toLowerCase().trim() !== profile.currentBelt.toLowerCase().trim();
+
+      if (isClaimingNewBelt) {
+        if (!editUktCertUrl) {
+          alert("Wajib mengunggah Foto/Dokumen Bukti Sertifikat UKT untuk melakukan klaim kenaikan sabuk.");
+          setIsSavingProfile(false);
+          return;
+        }
+
+        const claimRes = await fetch("/api/member/belt-claim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            claimedBelt: editCurrentBelt,
+            certProofUrl: editUktCertUrl
+          })
+        });
+        const claimData = await claimRes.json();
+        if (!claimRes.ok) {
+          alert(claimData.error || "Gagal mengklaim sabuk baru");
+          setIsSavingProfile(false);
+          return;
+        }
+      }
+
+      // 2. Simpan profil umum (Tanggal Lahir, Nama, WA, Foto, dll)
       const res = await fetch(`/api/users/${profile.userId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -1034,9 +1065,10 @@ export default function MemberDashboard({
           name: editName,
           email: editEmail,
           phone: editPhone,
+          ...(editDateOfBirth && { dateOfBirth: editDateOfBirth }),
           ...(editPassword && { password: editPassword }),
           role: "MEMBER",
-          currentBelt: profile.currentBelt,
+          currentBelt: profile.currentBelt, // Tetap gunakan sabuk lama sampai disetujui pelatih
           ...(editSelfieUrl !== null && { selfieUrl: editSelfieUrl }),
           ...(editCertDocUrl !== null && { certDocUrl: editCertDocUrl }),
           ...(editWeight && { weight: editWeight }),
@@ -1051,6 +1083,7 @@ export default function MemberDashboard({
           fullName: editName,
           email: editEmail,
           phone: editPhone,
+          ...(editDateOfBirth && { dateOfBirth: editDateOfBirth }),
           ...(editSelfieUrl !== null && { selfieUrl: editSelfieUrl }),
           ...(editCertDocUrl !== null && { certDocUrl: editCertDocUrl }),
           weight: editWeight ? parseFloat(editWeight) : null,
@@ -1061,7 +1094,11 @@ export default function MemberDashboard({
           localStorage.setItem("userEmail", editEmail);
         }
         setShowEditProfileModal(false);
-        alert("Profil berhasil diperbarui! Email login Anda telah diperbarui ke " + editEmail);
+        if (isClaimingNewBelt) {
+          alert(`Profil berhasil diperbarui! Pengajuan klaim ${editCurrentBelt} telah dikirim ke Pelatih untuk diverifikasi.`);
+        } else {
+          alert("Profil berhasil diperbarui!");
+        }
       } else {
         alert(data.error || "Gagal memperbarui profil");
       }
@@ -1889,6 +1926,9 @@ export default function MemberDashboard({
                   setEditConfirmPassword("");
                   setEditSelfieUrl(profile.selfieUrl ?? null);
                   setEditCertDocUrl(profile.certDocUrl ?? null);
+                  setEditDateOfBirth(profile.dateOfBirth ? new Date(profile.dateOfBirth).toISOString().split('T')[0] : "");
+                  setEditCurrentBelt(profile.currentBelt || "Sabuk Putih (10 Geup)");
+                  setEditUktCertUrl(null);
                   setEditWeight(profile.weight ? String(profile.weight) : "");
                   setEditHeight(profile.height ? String(profile.height) : "");
                   setEditWaistCircum(profile.waistCircum ? String(profile.waistCircum) : "");
@@ -3228,6 +3268,97 @@ export default function MemberDashboard({
                   placeholder="Contoh: 08123456789" 
                   className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
                 />
+              </div>
+
+              {/* ── Tanggal Lahir ── */}
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Tanggal Lahir</label>
+                <input 
+                  type="date" 
+                  value={editDateOfBirth}
+                  onChange={(e) => setEditDateOfBirth(e.target.value)}
+                  required
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                />
+                {editDateOfBirth && (
+                  <p className="text-[10px] text-slate-500 mt-1 font-bold">
+                    Umur Anda saat ini: {(() => {
+                      const today = new Date();
+                      const birth = new Date(editDateOfBirth);
+                      let age = today.getFullYear() - birth.getFullYear();
+                      const m = today.getMonth() - birth.getMonth();
+                      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+                      return age > 0 ? `${age} Tahun` : "Format tanggal lahir belum valid";
+                    })()}
+                  </p>
+                )}
+              </div>
+
+              {/* ── Tingkatan Sabuk (Klaim Mandiri) ── */}
+              <div>
+                <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Tingkatan Sabuk (Standar Resmi PBTI)</label>
+                <select
+                  value={editCurrentBelt}
+                  onChange={(e) => setEditCurrentBelt(e.target.value)}
+                  className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] font-bold text-slate-800"
+                >
+                  {[
+                    "Sabuk Putih (10 Geup)",
+                    "Sabuk Kuning Polos (9 Geup)",
+                    "Sabuk Kuning Strip Hijau (8 Geup)",
+                    "Sabuk Hijau Polos (7 Geup)",
+                    "Sabuk Hijau Strip Biru (6 Geup)",
+                    "Sabuk Biru Polos (5 Geup)",
+                    "Sabuk Biru Strip Merah (4 Geup)",
+                    "Sabuk Merah Polos (3 Geup)",
+                    "Sabuk Merah Strip Hitam I (2 Geup)",
+                    "Sabuk Merah Strip Hitam II (1 Geup)",
+                    "Sabuk Hitam Dan 1 (Poom 1)",
+                    "Sabuk Hitam Dan 2",
+                    "Sabuk Hitam Dan 3",
+                    "Sabuk Hitam Dan 4",
+                    "Sabuk Hitam Dan 5+ (Master)"
+                  ].map((belt) => (
+                    <option key={belt} value={belt}>
+                      {belt} {belt === profile?.currentBelt ? " (Sabuk Aktif)" : ""}
+                    </option>
+                  ))}
+                </select>
+
+                {/* Warning / Form Upload Sertifikat jika memilih sabuk yang berbeda */}
+                {editCurrentBelt && profile?.currentBelt && editCurrentBelt.toLowerCase().trim() !== profile.currentBelt.toLowerCase().trim() && (
+                  <div className="mt-3 p-3.5 bg-amber-50 border border-amber-200 rounded-2xl flex flex-col gap-2">
+                    <span className="text-[11px] font-extrabold text-amber-800 flex items-center gap-1.5">
+                      ⚠️ Klaim Kenaikan Sabuk Memerlukan Verifikasi Pelatih
+                    </span>
+                    <p className="text-[10px] text-amber-700 leading-relaxed">
+                      Anda memilih <strong className="underline">{editCurrentBelt}</strong>. Wajib mengunggah Foto/Dokumen <strong>Sertifikat UKT</strong> sebagai bukti resmi. Sabuk baru akan aktif setelah diverifikasi oleh Pelatih.
+                    </p>
+
+                    <label className="mt-1 bg-white hover:bg-slate-50 border border-amber-300 text-amber-900 px-4 py-2.5 rounded-xl text-xs font-bold cursor-pointer transition-all inline-flex items-center justify-center gap-2 shadow-sm">
+                      <Upload className="w-4 h-4 text-amber-600" />
+                      {editUktCertUrl ? "Ganti Foto Sertifikat UKT" : "Unggah Bukti Sertifikat UKT (Wajib)"}
+                      <input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        className="hidden"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const url = await uploadToServer(file, file.name);
+                          if (url) setEditUktCertUrl(url);
+                        }}
+                      />
+                    </label>
+
+                    {editUktCertUrl && (
+                      <div className="flex items-center justify-between bg-emerald-100 text-emerald-800 p-2 px-3 rounded-xl border border-emerald-300 text-[10px] font-bold">
+                        <span className="truncate max-w-[200px]">✓ Bukti Sertifikat Siap Dikirim</span>
+                        <a href={editUktCertUrl} target="_blank" rel="noopener noreferrer" className="underline text-emerald-900">Pratinjau</a>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>

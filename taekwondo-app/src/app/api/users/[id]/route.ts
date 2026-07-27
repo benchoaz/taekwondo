@@ -8,7 +8,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, email, role, currentBelt, selfieUrl, certDocUrl, password, weight, height, waistCircum, prepaidMonthsRemaining, phone, status } = body;
+    const { name, email, role, currentBelt, selfieUrl, certDocUrl, password, weight, height, waistCircum, prepaidMonthsRemaining, phone, status, dateOfBirth } = body;
 
     // Fetch user details first to see if role changed
     const existingUser = await prisma.user.findUnique({
@@ -55,11 +55,18 @@ export async function PUT(
 
         const memberId = existingUser.member.id;
 
+        let parsedDob: Date | undefined = undefined;
+        if (dateOfBirth) {
+          const d = new Date(dateOfBirth);
+          if (!isNaN(d.getTime())) parsedDob = d;
+        }
+
         await prisma.member.update({
           where: { id: memberId },
           data: { 
             fullName: name,
             currentBelt: currentBelt !== undefined ? currentBelt : existingUser.member.currentBelt,
+            ...(parsedDob !== undefined && { dateOfBirth: parsedDob }),
             ...(selfieUrl !== undefined && { selfieUrl }),
             ...(prepaidMonthsRemaining !== undefined && { prepaidMonthsRemaining: parseInt(prepaidMonthsRemaining) }),
             ...(phone !== undefined && { phone }),

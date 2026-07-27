@@ -357,6 +357,48 @@ export default function CoachDashboard({
     }
   };
 
+  const [beltClaims, setBeltClaims] = useState<any[]>([]);
+
+  const fetchBeltClaims = async () => {
+    try {
+      const res = await fetch("/api/coach/belt-claims?status=ALL");
+      if (res.ok) {
+        const data = await res.json();
+        setBeltClaims(data.data || []);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleVerifyBeltClaim = async (claimId: string, action: "APPROVE" | "REJECT") => {
+    const notes = prompt(action === "APPROVE" ? "Catatan persetujuan (opsional):" : "Masukkan alasan penolakan (wajib):");
+    if (action === "REJECT" && notes === null) return;
+    if (action === "REJECT" && !notes?.trim()) {
+      alert("Alasan penolakan wajib diisi.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/coach/belt-claims", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ claimId, action, coachNotes: notes })
+      });
+      const result = await res.json();
+      if (res.ok) {
+        alert(action === "APPROVE" ? "✅ Klaim sabuk disetujui! Sabuk siswa berhasil diperbarui." : "❌ Klaim sabuk ditolak.");
+        fetchBeltClaims();
+        fetchAllData();
+      } else {
+        alert(result.error || "Gagal memproses verifikasi.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Gagal menghubungi server.");
+    }
+  };
+
   useEffect(() => {
     fetchAllData();
   }, []);
@@ -364,6 +406,8 @@ export default function CoachDashboard({
   useEffect(() => {
     if (activeTab === "quests") {
       fetchQuestLogs();
+    } else if (activeTab === "belt_claims") {
+      fetchBeltClaims();
     }
   }, [activeTab, questFilterCompleted]);
 
@@ -808,6 +852,7 @@ export default function CoachDashboard({
     { id: "dashboard", label: "Ringkasan", icon: <TrendingUp className="w-4 h-4" /> },
     { id: "members", label: "Data Siswa", icon: <Users className="w-4 h-4" /> },
     { id: "grading", label: "Penilaian UKT", icon: <Calendar className="w-4 h-4" /> },
+    { id: "belt_claims", label: "Verifikasi Klaim Sabuk", icon: <CheckCircle className="w-4 h-4" /> },
     { id: "history", label: "Progres Sabuk", icon: <Award className="w-4 h-4" /> },
     { id: "quests", label: "Misi Atlet", icon: <Activity className="w-4 h-4" /> },
     { id: "quest_builder", label: "Kelola Quest", icon: <Award className="w-4 h-4" /> },
@@ -1920,6 +1965,105 @@ export default function CoachDashboard({
                   <li>✓ Sertifikat fisik dapat dicetak dari fitur "Cetak PDF" dan diserahkan langsung oleh pelatih.</li>
                 </ul>
               </div>
+            </div>
+          )}
+
+          {/* ══════════════ TAB: BELT CLAIMS (VERIFIKASI KLAIM SABUK) ══════════════ */}
+          {activeTab === "belt_claims" && (
+            <div className="flex flex-col gap-8">
+              <div>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Verifikasi Klaim Sabuk Murid</h2>
+                <p className="text-gray-400 text-xs mt-1">Periksa bukti Sertifikat UKT yang diunggah oleh murid dan lakukan persetujuan atau penolakan.</p>
+              </div>
+
+              {beltClaims.length === 0 ? (
+                <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-12 text-center shadow-sm">
+                  <Award className="w-12 h-12 mx-auto text-slate-300 mb-3" />
+                  <p className="font-bold text-sm text-slate-500">Belum ada pengajuan klaim sabuk dari murid.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {beltClaims.map((claim: any) => (
+                    <div key={claim.id} className="bg-white border border-slate-200 rounded-[24px] p-5 shadow-sm flex flex-col justify-between gap-4">
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-center justify-between">
+                          <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full ${
+                            claim.status === "PENDING" ? "bg-amber-100 text-amber-800 border border-amber-200" :
+                            claim.status === "APPROVED" ? "bg-emerald-100 text-emerald-800 border border-emerald-200" :
+                            "bg-rose-100 text-rose-800 border border-rose-200"
+                          }`}>
+                            {claim.status === "PENDING" ? "⏳ Menunggu Verifikasi" : claim.status === "APPROVED" ? "✓ Disetujui" : "✕ Ditolak"}
+                          </span>
+                          <span className="text-[10px] text-gray-400">
+                            {new Date(claim.createdAt).toLocaleDateString("id-ID")}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h4 className="font-black text-sm text-[#0F172A]">{claim.member?.user?.name || claim.member?.fullName}</h4>
+                          <p className="text-[11px] text-gray-400 font-mono mt-0.5">ID: {claim.member?.memberNumber || "-"}</p>
+                        </div>
+
+                        <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col gap-1.5 text-xs">
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Sabuk Saat Ini:</span>
+                            <span className="font-bold text-slate-700">{claim.currentBelt}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Sabuk Diklaim:</span>
+                            <span className="font-black text-[#E10600]">{claim.claimedBelt}</span>
+                          </div>
+                        </div>
+
+                        {/* Bukti Sertifikat UKT */}
+                        {claim.certProofUrl ? (
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-[10px] font-bold text-slate-500 uppercase">Bukti Sertifikat UKT:</span>
+                            <a
+                              href={claim.certProofUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 flex items-center justify-center gap-1.5 text-xs font-black transition-all shadow-sm"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> LIHAT DOKUMEN SERTIFIKAT ↗
+                            </a>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-amber-600 font-bold bg-amber-50 p-2 rounded-xl text-center">Tidak ada foto sertifikat</span>
+                        )}
+
+                        {claim.coachNotes && (
+                          <p className="text-[11px] text-slate-500 italic bg-slate-50 p-2 rounded-lg border border-slate-100">
+                            Catatan: "{claim.coachNotes}"
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Tombol Aksi Verifikasi */}
+                      {claim.status === "PENDING" ? (
+                        <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                          <button
+                            onClick={() => handleVerifyBeltClaim(claim.id, "APPROVE")}
+                            className="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 text-xs font-black transition-all shadow-sm cursor-pointer"
+                          >
+                            <Check className="w-4 h-4" /> SETUJUI
+                          </button>
+                          <button
+                            onClick={() => handleVerifyBeltClaim(claim.id, "REJECT")}
+                            className="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-1.5 text-xs font-black transition-all shadow-sm cursor-pointer"
+                          >
+                            <XCircle className="w-4 h-4" /> TOLAK
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="text-center py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-bold">
+                          Status: {claim.status}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

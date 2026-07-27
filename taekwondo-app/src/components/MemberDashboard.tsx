@@ -77,6 +77,7 @@ export default function MemberDashboard({
     progress: number;
     email: string;
     phone?: string;
+    dateOfBirth?: string | Date | null;
     selfieUrl?: string | null;
     certDocUrl?: string | null;
     weight?: number | null;
@@ -3416,20 +3417,7 @@ export default function MemberDashboard({
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-400 uppercase mb-1.5 flex items-center gap-1.5">
-                  Tingkatan Sabuk / Geup <Lock className="w-3.5 h-3.5 text-gray-400" />
-                </label>
-                <div className="relative">
-                  <input 
-                    type="text" 
-                    value={profile?.currentBelt || ""}
-                    disabled
-                    className="w-full bg-[#F8FAFC] border border-[#0F172A]/5 text-gray-400 rounded-xl px-4 py-3 text-xs outline-none cursor-not-allowed font-bold text-[#E10600]"
-                  />
-                  <span className="text-[9px] text-[#E10600] font-bold block mt-1">Hanya bisa diubah oleh Pelatih/Admin</span>
-                </div>
-              </div>
+
 
 
               <div className="flex gap-3 mt-2">

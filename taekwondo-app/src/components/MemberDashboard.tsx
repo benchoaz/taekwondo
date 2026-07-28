@@ -2176,7 +2176,6 @@ export default function MemberDashboard({
             </div>
           )}
 
-          {activeTab === "physical_growth" && (
           {activeTab === "physical_growth" && (() => {
             const bmiData = getBMIData();
             return (

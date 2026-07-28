@@ -110,6 +110,7 @@ export default function MemberDashboard({
   const [uploadingHistoryId, setUploadingHistoryId] = useState<string | null>(null);
   const [selectedPromotedDate, setSelectedPromotedDate] = useState("");
   const [beltImageUrl, setBeltImageUrl] = useState<string | null>(null);
+  const [dbBeltRanks, setDbBeltRanks] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>(null);
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -680,6 +681,9 @@ export default function MemberDashboard({
              if (resCur.ok) {
                const curData = await resCur.json();
                const beltsList = curData.data || [];
+               if (Array.isArray(beltsList) && beltsList.length > 0) {
+                 setDbBeltRanks(beltsList);
+               }
                const matchingBelt = beltsList.find(
                  (b: any) => b.name.toLowerCase() === (currentUser.currentBelt || "").toLowerCase()
                );
@@ -780,12 +784,35 @@ export default function MemberDashboard({
     fetchDashboardData();
   }, [userEmail]);
 
+  // Dynamically derive active belt sequence from dbBeltRanks (Curriculum Builder DB) if available
+  const activeBeltSequence = dbBeltRanks.length > 0
+    ? dbBeltRanks.map((b: any, idx: number, arr: any[]) => {
+        const rawName = b.name || "";
+        const cleanName = rawName.replace(/\s*\((geup|dan|\d+).*?\)/i, "").trim();
+        const levelMatch = rawName.match(/\((.*?)\)/)?.[1] || `Level ${b.level}`;
+        const nextBeltObj = arr[idx + 1];
+        return {
+          name: cleanName,
+          fullName: rawName,
+          level: levelMatch,
+          next: nextBeltObj ? nextBeltObj.name : "Sabuk Hitam (1 Dan)",
+          imageUrl: b.imageUrl || null,
+          syllabus: b.categories?.flatMap((c: any) => c.materials?.map((m: any) => ({
+            title: m.title,
+            type: c.name,
+            steps: [m.title],
+            tips: "Latih materi ini secara konsisten."
+          })) || []) || []
+        };
+      })
+    : beltSequence;
+
   const cleanBeltKey = (str: string) => {
     if (!str) return "";
     return str
       .toLowerCase()
       .replace(/^sabuk\s+/, "")
-      .replace(/\s*\(\d+.*?\)/, "")
+      .replace(/\s*\((geup|dan|\d+).*?\)/i, "")
       .replace(/\s+\d+$/, "")
       .trim();
   };
@@ -793,24 +820,25 @@ export default function MemberDashboard({
   // Get index of current belt in sequence
   const getCurrentIndex = () => {
     const targetKey = cleanBeltKey(currentBelt);
-    // 1. Exact match first (prevents "kuning strip hijau" matching "kuning")
-    let idx = beltSequence.findIndex(b => cleanBeltKey(b.name) === targetKey);
+    if (!targetKey) return 0;
+    // 1. Exact match first
+    let idx = activeBeltSequence.findIndex(b => cleanBeltKey(b.name) === targetKey || cleanBeltKey(b.fullName || "") === targetKey);
     if (idx !== -1) return idx;
 
-    // 2. Fallback: match if full word matches
-    idx = beltSequence.findIndex(b => {
+    // 2. Fallback: match if substring matches
+    idx = activeBeltSequence.findIndex(b => {
       const bKey = cleanBeltKey(b.name);
-      return bKey.length > 0 && (targetKey.startsWith(bKey + " ") || bKey.startsWith(targetKey + " "));
+      return bKey.length > 0 && (targetKey.includes(bKey) || bKey.includes(targetKey));
     });
     return idx !== -1 ? idx : 0;
   };
 
   const currentIndex = getCurrentIndex();
-  const currentBeltConfig = beltSequence[currentIndex] || beltSequence[0];
-  // Derived values always from beltSequence (authoritative), not raw DB string
-  const currentBeltName = currentBeltConfig.name;        // e.g. "Kuning Strip Hijau"
-  const currentBeltLevel = currentBeltConfig.level;      // e.g. "8 Geup"
-  const nextBeltConfig = beltSequence[currentIndex + 1] || null;
+  const currentBeltConfig = activeBeltSequence[currentIndex] || activeBeltSequence[0];
+  // Derived values always from activeBeltSequence (authoritative), not raw DB string
+  const currentBeltName = currentBeltConfig.name;        // e.g. "Biru Strip Merah"
+  const currentBeltLevel = currentBeltConfig.level;      // e.g. "4 Geup"
+  const nextBeltConfig = activeBeltSequence[currentIndex + 1] || null;
   const nextBeltInfo = nextBeltConfig
     ? `${nextBeltConfig.name} (${nextBeltConfig.level})`
     : "Sabuk Hitam (1 Dan)";
@@ -1624,19 +1652,19 @@ export default function MemberDashboard({
     } else if (lower.includes("kuning")) {
       startColor = "#fbbf24";
       endColor = "#ca8a04";
-      if (lower.includes("hijau") || lower.includes("strip")) stripeHex = "#16a34a";
+      if (lower.includes("hijau")) stripeHex = "#16a34a";
     } else if (lower.includes("hijau")) {
       startColor = "#22c55e";
       endColor = "#15803d";
-      if (lower.includes("biru") || lower.includes("strip")) stripeHex = "#2563eb";
+      if (lower.includes("biru")) stripeHex = "#2563eb";
     } else if (lower.includes("biru")) {
       startColor = "#3b82f6";
       endColor = "#1d4ed8";
-      if (lower.includes("merah") || lower.includes("strip")) stripeHex = "#dc2626";
+      if (lower.includes("merah")) stripeHex = "#dc2626";
     } else if (lower.includes("merah")) {
       startColor = "#ef4444";
       endColor = "#b91c1c";
-      if (lower.includes("hitam") || lower.includes("strip")) stripeHex = "#18181b";
+      if (lower.includes("hitam")) stripeHex = "#18181b";
     } else if (lower.includes("hitam")) {
       startColor = "#27272a";
       endColor = "#09090b";
@@ -1965,7 +1993,9 @@ export default function MemberDashboard({
                     <div className="my-4 flex items-center gap-2">
                       <span className="text-xs text-gray-400 font-bold uppercase shrink-0">Sabuk Aktif:</span>
                       <span className="bg-slate-100 text-[#0F172A] border border-[#0F172A]/5 rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider">
-                        SABUK {currentBeltName.toUpperCase()} ({currentBeltLevel})
+                        {currentBeltName.toLowerCase().startsWith("sabuk")
+                          ? currentBeltName.toUpperCase()
+                          : `SABUK ${currentBeltName.toUpperCase()}`} ({currentBeltLevel})
                       </span>
                     </div>
 

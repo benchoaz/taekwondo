@@ -2177,92 +2177,273 @@ export default function MemberDashboard({
           )}
 
           {activeTab === "physical_growth" && (
-            <div className="flex flex-col gap-8">
-              <div>
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Tumbuh Kembang Fisik</h2>
-                <p className="text-gray-400 text-xs mt-1">Pantau perkembangan tinggi dan berat badan Anda dari waktu ke waktu.</p>
-              </div>
+          {activeTab === "physical_growth" && (() => {
+            const bmiData = getBMIData();
+            return (
+              <div className="flex flex-col gap-8">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display flex items-center gap-2">
+                      Laporan Tumbuh Kembang & BMI <Activity className="w-6 h-6 text-[#E10600]" />
+                    </h2>
+                    <p className="text-gray-400 text-xs mt-1">Pantau Indeks Massa Tubuh (BMI), pertumbuhan fisik, dan rekomendasi kategori kelas tanding Kyorugi.</p>
+                  </div>
+                </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-white rounded-[24px] p-8 border border-[#0F172A]/5 shadow-sm">
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="font-extrabold text-sm text-[#0F172A]">Grafik Pertumbuhan</h3>
-                    <div className="flex gap-4">
-                      <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#E10600]"></div><span className="text-xs text-gray-400">Berat (kg)</span></div>
-                      <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#3b82f6]"></div><span className="text-xs text-gray-400">Tinggi (cm)</span></div>
+                {bmiData ? (
+                  <>
+                    {/* BMI Highlight Card & Meter */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                      {/* Left: BMI Score & Spectrum Meter */}
+                      <div className={`lg:col-span-7 bg-gradient-to-br ${bmiData.bgHeader} bg-white rounded-[24px] p-6 sm:p-8 border shadow-sm flex flex-col justify-between`}>
+                        <div>
+                          <div className="flex justify-between items-start gap-4 mb-4">
+                            <div>
+                              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Status Kesehatan Atlet</span>
+                              <h3 className="text-3xl sm:text-4xl font-black text-[#0F172A] font-display flex items-baseline gap-2">
+                                {bmiData.bmiVal} <span className="text-xs font-bold text-slate-400">kg/m²</span>
+                              </h3>
+                            </div>
+                            <span className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider border shadow-xs ${bmiData.bgBadge}`}>
+                              {bmiData.category}
+                            </span>
+                          </div>
+
+                          <p className="text-slate-600 text-xs leading-relaxed mb-6 font-medium">
+                            {bmiData.description}
+                          </p>
+
+                          {/* BMI Spectrum Bar */}
+                          <div className="my-6">
+                            <div className="flex justify-between items-center text-[10px] font-extrabold text-slate-400 mb-2 uppercase tracking-wider">
+                              <span>Underweight (&lt;18.5)</span>
+                              <span>Ideal (18.5 - 22.9)</span>
+                              <span>Overweight (23.0+)</span>
+                            </div>
+
+                            {/* Meter Track */}
+                            <div className="relative w-full h-4 rounded-full bg-slate-100 p-0.5 border border-slate-200/80 overflow-hidden flex">
+                              <div className="h-full w-[30%] bg-gradient-to-r from-amber-300 to-amber-400 rounded-l-full"></div>
+                              <div className="h-full w-[35%] bg-gradient-to-r from-emerald-400 to-teal-500"></div>
+                              <div className="h-full w-[20%] bg-gradient-to-r from-orange-400 to-amber-500"></div>
+                              <div className="h-full w-[15%] bg-gradient-to-r from-red-500 to-rose-600 rounded-r-full"></div>
+                            </div>
+
+                            {/* Pointer Needle */}
+                            <div className="relative w-full h-4 mt-1">
+                              <div 
+                                className="absolute top-0 transform -translate-x-1/2 flex flex-col items-center transition-all duration-700 ease-out"
+                                style={{ left: `${bmiData.barPercent}%` }}
+                              >
+                                <span className="text-xs">▲</span>
+                                <span className="text-[9px] font-black text-slate-800 bg-white shadow-md border border-slate-200 px-2 py-0.5 rounded-md">
+                                  Anda: {bmiData.bmiVal}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Nutrition Advice Box */}
+                        <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-start gap-3">
+                          <div className="p-2 bg-blue-500/10 text-blue-600 rounded-xl shrink-0">
+                            <TrendingUp className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-black uppercase text-slate-400 block tracking-wider">Rekomendasi Nutrisi & Latihan</span>
+                            <p className="text-slate-700 text-xs font-semibold leading-relaxed mt-0.5">
+                              {bmiData.recommendation}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: Detailed Physical Metrics & Kyorugi Class */}
+                      <div className="lg:col-span-5 flex flex-col gap-4">
+                        {/* Physical Numbers Grid */}
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* Tinggi Badan */}
+                          <div className="bg-white rounded-[20px] p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Tinggi Badan</span>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-2xl font-black text-slate-800 font-display">{bmiData.height}</span>
+                              <span className="text-xs font-bold text-slate-400">cm</span>
+                            </div>
+                            {bmiData.deltaHeight !== 0 && (
+                              <span className={`text-[10px] font-extrabold mt-2 block ${bmiData.deltaHeight > 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                {bmiData.deltaHeight > 0 ? `▲ +${bmiData.deltaHeight} cm` : `▼ ${bmiData.deltaHeight} cm`}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Berat Badan */}
+                          <div className="bg-white rounded-[20px] p-5 border border-slate-100 shadow-sm flex flex-col justify-between">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Berat Badan</span>
+                            <div className="flex items-baseline gap-1">
+                              <span className="text-2xl font-black text-slate-800 font-display">{bmiData.weight}</span>
+                              <span className="text-xs font-bold text-slate-400">kg</span>
+                            </div>
+                            {bmiData.deltaWeight !== 0 && (
+                              <span className={`text-[10px] font-extrabold mt-2 block ${bmiData.deltaWeight < 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                                {bmiData.deltaWeight > 0 ? `▲ +${bmiData.deltaWeight} kg` : `▼ ${bmiData.deltaWeight} kg`}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Kyorugi Match Category Box */}
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-[24px] p-6 shadow-md border border-slate-700 flex items-center justify-between gap-4">
+                          <div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Estimasi Kategori Kyorugi</span>
+                            <h4 className="text-base font-black text-white font-display">
+                              {bmiData.kyorugiCat}
+                            </h4>
+                            <p className="text-[10px] text-slate-400 mt-1">Berdasarkan data berat badan terkini untuk kejuaraan resmi PBTI.</p>
+                          </div>
+                          <div className="p-3 bg-[#E10600] rounded-2xl text-white shadow-lg shrink-0">
+                            <Award className="w-6 h-6" />
+                          </div>
+                        </div>
+
+                        {/* Waist circumference box if present */}
+                        {bmiData.waist > 0 && (
+                          <div className="bg-slate-50 rounded-[20px] p-4 border border-slate-200/70 flex items-center justify-between">
+                            <span className="text-xs font-bold text-slate-600">Lingkar Perut</span>
+                            <span className="text-sm font-black text-slate-900">{bmiData.waist} cm</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Chart & Update Form Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                      <div className="lg:col-span-8 bg-white rounded-[24px] p-6 sm:p-8 border border-[#0F172A]/5 shadow-sm">
+                        <div className="flex items-center justify-between mb-6">
+                          <div>
+                            <h3 className="font-extrabold text-sm text-[#0F172A]">Grafik Pertumbuhan Fisik</h3>
+                            <p className="text-[11px] text-gray-400 mt-0.5">Tren perubahan berat badan dan tinggi badan dari waktu ke waktu</p>
+                          </div>
+                          <div className="flex gap-4">
+                            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#E10600]"></div><span className="text-xs text-gray-400 font-bold">Berat (kg)</span></div>
+                            <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#3b82f6]"></div><span className="text-xs text-gray-400 font-bold">Tinggi (cm)</span></div>
+                          </div>
+                        </div>
+                        
+                        {profile?.physicalLogs && profile.physicalLogs.length > 0 ? (
+                          <div className="h-72 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <LineChart data={profile.physicalLogs.map((log: any) => ({
+                                ...log,
+                                dateStr: new Date(log.recordedAt).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
+                              }))}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                                <XAxis dataKey="dateStr" stroke="#64748b" fontSize={10} tickMargin={12} />
+                                <YAxis yAxisId="left" stroke="#64748b" fontSize={10} domain={['auto', 'auto']} width={30} />
+                                <YAxis yAxisId="right" orientation="right" stroke="#64748b" fontSize={10} domain={['auto', 'auto']} width={30} />
+                                <Tooltip 
+                                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px', color: '#fff' }}
+                                  itemStyle={{ fontWeight: 'bold' }}
+                                />
+                                <Line yAxisId="left" type="monotone" dataKey="weight" name="Berat (kg)" stroke="#E10600" strokeWidth={3} dot={{ r: 4, fill: '#E10600', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, fill: '#E10600' }} />
+                                <Line yAxisId="right" type="monotone" dataKey="height" name="Tinggi (cm)" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, fill: '#3b82f6' }} />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+                        ) : (
+                          <div className="h-64 w-full flex items-center justify-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                            <p className="text-xs text-gray-400 font-medium">Belum ada data pertumbuhan</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Update Data Form */}
+                      <div className="lg:col-span-4 bg-white rounded-[24px] p-6 sm:p-8 border border-[#0F172A]/5 shadow-sm">
+                        <h3 className="font-extrabold text-sm text-[#0F172A] mb-1">Input Data Fisik Baru</h3>
+                        <p className="text-[11px] text-gray-400 mb-6">Perbarui data berat & tinggi badan terbaru Anda.</p>
+                        <form onSubmit={handleSavePhysical} className="flex flex-col gap-4">
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Tinggi Badan (cm)</label>
+                            <input 
+                              type="number" step="0.1" 
+                              value={inputHeight} onChange={(e) => setInputHeight(e.target.value)}
+                              placeholder={profile?.physicalLogs?.length ? String(profile.physicalLogs[profile.physicalLogs.length-1].height || '') : 'Contoh: 165'}
+                              className="w-full bg-[#F8FAFC] border border-[#0F172A]/5 text-[#0F172A] rounded-xl px-4 py-3 text-xs outline-none focus:border-[#E10600]/30 transition-all font-semibold"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Berat Badan (kg)</label>
+                            <input 
+                              type="number" step="0.1" 
+                              value={inputWeight} onChange={(e) => setInputWeight(e.target.value)}
+                              placeholder={profile?.physicalLogs?.length ? String(profile.physicalLogs[profile.physicalLogs.length-1].weight || '') : 'Contoh: 55'}
+                              className="w-full bg-[#F8FAFC] border border-[#0F172A]/5 text-[#0F172A] rounded-xl px-4 py-3 text-xs outline-none focus:border-[#E10600]/30 transition-all font-semibold"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Lingkar Perut (cm - Opsional)</label>
+                            <input 
+                              type="number" step="0.1" 
+                              value={inputWaist} onChange={(e) => setInputWaist(e.target.value)}
+                              placeholder={profile?.physicalLogs?.length ? String(profile.physicalLogs[profile.physicalLogs.length-1].waistCircum || '') : 'Contoh: 70'}
+                              className="w-full bg-[#F8FAFC] border border-[#0F172A]/5 text-[#0F172A] rounded-xl px-4 py-3 text-xs outline-none focus:border-[#E10600]/30 transition-all font-semibold"
+                            />
+                          </div>
+                          
+                          <button 
+                            type="submit" 
+                            disabled={isSavingPhysical || (!inputWeight && !inputHeight && !inputWaist)}
+                            className="w-full mt-2 bg-[#E10600] hover:bg-[#C00500] text-white py-3 rounded-xl font-bold text-xs shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isSavingPhysical ? "Menyimpan..." : "Simpan Catatan Baru"}
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="bg-white rounded-[24px] p-8 border border-slate-100 shadow-sm text-center">
+                    <div className="w-16 h-16 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Activity className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-base font-bold text-slate-800 mb-1">Belum Ada Data Fisik</h3>
+                    <p className="text-xs text-slate-400 max-w-md mx-auto mb-6">
+                      Silakan isi data tinggi dan berat badan Anda untuk mengaktifkan Laporan Tumbuh Kembang & BMI Profesional.
+                    </p>
+                    <div className="max-w-sm mx-auto bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                      <form onSubmit={handleSavePhysical} className="flex flex-col gap-4 text-left">
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Tinggi Badan (cm)</label>
+                          <input 
+                            type="number" step="0.1" 
+                            value={inputHeight} onChange={(e) => setInputHeight(e.target.value)}
+                            placeholder="Contoh: 165"
+                            className="w-full bg-white border border-slate-200 text-[#0F172A] rounded-xl px-4 py-3 text-xs outline-none font-semibold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Berat Badan (kg)</label>
+                          <input 
+                            type="number" step="0.1" 
+                            value={inputWeight} onChange={(e) => setInputWeight(e.target.value)}
+                            placeholder="Contoh: 55"
+                            className="w-full bg-white border border-slate-200 text-[#0F172A] rounded-xl px-4 py-3 text-xs outline-none font-semibold"
+                          />
+                        </div>
+                        <button 
+                          type="submit" 
+                          disabled={isSavingPhysical || (!inputWeight && !inputHeight)}
+                          className="w-full bg-[#E10600] text-white py-3 rounded-xl font-bold text-xs shadow-md"
+                        >
+                          {isSavingPhysical ? "Menyimpan..." : "Aktifkan Laporan BMI"}
+                        </button>
+                      </form>
                     </div>
                   </div>
-                  
-                  {profile?.physicalLogs && profile.physicalLogs.length > 0 ? (
-                    <div className="h-64 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={profile.physicalLogs.map((log: any) => ({
-                          ...log,
-                          dateStr: new Date(log.recordedAt).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })
-                        }))}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                          <XAxis dataKey="dateStr" stroke="#64748b" fontSize={10} tickMargin={12} />
-                          <YAxis yAxisId="left" stroke="#64748b" fontSize={10} domain={['auto', 'auto']} width={30} />
-                          <YAxis yAxisId="right" orientation="right" stroke="#64748b" fontSize={10} domain={['auto', 'auto']} width={30} />
-                          <Tooltip 
-                            contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '12px', color: '#fff' }}
-                            itemStyle={{ fontWeight: 'bold' }}
-                          />
-                          <Line yAxisId="left" type="monotone" dataKey="weight" name="Berat (kg)" stroke="#E10600" strokeWidth={3} dot={{ r: 4, fill: '#E10600', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, fill: '#E10600' }} />
-                          <Line yAxisId="right" type="monotone" dataKey="height" name="Tinggi (cm)" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, fill: '#3b82f6' }} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  ) : (
-                    <div className="h-64 w-full flex items-center justify-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                      <p className="text-xs text-gray-400 font-medium">Belum ada data pertumbuhan</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="bg-white rounded-[24px] p-8 border border-[#0F172A]/5 shadow-sm">
-                  <h3 className="font-extrabold text-sm text-[#0F172A] mb-6">Pembaruan Data Fisik</h3>
-                  <form onSubmit={handleSavePhysical} className="flex flex-col gap-5">
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Tinggi Badan (cm)</label>
-                      <input 
-                        type="number" step="0.1" 
-                        value={inputHeight} onChange={(e) => setInputHeight(e.target.value)}
-                        placeholder={profile?.physicalLogs?.length ? String(profile.physicalLogs[profile.physicalLogs.length-1].height || '') : ''}
-                        className="w-full bg-[#F8FAFC] border border-[#0F172A]/5 text-[#0F172A] rounded-xl px-4 py-3 text-xs outline-none focus:border-[#E10600]/30 transition-all font-semibold"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Berat Badan (kg)</label>
-                      <input 
-                        type="number" step="0.1" 
-                        value={inputWeight} onChange={(e) => setInputWeight(e.target.value)}
-                        placeholder={profile?.physicalLogs?.length ? String(profile.physicalLogs[profile.physicalLogs.length-1].weight || '') : ''}
-                        className="w-full bg-[#F8FAFC] border border-[#0F172A]/5 text-[#0F172A] rounded-xl px-4 py-3 text-xs outline-none focus:border-[#E10600]/30 transition-all font-semibold"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Lingkar Perut (cm)</label>
-                      <input 
-                        type="number" step="0.1" 
-                        value={inputWaist} onChange={(e) => setInputWaist(e.target.value)}
-                        placeholder={profile?.physicalLogs?.length ? String(profile.physicalLogs[profile.physicalLogs.length-1].waistCircum || '') : ''}
-                        className="w-full bg-[#F8FAFC] border border-[#0F172A]/5 text-[#0F172A] rounded-xl px-4 py-3 text-xs outline-none focus:border-[#E10600]/30 transition-all font-semibold"
-                      />
-                    </div>
-                    
-                    <button 
-                      type="submit" 
-                      disabled={isSavingPhysical || (!inputWeight && !inputHeight && !inputWaist)}
-                      className="w-full mt-2 bg-[#E10600] hover:bg-[#C00500] text-white py-3 rounded-xl font-bold text-xs shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isSavingPhysical ? "Menyimpan..." : "Simpan Catatan Baru"}
-                    </button>
-                  </form>
-                </div>
+                )}
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {activeTab === "history" && (
             <div className="flex flex-col gap-8">

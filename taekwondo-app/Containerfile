@@ -2,7 +2,7 @@
 
 FROM node:20-alpine AS base
 
-# Install openssl untuk engines Prisma
+# Install openssl untuk engines Prisma & wget untuk healthcheck
 RUN apk add --no-cache openssl wget
 
 # Setup dependencies
@@ -23,7 +23,7 @@ ENV DATABASE_URL="postgresql://taekwondo_user:taekwondo_password@localhost:5432/
 RUN npx prisma generate
 RUN npm run build
 
-# Runner stage
+# Runner stage - salin seluruh /app utuh dari builder
 FROM base AS runner
 WORKDIR /app
 
@@ -31,25 +31,16 @@ ENV NODE_ENV=production
 ENV PORT=3030
 ENV HOSTNAME="0.0.0.0"
 
-# Best practice keamanan: Jangan jalankan container sebagai root
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
-
-# Setup folder standalone Next.js dan ownership permissions
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
-COPY --chown=nextjs:nodejs firebase-service-account.json ./firebase-service-account.json
+COPY --from=builder --chown=nextjs:nodejs /app ./
 
 USER nextjs
 
 EXPOSE 3030
 
-# Healthcheck untuk monitoring status container
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3030/ || exit 1
 
-CMD ["node", "server.js"]
+CMD ["npx", "next", "start", "-p", "3030", "-H", "0.0.0.0"]

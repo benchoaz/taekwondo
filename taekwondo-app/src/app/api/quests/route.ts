@@ -58,8 +58,9 @@ export async function GET(req: NextRequest) {
     }
 
     // Normalize string: hapus karakter non-alfanumerik serta kata SABUK, GEUP, DAN untuk pencocokan akurat
-    const normalizeBelt = (str: string) => str.toUpperCase().replace(/SABUK|GEUP|DAN|[^A-Z0-9]/g, '');
-    const normMemberBelt = normalizeBelt(member.currentBelt);
+    const normalizeBelt = (str: string) => (str || "").toUpperCase().replace(/SABUK|GEUP|DAN|[^A-Z0-9]/g, '');
+    const normMemberBelt = normalizeBelt(member.currentBelt || "Sabuk Putih");
+
 
     // Ambil daftar sabuk untuk mencari UUID yang cocok dengan nama sabuk member
     const dbBelts = await prisma.beltRank.findMany();

@@ -212,9 +212,38 @@ export default function AdminDashboard({
     }
   };
 
+  // Physical Growth Report State for Coach/Admin
+  const [physicalGrowthReport, setPhysicalGrowthReport] = useState<any[]>([]);
+  const [isPhysicalGrowthLoading, setIsPhysicalGrowthLoading] = useState(false);
+  const [physicalSearchTerm, setPhysicalSearchTerm] = useState("");
+  const [physicalCategoryFilter, setPhysicalCategoryFilter] = useState("ALL");
+
+  const fetchPhysicalGrowthReport = async () => {
+    setIsPhysicalGrowthLoading(true);
+    try {
+      const res = await fetch("/api/physical-growth");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data)) {
+          setPhysicalGrowthReport(data.data);
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching physical growth report:", e);
+    } finally {
+      setIsPhysicalGrowthLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchDashboardStats();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "physical_growth") {
+      fetchPhysicalGrowthReport();
+    }
+  }, [activeTab]);
   const [tournamentName, setTournamentName] = useState("");
   const [tournamentAmount, setTournamentAmount] = useState("");
   const [isSubmittingTournamentBilling, setIsSubmittingTournamentBilling] = useState(false);
@@ -1145,12 +1174,12 @@ export default function AdminDashboard({
   };
 
   const downloadTemplateCsv = () => {
-    const csvContent = "Nama Lengkap,Nomor WhatsApp\nBudi Santoso,081234567890\nAndi Wijaya,085712341234\n";
+    const csvContent = "NAMA,NOMOR TLP,USER,PASWORD\nOryzha Abhinaya,085219700450,Oryzha,user1234\nKafeel Aryaprama Afandi,085259739973,Kafeel,user1234\n";
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", "template_import_member.csv");
+    link.setAttribute("download", "template_akun_taekwondo.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1162,38 +1191,57 @@ export default function AdminDashboard({
 
     setIsImporting(true);
     try {
-      const text = await importFile.text();
-      // Simple CSV Parse: split by \n
-      const rows = text.split("\n").filter(row => row.trim().length > 0);
-      
-      const membersToImport = [];
-      // Skip header if it exists. Let's assume row 1 is header if it contains "nama"
-      let startIndex = 0;
-      if (rows[0].toLowerCase().includes("nama") || rows[0].toLowerCase().includes("whatsapp")) {
-        startIndex = 1;
+      const XLSX = await import("xlsx");
+      const dataBuffer = await importFile.arrayBuffer();
+      const workbook = XLSX.read(dataBuffer, { type: "array" });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const rawRows: any[] = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+      if (rawRows.length === 0) {
+        alert("File Excel/CSV kosong atau tidak berisi data yang dapat dibaca!");
+        setIsImporting(false);
+        return;
       }
 
-      for (let i = startIndex; i < rows.length; i++) {
-        // Detect delimiter: comma or semicolon
-        let cols = rows[i].split(",");
-        if (cols.length < 2) {
-          cols = rows[i].split(";");
-        }
-        
-        if (cols.length >= 2) {
-          const name = cols[0].trim().replace(/^["']|["']$/g, '');
-          const phone = cols[1].trim().replace(/^["']|["']$/g, '');
-          if (name && phone) {
-            membersToImport.push({
-              name,
-              phone
-            });
+      const membersToImport = [];
+
+      for (let i = 0; i < rawRows.length; i++) {
+        const row = rawRows[i];
+
+        // Flexible key matching regardless of exact casing/spaces
+        let name = "";
+        let phone = "";
+        let user = "";
+        let password = "";
+
+        Object.keys(row).forEach((key) => {
+          const cleanKey = key.trim().toUpperCase();
+          const val = (row[key] !== undefined && row[key] !== null) ? String(row[key]).trim() : "";
+
+          if (cleanKey.includes("NAMA") || cleanKey.includes("NAME")) {
+            name = val;
+          } else if (cleanKey.includes("TLP") || cleanKey.includes("PHONE") || cleanKey.includes("HP") || cleanKey.includes("WA")) {
+            phone = val;
+          } else if (cleanKey.includes("USER")) {
+            user = val;
+          } else if (cleanKey.includes("PASWORD") || cleanKey.includes("PASSWORD") || cleanKey.includes("PASS")) {
+            password = val;
           }
+        });
+
+        if (name) {
+          membersToImport.push({
+            NAMA: name,
+            "NOMOR TLP": phone,
+            USER: user,
+            PASWORD: password
+          });
         }
       }
 
       if (membersToImport.length === 0) {
-        alert("Tidak ada data yang valid ditemukan di file CSV.");
+        alert("Tidak ditemukan baris data atlet yang valid dalam file Excel.");
         setIsImporting(false);
         return;
       }
@@ -1203,7 +1251,7 @@ export default function AdminDashboard({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ members: membersToImport }),
       });
-      
+
       const data = await res.json();
       if (res.ok) {
         alert(data.message);
@@ -1214,8 +1262,8 @@ export default function AdminDashboard({
         alert(data.error || "Gagal mengimport data.");
       }
     } catch (err) {
-      console.error(err);
-      alert("Terjadi kesalahan saat memproses file.");
+      console.error("Import parse error:", err);
+      alert("Terjadi kesalahan saat memproses file Excel/CSV. Pastikan format file benar.");
     } finally {
       setIsImporting(false);
     }
@@ -1989,6 +2037,7 @@ export default function AdminDashboard({
 
   const NAV_TABS = [
     { id: "payments", label: "Administrasi Keuangan", icon: <CreditCard className="w-4 h-4" /> },
+    { id: "physical_growth", label: "Tumbuh Kembang & Turnamen", icon: <Activity className="w-4 h-4" /> },
     { id: "ukt_candidates", label: "Pendaftar Ujian UKT", icon: <UserCheck className="w-4 h-4" /> },
     { id: "ukt_schedule", label: "Kelola Jadwal UKT", icon: <Calendar className="w-4 h-4" /> },
     { id: "analytics", label: "Dashboard Analytics", icon: <TrendingUp className="w-4 h-4" /> },
@@ -2119,6 +2168,228 @@ export default function AdminDashboard({
 
         {/* ── MAIN CONTENT ── */}
         <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8 lg:p-10 overflow-x-hidden">
+
+          {activeTab === "physical_growth" && (
+            <div className="flex flex-col gap-8">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
+                <div>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display flex items-center gap-2">
+                    Monitoring Tumbuh Kembang & Turnamen Atlet <Activity className="w-6 h-6 text-[#E10600]" />
+                  </h2>
+                  <p className="text-gray-400 text-xs mt-1">Referensi Pelatih (Coach) untuk klasifikasi kelas tanding Kyorugi, Indeks Massa Tubuh (BMI), dan rekomendasi berat atlet.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <a 
+                    href="/api/physical-growth/export"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" /> Download Laporan Turnamen (CSV)
+                  </a>
+                  <button 
+                    onClick={() => {
+                      const mId = prompt("Masukkan ID/Nomor Anggota (WTK-001):");
+                      const h = prompt("Tinggi Badan (cm):", "165");
+                      const w = prompt("Berat Badan (kg):", "55");
+                      if (mId && h && w) {
+                        fetch("/api/physical-growth", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ memberId: mId, height: h, weight: w, notes: "Input dari Pelatih" })
+                        }).then(r => r.json()).then(d => {
+                          if (d.success) { alert("✅ Data berhasil dicatat!"); window.location.reload(); }
+                          else alert("❌ " + d.error);
+                        });
+                      }
+                    }}
+                    className="bg-[#E10600] hover:bg-[#C00500] text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" /> Catat Fisik Atlet
+                  </button>
+                </div>
+              </div>
+
+              {/* Information Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                  <div className="p-3 bg-red-50 text-[#E10600] rounded-xl">
+                    <Activity className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Fitur Referensi</span>
+                    <h4 className="text-sm font-black text-slate-800">Klasifikasi Kyorugi</h4>
+                    <p className="text-xs text-slate-500 mt-0.5">Penentuan otomatis Under / Over Weight Class</p>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                  <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <Download className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Export Data</span>
+                    <h4 className="text-sm font-black text-slate-800">Format Resmi Turnamen</h4>
+                    <p className="text-xs text-slate-500 mt-0.5">Siap diunduh ke Excel / CSV untuk pendaftaran</p>
+                  </div>
+                </div>
+
+                <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+                  <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Terdata</span>
+                    <h4 className="text-sm font-black text-slate-800">{physicalGrowthReport.length} Atlet Dojang</h4>
+                    <p className="text-xs text-slate-500 mt-0.5">Pemantauan fisik & statistik rutin</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter & Search Bar */}
+              <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col sm:flex-row gap-4 justify-between items-center">
+                <div className="w-full sm:w-80">
+                  <input
+                    type="text"
+                    placeholder="Cari nama / no. anggota atlet..."
+                    value={physicalSearchTerm}
+                    onChange={(e) => setPhysicalSearchTerm(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl px-4 py-2.5 outline-none font-semibold text-slate-800 focus:ring-2 focus:ring-[#E10600]"
+                  />
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider shrink-0">Filter Kelas:</span>
+                  {["ALL", "Underweight", "Ideal", "Overweight", "Belum Diukur"].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setPhysicalCategoryFilter(cat)}
+                      className={`px-3 py-1.5 rounded-xl text-[10px] font-black transition-all shrink-0 ${
+                        physicalCategoryFilter === cat
+                          ? "bg-[#0F172A] text-white"
+                          : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Data Table */}
+              <div className="bg-white rounded-[24px] border border-slate-100 shadow-sm overflow-hidden">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                  <h3 className="font-extrabold text-sm text-[#0F172A] flex items-center gap-2">
+                    <Users className="w-4 h-4 text-slate-500" />
+                    Daftar Tumbuh Kembang & Kelas Turnamen Atlet
+                  </h3>
+                  <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+                    {physicalGrowthReport.filter((item: any) => {
+                      const matchSearch = (item.fullName || "").toLowerCase().includes(physicalSearchTerm.toLowerCase()) ||
+                        (item.memberNumber || "").toLowerCase().includes(physicalSearchTerm.toLowerCase());
+                      const matchCat = physicalCategoryFilter === "ALL" || item.category === physicalCategoryFilter;
+                      return matchSearch && matchCat;
+                    }).length} Atlet Ditemukan
+                  </span>
+                </div>
+
+                {isPhysicalGrowthLoading ? (
+                  <div className="p-12 text-center text-slate-400 text-xs font-semibold">
+                    Memuat data tumbuh kembang atlet...
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-slate-50 text-[10px] text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                          <th className="text-left py-3.5 px-6 font-black">Atlet</th>
+                          <th className="text-center py-3.5 px-4 font-black">Sabuk</th>
+                          <th className="text-center py-3.5 px-4 font-black">Tinggi</th>
+                          <th className="text-center py-3.5 px-4 font-black">Berat</th>
+                          <th className="text-center py-3.5 px-4 font-black">BMI</th>
+                          <th className="text-center py-3.5 px-4 font-black">Status BMI</th>
+                          <th className="text-center py-3.5 px-4 font-black">Kelas Kyorugi PBTI</th>
+                          <th className="text-center py-3.5 px-4 font-black">Terakhir Diukur</th>
+                          <th className="text-center py-3.5 px-6 font-black">Aksi Coach</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {physicalGrowthReport
+                          .filter((item: any) => {
+                            const matchSearch = (item.fullName || "").toLowerCase().includes(physicalSearchTerm.toLowerCase()) ||
+                              (item.memberNumber || "").toLowerCase().includes(physicalSearchTerm.toLowerCase());
+                            const matchCat = physicalCategoryFilter === "ALL" || item.category === physicalCategoryFilter;
+                            return matchSearch && matchCat;
+                          })
+                          .map((item: any) => (
+                            <tr key={item.memberId} className="hover:bg-slate-50/60 transition-colors">
+                              <td className="py-4 px-6">
+                                <div className="font-bold text-slate-800">{item.fullName}</div>
+                                <div className="text-[10px] text-slate-400 font-mono">{item.memberNumber}</div>
+                              </td>
+                              <td className="py-4 px-4 text-center">
+                                <span className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-extrabold">
+                                  {item.currentBelt || '-'}
+                                </span>
+                              </td>
+                              <td className="py-4 px-4 text-center font-black text-slate-800">
+                                {item.latestHeight ? `${item.latestHeight} cm` : '-'}
+                              </td>
+                              <td className="py-4 px-4 text-center font-black text-slate-800">
+                                {item.latestWeight ? `${item.latestWeight} kg` : '-'}
+                              </td>
+                              <td className="py-4 px-4 text-center font-bold text-slate-700">
+                                {item.bmi ? item.bmi : '-'}
+                              </td>
+                              <td className="py-4 px-4 text-center">
+                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
+                                  item.category === 'Underweight' ? 'bg-amber-100 text-amber-700' :
+                                  item.category === 'Ideal' ? 'bg-emerald-100 text-emerald-700' :
+                                  item.category === 'Overweight' || item.category === 'Obesity' ? 'bg-red-100 text-red-700' :
+                                  'bg-slate-100 text-slate-500'
+                                }`}>
+                                  {item.category}
+                                </span>
+                              </td>
+                              <td className="py-4 px-4 text-center">
+                                <span className="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200/60 rounded-xl text-[10px] font-black">
+                                  🏆 {item.tournamentClass}
+                                </span>
+                              </td>
+                              <td className="py-4 px-4 text-center text-slate-500 font-semibold text-[11px]">
+                                {item.lastRecordedAt ? new Date(item.lastRecordedAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Belum Pernah'}
+                              </td>
+                              <td className="py-4 px-6 text-center">
+                                <button
+                                  onClick={() => {
+                                    const h = prompt(`Tinggi Badan ${item.fullName} (cm):`, item.latestHeight ? String(item.latestHeight) : "");
+                                    const w = prompt(`Berat Badan ${item.fullName} (kg):`, item.latestWeight ? String(item.latestWeight) : "");
+                                    if (h && w) {
+                                      fetch("/api/physical-growth", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ memberId: item.memberId, height: h, weight: w, notes: "Input dari Pelatih" })
+                                      }).then(r => r.json()).then(d => {
+                                        if (d.success) {
+                                          alert(`✅ Data fisik ${item.fullName} berhasil dicatat!`);
+                                          fetchPhysicalGrowthReport();
+                                        } else alert("❌ " + d.error);
+                                      });
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 bg-[#E10600] text-white rounded-xl hover:bg-[#C00500] transition-colors text-[10px] font-black shadow-sm"
+                                >
+                                  + Update Fisik
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {activeTab === "payments" && (
             <div className="flex flex-col gap-8">
@@ -4572,26 +4843,35 @@ export default function AdminDashboard({
                           </div>
 
                           {item.certUrl ? (
-                            <div className="relative group rounded-lg overflow-hidden border border-slate-200 h-20">
-                              {item.certUrl.startsWith("data:image") ? (
+                            <div className="relative group rounded-lg overflow-hidden border border-slate-200 h-24 bg-slate-900 flex items-center justify-center">
+                              {item.certUrl.startsWith("data:image") || item.certUrl.endsWith(".jpg") || item.certUrl.endsWith(".jpeg") || item.certUrl.endsWith(".png") || item.certUrl.includes("/storage/") ? (
                                 <img src={item.certUrl} alt="Sertifikat" className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full bg-slate-50 flex items-center justify-center gap-2 text-slate-400">
-                                  <FileText className="w-5 h-5" />
-                                  <span className="text-[10px] font-bold">PDF/Dokumen</span>
+                                <div className="w-full h-full bg-slate-50 flex items-center justify-center gap-2 text-slate-600">
+                                  <FileText className="w-5 h-5 text-blue-600" />
+                                  <span className="text-[10px] font-bold">Dokumen Sertifikat (PDF/Gambar)</span>
                                 </div>
                               )}
-                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                <a
+                                  href={item.certUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 shadow"
+                                >
+                                  👁️ Lihat Full
+                                </a>
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveHistoryCert(index)}
-                                  className="bg-red-500 text-white p-1.5 rounded-full"
+                                  className="bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-lg shadow"
                                   title="Hapus Sertifikat"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
                               </div>
                             </div>
+
                           ) : (
                             <label className="flex flex-col items-center justify-center h-16 border border-dashed rounded-lg cursor-pointer bg-white border-slate-300 hover:bg-slate-100 transition-colors">
                               <UploadCloud className="w-4 h-4 text-slate-400 mb-1" />
@@ -5658,13 +5938,14 @@ export default function AdminDashboard({
                 
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-xs text-blue-800">
                   <p className="font-bold mb-1">Format Excel / CSV yang Diterima:</p>
-                  <p className="mb-2">Pastikan file memiliki kolom dengan susunan:</p>
-                  <ul className="list-disc pl-5 mb-2 font-mono bg-white p-2 rounded border border-blue-100">
-                    <li>Nama Lengkap, Nomor WhatsApp</li>
-                    <li>Budi Santoso, 081234567890</li>
-                    <li>Andi Wijaya, 6285712341234</li>
+                  <p className="mb-2">Gunakan format header persis seperti file Excel Anda:</p>
+                  <ul className="list-disc pl-5 mb-2 font-mono text-[10px] bg-white p-2 rounded border border-blue-100">
+                    <li>NAMA, NOMOR TLP, USER, PASWORD</li>
+                    <li>Oryzha Abhinaya, 085219700450, Oryzha, user1234</li>
+                    <li>Kafeel Aryaprama, 085259739973, Kafeel, user1234</li>
                   </ul>
-                  <p className="mb-2">Pemisah kolom bisa menggunakan koma <code>(,)</code> atau titik koma <code>(;)</code>. Nomor WhatsApp bisa diawali 08xx atau 62xx (akan diformat otomatis).</p>
+                  <p className="mb-2">Simpan file Excel Anda sebagai <strong>CSV (Comma Delimited) (*.csv)</strong> melalui menu <code>File &gt; Save As</code> di Excel.</p>
+
                   
                   <button
                     type="button"
@@ -5676,15 +5957,16 @@ export default function AdminDashboard({
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-bold text-[#0F172A] uppercase">Pilih File (.csv)</label>
+                  <label className="text-xs font-bold text-[#0F172A] uppercase">Pilih File (.xlsx / .xls / .csv)</label>
                   <input
                     type="file"
-                    accept=".csv"
+                    accept=".xlsx, .xls, .csv"
                     onChange={(e) => setImportFile(e.target.files?.[0] || null)}
                     className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-[#0F172A] file:text-white hover:file:bg-[#1E293B] cursor-pointer"
                     required
                   />
                 </div>
+
 
                 <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-100">
                   <button

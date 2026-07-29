@@ -135,7 +135,7 @@ export async function GET(request: Request) {
           certUrl = (matchedHistory as any).certUrl;
         }
 
-        const historyId = matchedHistory ? matchedHistory.id : `virtual-${targetMemberId}-${i}`;
+        const historyId = matchedHistory ? matchedHistory.id : `virtual___${targetMemberId}___${i}`;
 
         unifiedHistory.push({
           id: historyId,
@@ -187,10 +187,23 @@ export async function POST(request: Request) {
     let fromBelt = "Sabuk Putih (10 Geup)";
     let toBelt = "Sabuk Kuning (9 Geup)";
 
-    if (historyId.startsWith("virtual-") || historyId.startsWith("white-init-")) {
-      const parts = historyId.split("-");
-      targetMemberId = parts[1];
-      const beltIdx = parts[2] ? parseInt(parts[2]) : 1;
+    if (historyId.startsWith("virtual___") || historyId.startsWith("virtual-") || historyId.startsWith("white-init-")) {
+      let parts: string[];
+      if (historyId.includes("___")) {
+        parts = historyId.split("___");
+        targetMemberId = parts[1];
+        const beltIdx = parts[2] ? parseInt(parts[2]) : 1;
+        const prevBeltInfo = masterBelts[beltIdx - 1] || masterBelts[0];
+        const beltInfo = masterBelts[beltIdx] || masterBelts[1];
+        fromBelt = prevBeltInfo.fullName || `${prevBeltInfo.name} (${prevBeltInfo.level})`;
+        toBelt = beltInfo.fullName || `${beltInfo.name} (${beltInfo.level})`;
+      } else {
+        const currentMember = await prisma.member.findUnique({ where: { userId } });
+        if (!currentMember) {
+          return NextResponse.json({ error: "Member not found" }, { status: 404 });
+        }
+        targetMemberId = currentMember.id;
+      }
 
       const member = await prisma.member.findUnique({ where: { id: targetMemberId } });
       if (!member) {
@@ -200,11 +213,6 @@ export async function POST(request: Request) {
       if (member.userId !== userId && userRole === "MEMBER") {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
-
-      const prevBeltInfo = masterBelts[beltIdx - 1] || masterBelts[0];
-      const beltInfo = masterBelts[beltIdx] || masterBelts[1];
-      fromBelt = prevBeltInfo.fullName || `${prevBeltInfo.name} (${prevBeltInfo.level})`;
-      toBelt = beltInfo.fullName || `${beltInfo.name} (${beltInfo.level})`;
 
       // Create new BeltHistory entry
       historyItem = await prisma.beltHistory.create({
@@ -216,6 +224,7 @@ export async function POST(request: Request) {
         },
         include: { member: true }
       });
+
     } else {
       // Find existing BeltHistory
       historyItem = await prisma.beltHistory.findUnique({

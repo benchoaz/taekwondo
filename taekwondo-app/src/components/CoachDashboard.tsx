@@ -98,7 +98,13 @@ export default function CoachDashboard({
   const [loadingAttendance, setLoadingAttendance] = useState(false);
   const [attendanceDateFilter, setAttendanceDateFilter] = useState(new Date().toISOString().split("T")[0]);
 
+  // Student Detail Modal States for Coach
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
+  const [selectedStudentBeltHistory, setSelectedStudentBeltHistory] = useState<any[]>([]);
+
   // Belt order for sorting
+
   const beltOrder = [
     "Sabuk Putih", "Sabuk Kuning", "Kuning Strip Hijau",
     "Sabuk Hijau", "Hijau Strip Biru", "Sabuk Biru",
@@ -1188,6 +1194,7 @@ export default function CoachDashboard({
                         <th className="p-4">No. Anggota</th>
                         <th className="p-4">Progres</th>
                         <th className="p-4 text-center">Administrasi</th>
+                        <th className="p-4 text-center">Aksi / Sertifikat</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1238,12 +1245,29 @@ export default function CoachDashboard({
                                   <span className="px-2 py-1 bg-green-50 text-green-600 rounded-full text-[9px] font-black uppercase">Lunas</span>
                                 )}
                               </td>
+                              <td className="p-4 text-center">
+                                <button
+                                  onClick={async () => {
+                                    setSelectedStudent(member);
+                                    setIsStudentModalOpen(true);
+                                    if (member.memberId) {
+                                      try {
+                                        const resHist = await fetch(`/api/member/belt-history?memberId=${member.memberId}`);
+                                        if (resHist.ok) setSelectedStudentBeltHistory(await resHist.json());
+                                      } catch (e) { console.error(e); }
+                                    }
+                                  }}
+                                  className="px-3 py-1.5 bg-[#0F172A] hover:bg-[#E10600] text-white rounded-xl text-[10px] font-extrabold transition-all shadow-sm flex items-center gap-1 mx-auto"
+                                >
+                                  📜 Detail & Sertifikat
+                                </button>
+                              </td>
                             </tr>
                           );
                         })}
                       {allMembers.length === 0 && (
                         <tr>
-                          <td colSpan={5} className="p-8 text-center text-gray-400">Belum ada data siswa terdaftar.</td>
+                          <td colSpan={6} className="p-8 text-center text-gray-400">Belum ada data siswa terdaftar.</td>
                         </tr>
                       )}
                     </tbody>
@@ -1252,6 +1276,7 @@ export default function CoachDashboard({
               )}
             </div>
           )}
+
 
           {/* ══════════════ TAB: GRADING / UKT ══════════════ */}
           {activeTab === "grading" && (
@@ -2970,6 +2995,102 @@ export default function CoachDashboard({
           </div>
         </div>
       )}
+
+      {/* ─── MODAL DETAIL SISWA & SERTIFIKAT UNTUK COACH ─── */}
+      {isStudentModalOpen && selectedStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl border border-gray-100 flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-red-50 border-2 border-[#E10600]/20 flex items-center justify-center font-black text-[#E10600] text-sm shrink-0 overflow-hidden">
+                  {selectedStudent.selfieUrl ? <img src={selectedStudent.selfieUrl} alt="" className="w-full h-full object-cover" /> : (selectedStudent.name || "?").substring(0, 2).toUpperCase()}
+                </div>
+                <div>
+                  <h3 className="font-black text-[#0F172A] text-base font-display">{selectedStudent.name}</h3>
+                  <p className="text-xs text-gray-400 font-mono">{selectedStudent.memberNumber || "No. Anggota -"} • {selectedStudent.currentBelt || "Sabuk Putih"}</p>
+                </div>
+              </div>
+              <button onClick={() => setIsStudentModalOpen(false)} className="text-gray-400 hover:text-[#E10600] p-2 hover:bg-red-50 rounded-full transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto flex flex-col gap-6">
+              {/* Ringkasan Profil Siswa */}
+              <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <div>
+                  <span className="text-[9px] font-black uppercase text-slate-400 block">Email Login</span>
+                  <span className="text-xs font-bold text-slate-800">{selectedStudent.email || "-"}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-black uppercase text-slate-400 block">Nomor WhatsApp</span>
+                  <span className="text-xs font-bold text-slate-800">{selectedStudent.phone || selectedStudent.member?.phone || "-"}</span>
+                </div>
+              </div>
+
+              {/* Riwayat Sabuk & Sertifikat UKT */}
+              <div>
+                <h4 className="text-xs font-black text-[#0F172A] uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <Award className="w-4 h-4 text-[#E10600]" />
+                  Riwayat Kenaikan Sabuk & Sertifikat UKT Siswa
+                </h4>
+
+                {selectedStudentBeltHistory.length > 0 ? (
+                  <div className="flex flex-col gap-3">
+                    {selectedStudentBeltHistory.map((item: any, idx: number) => (
+                      <div key={idx} className="p-3.5 bg-slate-50 border border-slate-200/70 rounded-2xl flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black text-[#0F172A]">
+                            {item.toBelt}
+                          </span>
+                          <span className="text-[10px] text-gray-400 font-semibold">
+                            {item.date || (item.promotedAt ? new Date(item.promotedAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) : "")}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500">{item.description}</p>
+
+                        {/* Certificate View Link */}
+                        {item.certUrl ? (
+                          <div className="mt-1 flex items-center justify-between bg-white p-2.5 rounded-xl border border-slate-200">
+                            <div className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-blue-600 shrink-0" />
+                              <span className="text-[10px] font-bold text-slate-700">Sertifikat UKT Diunggah</span>
+                            </div>
+                            <a
+                              href={item.certUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-black transition-colors shadow-sm"
+                            >
+                              👁️ Lihat Sertifikat
+                            </a>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-amber-600 italic mt-0.5">⚠️ Belum ada file sertifikat diunggah untuk tingkatan ini</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-6 text-center text-xs text-slate-400 font-semibold bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    Memuat riwayat sabuk & sertifikat...
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+              <button
+                onClick={() => setIsStudentModalOpen(false)}
+                className="px-5 py-2.5 text-xs font-bold text-gray-600 bg-gray-200 hover:bg-gray-300 rounded-xl transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

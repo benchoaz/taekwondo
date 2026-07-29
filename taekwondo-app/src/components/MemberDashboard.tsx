@@ -110,8 +110,14 @@ export default function MemberDashboard({
   const [uploadingHistoryId, setUploadingHistoryId] = useState<string | null>(null);
   const [selectedPromotedDate, setSelectedPromotedDate] = useState("");
   const [beltImageUrl, setBeltImageUrl] = useState<string | null>(null);
+
   const [dbBeltRanks, setDbBeltRanks] = useState<any[]>([]);
+  const [curriculumData, setCurriculumData] = useState<any[]>([]);
+  const [completedMaterials, setCompletedMaterials] = useState<string[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
+
+
+
   const [settings, setSettings] = useState<any>(null);
   const [schedules, setSchedules] = useState<any[]>([]);
   const [dojoMembers, setDojoMembers] = useState<any[]>([]);
@@ -649,8 +655,22 @@ export default function MemberDashboard({
   // Fetch dynamic profile & payments from API
   const fetchDashboardData = async () => {
     try {
+      // 1. Panggil /api/profile sebagai sumber utama profil atlet yang sedang login
+      try {
+        const resProf = await fetch("/api/profile");
+        if (resProf.ok) {
+          const profJson = await resProf.json();
+          if (profJson.success && profJson.data) {
+            const pd = profJson.data;
+            setProfile(pd);
+            if (pd.currentBelt) setCurrentBelt(pd.currentBelt);
+          }
+        }
+      } catch (e) { console.error("Error fetching initial /api/profile:", e); }
+
       const emailToQuery = userEmail || "member.beni@taekwondo.com";
       const resUsers = await fetch("/api/users");
+
       if (resUsers.ok) {
         const usersList = await resUsers.json();
         const currentUser = usersList.find(
@@ -683,6 +703,7 @@ export default function MemberDashboard({
                const beltsList = curData.data || [];
                if (Array.isArray(beltsList) && beltsList.length > 0) {
                  setDbBeltRanks(beltsList);
+                 setCurriculumData(beltsList);
                }
                const matchingBelt = beltsList.find(
                  (b: any) => b.name.toLowerCase() === (currentUser.currentBelt || "").toLowerCase()
@@ -721,7 +742,31 @@ export default function MemberDashboard({
           // Fetch UKT details
           await fetchUktStatus(mId);
 
-          // Fetch Belt History
+          // === FETCH PHYSICAL LOGS & FULL PROFILE dari /api/profile ===
+          try {
+            const resProfile = await fetch("/api/profile");
+            if (resProfile.ok) {
+              const profileData = await resProfile.json();
+              if (profileData.success && profileData.data) {
+                const pd = profileData.data;
+                setProfile(prev => ({
+                  ...(prev || {}),
+                  ...pd,
+                  id: pd.id || pd.memberId || prev?.id,
+                  physicalLogs: pd.physicalLogs || [],
+                  weight: pd.weight || prev?.weight || null,
+                  height: pd.height || prev?.height || null,
+                  waistCircum: pd.waistCircum || null,
+                  dateOfBirth: pd.dateOfBirth || prev?.dateOfBirth || null,
+                  beltImageUrl: pd.beltImageUrl || null,
+                  currentBelt: pd.currentBelt || prev?.currentBelt || "Sabuk Putih",
+                }));
+                if (pd.currentBelt) setCurrentBelt(pd.currentBelt);
+              }
+            }
+          } catch (e) { console.error("Error fetching profile physicalLogs:", e); }
+
+
           try {
             const resHist = await fetch(`/api/member/belt-history?memberId=${mId}`);
             if (resHist.ok) {
@@ -1761,9 +1806,16 @@ export default function MemberDashboard({
     );
   };
 
-  const dynamicFullName = profile?.fullName || "Beni Setiawan";
+  const dynamicFullName = profile?.fullName || (profile as any)?.name || "Beni Setiawan";
+
   const dynamicMemberNumber = profile?.memberNumber || "ETA-2026-0089";
-  const dynamicProgress = profile?.progress || 85;
+  const totalMaterials = (curriculumData || []).flatMap(c => (c && c.materials) || []).length;
+  const completedCount = (completedMaterials || []).length;
+  const calculatedProgress = totalMaterials > 0 ? Math.min(100, Math.round((completedCount / totalMaterials) * 100)) : (profile?.progress || 0);
+  const dynamicProgress = Math.min(100, calculatedProgress);
+
+
+
 
   // Calculate payment statuses
   const isSppPaidThisMonth = payments.some(
@@ -2177,6 +2229,210 @@ export default function MemberDashboard({
           )}
 
           {activeTab === "physical_growth" && (() => {
+            const getBMIData = () => {
+              const logs = (profile as any)?.physicalLogs || [];
+              const latestLog = logs[0] || null;
+              const prevLog = logs[1] || null;
+
+              const weight = latestLog?.weight || (profile as any)?.weight || 55;
+              const height = latestLog?.height || (profile as any)?.height || 165;
+              const waist = latestLog?.waistCircum || 0;
+
+              const prevWeight = prevLog?.weight || weight;
+              const prevHeight = prevLog?.height || height;
+
+              const deltaWeight = parseFloat((weight - prevWeight).toFixed(1));
+              const deltaHeight = parseFloat((height - prevHeight).toFixed(1));
+
+              const heightM = height / 100;
+              const bmiVal = parseFloat((weight / (heightM * heightM)).toFixed(1));
+
+              // Hitung usia dari tanggal lahir
+              let age = (profile as any)?.age || 18;
+              if (profile?.dateOfBirth) {
+                const today = new Date();
+                const dob = new Date(profile.dateOfBirth);
+                age = today.getFullYear() - dob.getFullYear();
+                const m = today.getMonth() - dob.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+              }
+
+              let category = "Ideal";
+              let bgHeader = "from-emerald-500/10 to-teal-500/10 border-emerald-500/20";
+              let bgBadge = "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
+              let description = "Indeks Massa Tubuh (BMI) Anda berada pada rentang ideal. Pertahankan nutrisi dan pola latihan fisik Taekwondo secara konsisten.";
+              let recommendation = "Jaga asupan gizi seimbang serta porsi latihan Poomsae & Kyorugi rutin.";
+              let barPercent = Math.min(Math.max(((bmiVal - 15) / 15) * 100, 5), 95);
+
+              if (bmiVal < 18.5) {
+                category = "Underweight";
+                bgHeader = "from-amber-500/10 to-orange-500/10 border-amber-500/20";
+                bgBadge = "bg-amber-500/10 text-amber-600 border-amber-500/20";
+                description = "Berat badan di bawah rentang ideal. Tambah asupan kalori dan protein untuk menunjang daya tahan tanding.";
+                recommendation = "Tingkatkan protein & karbohidrat kompleks. Makan 5x/hari + susu/telur setelah latihan.";
+              } else if (bmiVal >= 25.0) {
+                category = "Overweight";
+                bgHeader = "from-red-500/10 to-rose-500/10 border-red-500/20";
+                bgBadge = "bg-red-500/10 text-red-600 border-red-500/20";
+                description = "Berat badan di atas rentang ideal. Lakukan program penurunan berat badan terkontrol sebelum kejuaraan.";
+                recommendation = "Kurangi karbohidrat sederhana. Tambah kardio 30 menit/hari + skipping 500 lompatan/hari.";
+              } else if (bmiVal >= 23.0) {
+                category = "Berisiko";
+                bgHeader = "from-orange-500/10 to-amber-500/10 border-orange-500/20";
+                bgBadge = "bg-orange-500/10 text-orange-600 border-orange-500/20";
+                description = "BMI mendekati batas atas. Perhatikan pola makan agar tidak naik ke kategori overweight menjelang kejuaraan.";
+                recommendation = "Kurangi gula & makanan berminyak. Jaga konsistensi latihan 4x/minggu.";
+              }
+
+              // === KATEGORI KYORUGI PBTI RESMI (berdasarkan usia & berat) ===
+              let ageGroup = "";
+              let kyorugiCat = "";
+              let kyorugiDesc = "";
+              let eventEligible: string[] = [];
+              let eventNote = "";
+
+              if (age >= 8 && age <= 11) {
+                // Pra-Cadet
+                ageGroup = "Pra-Cadet (8–11 tahun)";
+                if (weight <= 25) { kyorugiCat = "Fin ≤25 kg"; }
+                else if (weight <= 28) { kyorugiCat = "Fly ≤28 kg"; }
+                else if (weight <= 31) { kyorugiCat = "Bantam ≤31 kg"; }
+                else if (weight <= 34) { kyorugiCat = "Feather ≤34 kg"; }
+                else if (weight <= 37) { kyorugiCat = "Light ≤37 kg"; }
+                else if (weight <= 40) { kyorugiCat = "Welter ≤40 kg"; }
+                else if (weight <= 43) { kyorugiCat = "Middle ≤43 kg"; }
+                else { kyorugiCat = `Heavy >43 kg`; }
+                kyorugiDesc = "Kelas Pra-Cadet PBTI. Kejuaraan tersedia di tingkat Daerah & Nasional Usia Dini.";
+                eventEligible = ["Kejuaraan Daerah Usia Dini", "Open Tournament Pra-Cadet", "Liga Pelajar Taekwondo"];
+                eventNote = "✅ Layak ikut kejuaraan Pra-Cadet. Wajib membawa akta kelahiran & surat izin orang tua.";
+              } else if (age >= 12 && age <= 14) {
+                // Cadet
+                ageGroup = "Cadet (12–14 tahun)";
+                if (weight <= 33) { kyorugiCat = "Fin ≤33 kg"; }
+                else if (weight <= 37) { kyorugiCat = "Fly ≤37 kg"; }
+                else if (weight <= 41) { kyorugiCat = "Bantam ≤41 kg"; }
+                else if (weight <= 45) { kyorugiCat = "Feather ≤45 kg"; }
+                else if (weight <= 49) { kyorugiCat = "Light ≤49 kg"; }
+                else if (weight <= 53) { kyorugiCat = "Welter ≤53 kg"; }
+                else if (weight <= 57) { kyorugiCat = "Middle ≤57 kg"; }
+                else { kyorugiCat = `Heavy >57 kg`; }
+                kyorugiDesc = "Kelas Cadet PBTI. Bisa mengikuti kejuaraan Cadet tingkat Daerah, Provinsi, dan Nasional.";
+                eventEligible = ["Kejuaraan Cadet Provinsi", "Open Tournament Cadet", "Pekan Olahraga Pelajar Daerah (POPDA)", "Piala Gubernur / Bupati Cadet"];
+                eventNote = "✅ Layak ikut kejuaraan Cadet. Dokumen: KTP/akta, KTA PBTI, dan surat dari sekolah.";
+              } else if (age >= 15 && age <= 17) {
+                // Junior
+                ageGroup = "Junior (15–17 tahun)";
+                if (weight <= 45) { kyorugiCat = "Fin ≤45 kg"; }
+                else if (weight <= 48) { kyorugiCat = "Fly ≤48 kg"; }
+                else if (weight <= 51) { kyorugiCat = "Bantam ≤51 kg"; }
+                else if (weight <= 55) { kyorugiCat = "Feather ≤55 kg"; }
+                else if (weight <= 59) { kyorugiCat = "Light ≤59 kg"; }
+                else if (weight <= 63) { kyorugiCat = "Welter ≤63 kg"; }
+                else if (weight <= 68) { kyorugiCat = "Middle ≤68 kg"; }
+                else { kyorugiCat = `Heavy >68 kg`; }
+                kyorugiDesc = "Kelas Junior PBTI. Dapat mengikuti kejuaraan Junior tingkat Daerah hingga Nasional & Internasional.";
+                eventEligible = ["Kejuaraan Junior Nasional", "POPNAS (Pekan Olahraga Pelajar Nasional)", "Open Tournament Junior", "Selekda Junior PON", "Kejuaraan Asia Junior"];
+                eventNote = "✅ Layak ikut kejuaraan Junior. Dokumen: KTP/KK, KTA PBTI aktif, sertifikat sabuk terbaru.";
+              } else if (age >= 18 && age <= 30) {
+                // Senior
+                ageGroup = "Senior (18–30 tahun)";
+                if (weight <= 54) { kyorugiCat = "Fin ≤54 kg"; }
+                else if (weight <= 58) { kyorugiCat = "Fly ≤58 kg"; }
+                else if (weight <= 63) { kyorugiCat = "Bantam ≤63 kg"; }
+                else if (weight <= 68) { kyorugiCat = "Feather ≤68 kg"; }
+                else if (weight <= 74) { kyorugiCat = "Light ≤74 kg"; }
+                else if (weight <= 80) { kyorugiCat = "Welter ≤80 kg"; }
+                else if (weight <= 87) { kyorugiCat = "Middle ≤87 kg"; }
+                else { kyorugiCat = `Heavy >87 kg`; }
+                kyorugiDesc = "Kelas Senior PBTI. Eligible untuk seluruh kejuaraan Senior nasional dan internasional.";
+                eventEligible = ["Kejuaraan Nasional Senior", "PON (Pekan Olahraga Nasional)", "SEA Games", "Asian Games", "Open International Tournament"];
+                eventNote = "✅ Layak ikut kejuaraan Senior. Dokumen: KTP, KTA PBTI aktif, sertifikat sabuk, pas foto 3x4.";
+              } else if (age > 30) {
+                // Master / Veteran
+                ageGroup = "Master/Veteran (31+ tahun)";
+                if (weight <= 58) { kyorugiCat = "≤58 kg"; }
+                else if (weight <= 68) { kyorugiCat = "≤68 kg"; }
+                else if (weight <= 80) { kyorugiCat = "≤80 kg"; }
+                else { kyorugiCat = ">80 kg"; }
+                kyorugiDesc = "Kelas Master/Veteran PBTI. Tersedia kategori Kyorugi dan Poomsae khusus veteran.";
+                eventEligible = ["Kejuaraan Master/Veteran Nasional", "Open Tournament Veteran", "Festival Taekwondo Veteran"];
+                eventNote = "✅ Layak ikut kejuaraan Veteran/Master. Batas usia min. 31 tahun pada hari H kejuaraan.";
+              } else {
+                ageGroup = "Belum Terdeteksi";
+                kyorugiCat = "Perbarui data tanggal lahir";
+                kyorugiDesc = "Masukkan tanggal lahir di profil untuk mendapatkan rekomendasi kategori Kyorugi yang akurat.";
+                eventEligible = [];
+                eventNote = "⚠️ Tanggal lahir belum diisi. Update profil terlebih dahulu.";
+              }
+
+              // Cek kelayakan tambahan
+              const beltLevel = profile?.currentBelt || "";
+              const hasBelt = beltLevel.length > 0 && !beltLevel.toLowerCase().includes("putih");
+              const beltNote = hasBelt
+                ? `✅ Sabuk ${beltLevel} memenuhi syarat minimal kejuaraan PBTI.`
+                : "⚠️ Sabuk Putih: Beberapa kejuaraan mensyaratkan minimal Sabuk Kuning.";
+
+              // === KATEGORI POOMSAE PBTI RESMI (berdasarkan Sabuk & Usia) ===
+              let poomsaeForms: string[] = [];
+              let poomsaeCategoryDesc = "";
+              let poomsaeDivisions = ["Individual Putra/Putri", "Pair (Pasangan Cam.)", "Team (Beregu 3 Atlet)"];
+
+              const bLower = beltLevel.toLowerCase();
+
+              if (bLower.includes("putih")) {
+                poomsaeForms = ["Basic Movement 1-2", "Taegeuk 1 (Il Jang)"];
+                poomsaeCategoryDesc = "Kategori Poomsae Pemula / Pre-Geup. Fokus pada kuda-kuda (Seogi) dan pukulan (Jireugi) dasar.";
+              } else if (bLower.includes("kuning strip")) {
+                poomsaeForms = ["Taegeuk 1 (Il Jang)", "Taegeuk 2 (Ee Jang)"];
+                poomsaeCategoryDesc = "Kategori Poomsae Geup 8. Penilaian pada ketepatan kuda-kuda Pyonhi Seogi & Yeop Chagi.";
+              } else if (bLower.includes("kuning")) {
+                poomsaeForms = ["Taegeuk 1 (Il Jang)"];
+                poomsaeCategoryDesc = "Kategori Poomsae Geup 9. Penilaian pada ketepatan arah tendangan Ap Chagi & Arae Makgi.";
+              } else if (bLower.includes("hijau strip")) {
+                poomsaeForms = ["Taegeuk 2 (Ee Jang)", "Taegeuk 3 (Sam Jang)", "Taegeuk 4 (Sa Jang)"];
+                poomsaeCategoryDesc = "Kategori Poomsae Geup 5. Penilaian pada ketepatan Jebipoom Mok Chigi & Yeop Chagi.";
+              } else if (bLower.includes("hijau")) {
+                poomsaeForms = ["Taegeuk 1 (Il Jang)", "Taegeuk 2 (Ee Jang)", "Taegeuk 3 (Sam Jang)"];
+                poomsaeCategoryDesc = "Kategori Poomsae Geup 7/6. Penilaian pada keselarasan ritme dan tendangan Dwit Chagi.";
+              } else if (bLower.includes("biru strip")) {
+                poomsaeForms = ["Taegeuk 4 (Sa Jang)", "Taegeuk 5 (Oh Jang)", "Taegeuk 6 (Yook Jang)"];
+                poomsaeCategoryDesc = "Kategori Poomsae Geup 3. Penilaian pada ketepatan Bitureo Chagi & Eolgul Bakkatmakgi.";
+              } else if (bLower.includes("biru")) {
+                poomsaeForms = ["Taegeuk 3 (Sam Jang)", "Taegeuk 4 (Sa Jang)", "Taegeuk 5 (Oh Jang)"];
+                poomsaeCategoryDesc = "Kategori Poomsae Geup 4. Penilaian pada ketahanan keseimbangan Kyocha Seogi & power gerakan.";
+              } else if (bLower.includes("merah strip")) {
+                poomsaeForms = ["Taegeuk 6 (Yook Jang)", "Taegeuk 7 (Chil Jang)", "Taegeuk 8 (Pal Jang)"];
+                poomsaeCategoryDesc = "Kategori Poomsae Geup 2/1 (Pra-DAN). Penilaian pada Gawi Makgi & ekspresi energi (Kihap) presisi tinggi.";
+              } else if (bLower.includes("merah")) {
+                poomsaeForms = ["Taegeuk 5 (Oh Jang)", "Taegeuk 6 (Yook Jang)", "Taegeuk 7 (Chil Jang)"];
+                poomsaeCategoryDesc = "Kategori Poomsae Geup 3/2. Penilaian pada Pyojeok Chagi & transisi gerakan lambat.";
+              } else if (bLower.includes("hitam") || bLower.includes("dan")) {
+                if (age <= 14) {
+                  poomsaeForms = ["Taegeuk 4-8 Jang", "Koryo"];
+                  poomsaeCategoryDesc = "Kategori Poomsae Cadet DAN/Poom. Penguasaan Taegeuk dasar dan Poomsae Koryo.";
+                } else if (age <= 17) {
+                  poomsaeForms = ["Taegeuk 4-8 Jang", "Koryo", "Keumgang"];
+                  poomsaeCategoryDesc = "Kategori Poomsae Junior DAN. Penguasaan Poomsae Koryo dan Keumgang.";
+                } else {
+                  poomsaeForms = ["Taegeuk 6-8 Jang", "Koryo", "Keumgang", "Taebaek", "Pyongwon"];
+                  poomsaeCategoryDesc = "Kategori Poomsae Senior DAN. Penguasaan Poomsae Yodanja (Wajib Kukkiwon).";
+                }
+              } else {
+                poomsaeForms = ["Taegeuk 1-8 (Sesuaikan Sabuk)"];
+                poomsaeCategoryDesc = "Kategori Poomsae Standar PBTI.";
+              }
+
+
+              return {
+                bmiVal, category, bgHeader, bgBadge, description, recommendation,
+                barPercent, height, weight, waist, deltaHeight, deltaWeight,
+                kyorugiCat, kyorugiDesc, ageGroup, age,
+                eventEligible, eventNote, beltNote,
+                poomsaeForms, poomsaeCategoryDesc, poomsaeDivisions,
+              };
+            };
+
+
             const bmiData = getBMIData();
             return (
               <div className="flex flex-col gap-8">
@@ -2187,6 +2443,31 @@ export default function MemberDashboard({
                       Laporan Tumbuh Kembang & BMI <Activity className="w-6 h-6 text-[#E10600]" />
                     </h2>
                     <p className="text-gray-400 text-xs mt-1">Pantau Indeks Massa Tubuh (BMI), pertumbuhan fisik, dan rekomendasi kategori kelas tanding Kyorugi.</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => {
+                        const h = prompt("Masukkan Tinggi Badan Terbaru (cm):", "165");
+                        const w = prompt("Masukkan Berat Badan Terbaru (kg):", "55");
+                        if (h && w) {
+                          fetch("/api/physical-growth", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ height: h, weight: w, notes: "Input mandiri member" })
+                          }).then(res => res.json()).then(data => {
+                            if (data.success) {
+                              alert("✅ Data tumbuh kembang berhasil diperbarui!");
+                              window.location.reload();
+                            } else {
+                              alert("❌ Gagal menyimpan: " + data.error);
+                            }
+                          });
+                        }
+                      }}
+                      className="px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-bold text-xs shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" /> Input Ukuran Fisik Baru
+                    </button>
                   </div>
                 </div>
 
@@ -2291,17 +2572,61 @@ export default function MemberDashboard({
                           </div>
                         </div>
 
-                        {/* Kyorugi Match Category Box */}
-                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-[24px] p-6 shadow-md border border-slate-700 flex items-center justify-between gap-4">
-                          <div>
-                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-1">Estimasi Kategori Kyorugi</span>
-                            <h4 className="text-base font-black text-white font-display">
-                              {bmiData.kyorugiCat}
-                            </h4>
-                            <p className="text-[10px] text-slate-400 mt-1">Berdasarkan data berat badan terkini untuk kejuaraan resmi PBTI.</p>
+                        {/* Grid Kyorugi & Poomsae Categories */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Kyorugi Match Category Box */}
+                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-[24px] p-6 shadow-md border border-slate-700">
+                            <div className="flex items-start justify-between gap-4 mb-3">
+                              <div>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">Kategori Usia PBTI</span>
+                                <span className="text-[11px] font-bold text-[#E10600] block">{bmiData.ageGroup}</span>
+                              </div>
+                              <div className="p-2.5 bg-[#E10600] rounded-xl text-white shadow-lg shrink-0">
+                                <Award className="w-4 h-4" />
+                              </div>
+                            </div>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">1. Kyorugi (Pertarungan)</span>
+                            <h4 className="text-base font-black text-white font-display">{bmiData.kyorugiCat}</h4>
+                            <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">{bmiData.kyorugiDesc}</p>
                           </div>
-                          <div className="p-3 bg-[#E10600] rounded-2xl text-white shadow-lg shrink-0">
-                            <Award className="w-6 h-6" />
+
+                          {/* Poomsae Match Category Box */}
+                          <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-[24px] p-6 shadow-md border border-slate-700">
+                            <div className="flex items-start justify-between gap-4 mb-3">
+                              <div>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">Tingkat Sabuk Aktif</span>
+                                <span className="text-[11px] font-bold text-blue-400 block">{profile?.currentBelt || "Sabuk Putih"}</span>
+                              </div>
+                              <div className="p-2.5 bg-blue-600 rounded-xl text-white shadow-lg shrink-0">
+                                <Award className="w-4 h-4" />
+                              </div>
+                            </div>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">2. Poomsae (Jurus Seni)</span>
+                            <div className="flex flex-wrap gap-1.5 my-1.5">
+                              {bmiData.poomsaeForms.map((form: string, idx: number) => (
+                                <span key={idx} className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded-md text-[10px] font-extrabold border border-blue-400/30">
+                                  {form}
+                                </span>
+                              ))}
+                            </div>
+                            <p className="text-[10px] text-slate-400 leading-relaxed">{bmiData.poomsaeCategoryDesc}</p>
+                          </div>
+                        </div>
+
+                        {/* Readiness Indicator & Daily Quest Integration Box */}
+                        <div className="bg-slate-900 rounded-[24px] p-5 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-white">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold shrink-0">
+                              ⚡
+                            </div>
+                            <div>
+                              <span className="text-[9px] font-black uppercase tracking-widest text-amber-400 block">Indikator Kesiapan Latihan & UKT</span>
+                              <h4 className="text-xs font-black text-white">Latihan Mandiri & Kurikulum Terintegrasi</h4>
+                              <p className="text-[10px] text-slate-400">Penyelesaian Daily Quest di rumah berkontribusi langsung pada rekomendasi kelayakan UKT oleh Pelatih.</p>
+                            </div>
+                          </div>
+                          <div className="px-3.5 py-1.5 bg-amber-500/10 border border-amber-500/30 text-amber-300 rounded-xl text-[10px] font-black uppercase shrink-0">
+                            🔥 Daily Quest Active
                           </div>
                         </div>
 
@@ -2312,6 +2637,68 @@ export default function MemberDashboard({
                             <span className="text-sm font-black text-slate-900">{bmiData.waist} cm</span>
                           </div>
                         )}
+                      </div>
+                    </div>
+
+
+
+                    {/* === REKOMENDASI KEJUARAAN PBTI === */}
+                    <div className="bg-gradient-to-br from-[#0F172A] to-[#1e293b] rounded-[24px] p-6 sm:p-8 border border-slate-700 shadow-md">
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="p-2.5 bg-[#E10600]/20 text-[#E10600] rounded-xl shrink-0">
+                          <Award className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-black text-sm text-white">Rekomendasi Kejuaraan & Lomba</h3>
+                          <p className="text-[10px] text-slate-400 mt-0.5">Berdasarkan aturan resmi PBTI (Pengurus Besar Taekwondo Indonesia)</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+                        <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Usia Saat Ini</span>
+                          <span className="text-2xl font-black text-white">{bmiData.age} <span className="text-xs font-bold text-slate-400">tahun</span></span>
+                          <span className="text-[10px] text-slate-400 block mt-1">{bmiData.ageGroup}</span>
+                        </div>
+                        <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Kelas Tanding</span>
+                          <span className="text-sm font-black text-white">{bmiData.kyorugiCat}</span>
+                          <span className="text-[10px] text-slate-400 block mt-1">Berdasarkan berat {bmiData.weight} kg</span>
+                        </div>
+                        <div className="bg-white/5 rounded-2xl p-4 border border-white/10">
+                          <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Status Sabuk</span>
+                          <span className="text-[11px] font-black text-white leading-snug">{profile?.currentBelt || '-'}</span>
+                          <span className="text-[10px] text-emerald-400 block mt-1 font-bold">{bmiData.beltNote?.startsWith('✅') ? '✅ Memenuhi syarat' : '⚠️ Cek syarat'}</span>
+                        </div>
+                      </div>
+
+                      {/* Event list */}
+                      {bmiData.eventEligible && bmiData.eventEligible.length > 0 && (
+                        <div className="mb-4">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2">Kejuaraan yang Bisa Diikuti</span>
+                          <div className="flex flex-wrap gap-2">
+                            {bmiData.eventEligible.map((ev: string, i: number) => (
+                              <span key={i} className="px-3 py-1.5 bg-[#E10600]/15 border border-[#E10600]/30 text-[#ff6b6b] rounded-xl text-[10px] font-bold">
+                                🏆 {ev}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Notes */}
+                      <div className="flex flex-col gap-2">
+                        <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
+                          <p className="text-[11px] text-slate-300 font-semibold leading-relaxed">{bmiData.eventNote}</p>
+                        </div>
+                        <div className="bg-white/5 rounded-xl px-4 py-3 border border-white/10">
+                          <p className="text-[11px] text-slate-300 font-semibold leading-relaxed">{bmiData.beltNote}</p>
+                        </div>
+                        <div className="bg-amber-500/10 rounded-xl px-4 py-3 border border-amber-500/20">
+                          <p className="text-[10px] text-amber-300 font-bold leading-relaxed">
+                            📋 <strong>Dokumen Wajib Umum:</strong> KTA PBTI aktif, Sertifikat Sabuk Terbaru, Pas Foto 3×4, dan Surat Keterangan Sehat dari Dokter. Verifikasi ke pelatih sebelum mendaftar.
+                          </p>
+                        </div>
                       </div>
                     </div>
 
@@ -2399,6 +2786,108 @@ export default function MemberDashboard({
                         </form>
                       </div>
                     </div>
+
+                    {/* === RIWAYAT PENGUKURAN FISIK === */}
+                    {profile?.physicalLogs && profile.physicalLogs.length > 0 && (
+                      <div className="bg-white rounded-[24px] p-6 sm:p-8 border border-slate-100 shadow-sm">
+                        <h3 className="font-extrabold text-sm text-[#0F172A] mb-4 flex items-center gap-2">
+                          <span className="p-1.5 bg-slate-100 rounded-lg"><Activity className="w-4 h-4 text-slate-500" /></span>
+                          Riwayat Pengukuran Fisik
+                          <span className="ml-auto text-[10px] text-slate-400 font-semibold">{profile.physicalLogs.length} catatan</span>
+                        </h3>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="text-[10px] text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                                <th className="text-left pb-3 font-black">Tanggal</th>
+                                <th className="text-center pb-3 font-black">Tinggi</th>
+                                <th className="text-center pb-3 font-black">Berat</th>
+                                <th className="text-center pb-3 font-black">BMI</th>
+                                <th className="text-center pb-3 font-black">Aksi</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                              {profile.physicalLogs.map((log: any) => {
+                                const bmi = log.height && log.weight
+                                  ? parseFloat((log.weight / Math.pow(log.height / 100, 2)).toFixed(1))
+                                  : null;
+                                return (
+                                  <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
+                                    <td className="py-3 text-slate-600 font-semibold">
+                                      {new Date(log.recordedAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                    </td>
+                                    <td className="py-3 text-center font-black text-slate-800">{log.height ? `${log.height} cm` : '-'}</td>
+                                    <td className="py-3 text-center font-black text-slate-800">{log.weight ? `${log.weight} kg` : '-'}</td>
+                                    <td className="py-3 text-center">
+                                      {bmi ? (
+                                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${bmi < 18.5 ? 'bg-amber-100 text-amber-700' : bmi < 23 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                                          {bmi}
+                                        </span>
+                                      ) : '-'}
+                                    </td>
+                                    <td className="py-3 text-center">
+                                      <div className="flex items-center justify-center gap-2">
+                                        {/* Tombol Edit */}
+                                        <button
+                                          onClick={() => {
+                                            const newH = prompt('Edit Tinggi Badan (cm):', String(log.height || ''));
+                                            const newW = prompt('Edit Berat Badan (kg):', String(log.weight || ''));
+                                            const newWaist = prompt('Edit Lingkar Perut (cm, opsional):', String(log.waistCircum || ''));
+                                            if (newH !== null || newW !== null) {
+                                              fetch('/api/physical-growth', {
+                                                method: 'PUT',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({
+                                                  id: log.id,
+                                                  height: newH || log.height,
+                                                  weight: newW || log.weight,
+                                                  waistCircum: newWaist || log.waistCircum,
+                                                })
+                                              }).then(r => r.json()).then(d => {
+                                                if (d.success) {
+                                                  alert('✅ Data berhasil diperbarui!');
+                                                  window.location.reload();
+                                                } else {
+                                                  alert('❌ Gagal: ' + d.error);
+                                                }
+                                              });
+                                            }
+                                          }}
+                                          className="px-2.5 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-[10px] font-black flex items-center gap-1"
+                                          title="Edit data ini"
+                                        >
+                                          ✏️ Edit
+                                        </button>
+                                        {/* Tombol Hapus */}
+                                        <button
+                                          onClick={() => {
+                                            if (confirm('⚠️ Yakin ingin menghapus catatan ini?')) {
+                                              fetch(`/api/physical-growth?id=${log.id}`, { method: 'DELETE' })
+                                                .then(r => r.json()).then(d => {
+                                                  if (d.success) {
+                                                    alert('✅ Data berhasil dihapus!');
+                                                    window.location.reload();
+                                                  } else {
+                                                    alert('❌ Gagal: ' + d.error);
+                                                  }
+                                                });
+                                            }
+                                          }}
+                                          className="px-2.5 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-[10px] font-black flex items-center gap-1"
+                                          title="Hapus data ini"
+                                        >
+                                          🗑️ Hapus
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="bg-white rounded-[24px] p-8 border border-slate-100 shadow-sm text-center">

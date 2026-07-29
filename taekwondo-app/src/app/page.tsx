@@ -25,11 +25,19 @@ export default function Home() {
     const savedView = typeof window !== 'undefined' ? sessionStorage.getItem('currentView') as any : null;
     const savedEmail = typeof window !== 'undefined' ? sessionStorage.getItem('userEmail') : null;
     
-    if (savedView && savedView !== 'landing' && savedView !== 'sso') {
-      setCurrentView(savedView);
-      if (savedEmail) setUserEmail(savedEmail);
-      setShowIntro(false);
-      setLoadingSettings(false);
+    if (savedView && savedView !== 'landing' && savedView !== 'sso' && savedView !== 'verify' && savedView !== 'schedule-view' && savedView !== 'register') {
+      if (savedEmail) {
+        setCurrentView(savedView);
+        setUserEmail(savedEmail);
+        setShowIntro(false);
+        setLoadingSettings(false);
+      } else {
+        // Jika tidak ada email tersimpan, reset ke SSO Login
+        sessionStorage.removeItem('currentView');
+        setCurrentView("sso");
+        setShowIntro(false);
+        setLoadingSettings(false);
+      }
     } else {
       // Show intro immediately to avoid blank screen or infinite spinner
       setShowIntro(true);
@@ -47,6 +55,7 @@ export default function Home() {
           console.error("Error loading settings:", err);
         });
     }
+
   }, []);
 
   const handleNavigate = (view: "landing" | "member" | "coach" | "admin" | "verify" | "schedule-view" | "sso" | "register", email?: string) => {

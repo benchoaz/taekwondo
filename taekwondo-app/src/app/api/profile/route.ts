@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
               orderBy: { date: 'desc' }
             },
             physicalLogs: {
-              orderBy: { recordedAt: 'asc' }
+              orderBy: { recordedAt: 'desc' }
             },
             beltHistory: {
               orderBy: { promotedAt: 'desc' }
@@ -40,15 +40,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Profil Member tidak ditemukan" }, { status: 404 });
     }
 
-    // Find matching belt rank to get image URL
+    const currentBeltStr = user.member.currentBelt || "Sabuk Putih";
     const beltRank = await prisma.beltRank.findFirst({
       where: {
         OR: [
-          { name: user.member.currentBelt },
-          { name: { contains: user.member.currentBelt.split(" (")[0], mode: 'insensitive' } }
+          { name: currentBeltStr },
+          { name: { contains: currentBeltStr.split(" (")[0], mode: 'insensitive' } }
         ]
       }
     });
+
 
     // Kalkulasi Umur
     let age = 0;
@@ -65,7 +66,7 @@ export async function GET(req: NextRequest) {
     const achievements = user.member.achievements;
 
     const latestPhysicalLog = user.member.physicalLogs?.length > 0 
-      ? user.member.physicalLogs[user.member.physicalLogs.length - 1] 
+      ? user.member.physicalLogs[0] 
       : null;
 
     const profileData = {

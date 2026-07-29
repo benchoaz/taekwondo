@@ -1,35 +1,16 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse, NextRequest } from "next/server";
-import { verifyJWT } from "@/lib/auth";
-import { sendWelcomeCredentials } from "@/lib/whatsapp";
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Authentication & Authorization
-    let tokenStr = request.cookies.get('auth_token')?.value;
-    if (!tokenStr) {
-      const authHeader = request.headers.get('authorization');
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        tokenStr = authHeader.substring(7);
-      }
-    }
-    
-    if (!tokenStr) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = request.headers.get("x-user-id");
+    const userRole = request.headers.get("x-user-role");
+
+    // Permissive check for logged in admin/coach
+    if (userRole === "MEMBER") {
+      return NextResponse.json({ error: "Forbidden: Hanya Admin/Coach yang dapat mengimpor data" }, { status: 403 });
     }
 
-    let adminPayload;
-    try {
-      adminPayload = await verifyJWT<{userId: string, role: string}>(tokenStr);
-    } catch (e) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-    }
-
-    if (adminPayload.role !== "ADMIN") {
-      return NextResponse.json({ error: "Forbidden: Only admins can perform this action" }, { status: 403 });
-    }
-
-    // 2. Parse Body (Expects an array of members)
     const body = await request.json();
     const { members } = body;
 
@@ -39,85 +20,75 @@ export async function POST(request: NextRequest) {
 
     const bcrypt = require("bcryptjs");
     let successCount = 0;
-    let errors = [];
+    let errors: string[] = [];
 
-    // 3. Process each member
     for (let i = 0; i < members.length; i++) {
       const row = members[i];
-      const name = row.name?.toString().trim();
-      let phone = row.phone?.toString().trim();
+      
+      // Flexibly extract fields from Excel headers
+      const name = (row.NAMA || row.nama || row.name || "").toString().trim();
+      let phone = (row["NOMOR TLP"] || row.NOMOR_TLP || row.phone || row.hp || "").toString().trim();
+      let customUsername = (row.USER || row.user || row.username || "").toString().trim();
+      let customPassword = (row.PASWORD || row.pasword || row.PASSWORD || row.password || "").toString().trim();
 
-      if (!name || !phone) {
-        errors.push(`Baris ${i + 1}: Nama atau Nomor WA kosong.`);
+      if (!name) {
+        errors.push(`Baris ${i + 1}: Nama kosong.`);
         continue;
       }
 
-      // Generate a username from the name
-      // e.g., "Budi Santoso" -> "budisantoso"
-      let baseUsername = name.toLowerCase().replace(/[^a-z0-9]/g, "");
-      if (baseUsername.length < 4) {
-        baseUsername = baseUsername + Math.floor(1000 + Math.random() * 9000); // Ensure at least 4 chars
+      // Generate or normalize username
+      let username = customUsername;
+      if (!username) {
+        let baseUsername = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (baseUsername.length < 4) {
+          baseUsername = baseUsername + Math.floor(1000 + Math.random() * 9000);
+        }
+        username = baseUsername;
       }
 
-      // Ensure username uniqueness
-      let username = baseUsername;
+      // Ensure username uniqueness by suffixing if duplicate
+      let finalUsername = username;
       let counter = 1;
       while (true) {
-        const existingUser = await prisma.user.findUnique({ where: { username } });
+        const existingUser = await prisma.user.findUnique({ where: { username: finalUsername } });
         if (!existingUser) break;
-        username = `${baseUsername}${counter}`;
+        finalUsername = `${username}${counter}`;
         counter++;
       }
 
-      // Generate a default password (e.g. Taekwondo123)
-      const defaultPassword = "Taekwondo123";
-      const hashedPassword = await bcrypt.hash(defaultPassword, 10);
-      const dummyEmail = `${username}@taekwondo.local`;
+      // Use custom password if present, otherwise default to user1234
+      const plainPassword = customPassword || "user1234";
+      const hashedPassword = await bcrypt.hash(plainPassword, 10);
+      const dummyEmail = `${finalUsername}@taekwondo.local`;
 
       try {
-        const result = await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx) => {
           // Create User
           const newUser = await tx.user.create({
             data: {
               email: dummyEmail,
-              username: username,
+              username: finalUsername,
               password: hashedPassword,
               role: "MEMBER",
               name: name,
             },
           });
 
-          // Create Member Profile (minimal data)
-          const newMember = await tx.member.create({
+          // Create Member Profile
+          await tx.member.create({
             data: {
               userId: newUser.id,
               fullName: name,
-              memberNumber: `WTK-${Math.floor(10000 + Math.random() * 90000)}`, // WTK-XXXXX
-              phone: phone,
-              dateOfBirth: new Date("2000-01-01"), // Default filler date, they can update later
-              currentBelt: "Sabuk Putih (10 Geup)", // Default
+              memberNumber: `WTK-${Math.floor(10000 + Math.random() * 90000)}`,
+              phone: phone || null,
+              dateOfBirth: new Date("2000-01-01"),
+              currentBelt: "Sabuk Putih (10 Geup)",
+              status: "ACTIVE",
             },
           });
 
-          // Log Activity
-          await tx.activityLog.create({
-            data: {
-              adminId: adminPayload.userId,
-              action: "IMPORT_MEMBER",
-              target: username,
-              details: `Imported old member: ${name} (${username})`,
-              ipAddress: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "Unknown",
-              browser: request.headers.get("user-agent") || "Unknown",
-              status: "SUCCESS"
-            }
-          });
-
-          return { newUser, newMember };
         });
 
-        // Send WhatsApp Welcome Message
-        await sendWelcomeCredentials(phone, name, username, defaultPassword, result.newMember.memberNumber);
-        
         successCount++;
       } catch (err: any) {
         console.error(`Error importing row ${i + 1} (${name}):`, err);
@@ -136,3 +107,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Terjadi kesalahan internal server." }, { status: 500 });
   }
 }
+

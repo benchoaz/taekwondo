@@ -30,7 +30,8 @@ import {
   LineChart as ChartIcon,
   Eye,
   EyeOff,
-  Menu
+  Menu,
+  Play
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import confetti from "canvas-confetti";
@@ -113,6 +114,8 @@ export default function MemberDashboard({
 
   const [dbBeltRanks, setDbBeltRanks] = useState<any[]>([]);
   const [curriculumData, setCurriculumData] = useState<any[]>([]);
+  const [selectedCurriculumBeltId, setSelectedCurriculumBeltId] = useState<string | null>(null);
+  const [activeVideoModal, setActiveVideoModal] = useState<{ title: string; videoUrl: string } | null>(null);
   const [completedMaterials, setCompletedMaterials] = useState<string[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
 
@@ -867,7 +870,7 @@ export default function MemberDashboard({
     const targetKey = cleanBeltKey(currentBelt);
     if (!targetKey) return 0;
     // 1. Exact match first
-    let idx = activeBeltSequence.findIndex(b => cleanBeltKey(b.name) === targetKey || cleanBeltKey(b.fullName || "") === targetKey);
+    let idx = activeBeltSequence.findIndex(b => cleanBeltKey(b.name) === targetKey || cleanBeltKey((b as any).fullName || "") === targetKey);
     if (idx !== -1) return idx;
 
     // 2. Fallback: match if substring matches
@@ -2973,69 +2976,122 @@ export default function MemberDashboard({
           {activeTab === "history" && (
             <div className="flex flex-col gap-8">
               <div>
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Kurikulum Latihan</h2>
-                <p className="text-gray-400 text-xs mt-1">Daftar jurus, teknik tendangan, dan tangkisan yang harus Anda kuasai pada tingkatan sabuk aktif.</p>
+                <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display">Kurikulum Latihan &amp; Video Tutorial</h2>
+                <p className="text-gray-400 text-xs mt-1">Daftar jurus, teknik tendangan, dan tangkisan resmi buatan Pelatih beserta panduan video tutorial.</p>
               </div>
+
+              {/* Belt Selector Bar */}
+              {curriculumData && curriculumData.length > 0 && (
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                  {curriculumData.map((bRank: any) => {
+                    const isSelected = selectedCurriculumBeltId 
+                      ? selectedCurriculumBeltId === bRank.id 
+                      : bRank.name.toLowerCase().includes((currentBelt || "").toLowerCase().split(" (")[0]);
+                    const isMemberCurrentBelt = bRank.name.toLowerCase().includes((currentBelt || "").toLowerCase().split(" (")[0]);
+
+                    return (
+                      <button
+                        key={bRank.id}
+                        onClick={() => setSelectedCurriculumBeltId(bRank.id)}
+                        className={`px-4 py-2 rounded-full text-xs font-extrabold whitespace-nowrap transition-all duration-200 flex items-center gap-2 ${
+                          isSelected
+                            ? "bg-[#0F172A] text-white shadow-md scale-105"
+                            : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+                        }`}
+                      >
+                        {isMemberCurrentBelt && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>}
+                        {bRank.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
                 {/* Curriculum Card */}
                 <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-8 shadow-sm">
-                  <div className="flex items-center gap-3 mb-6">
-                    <span className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
-                      <Award className="w-5 h-5" />
-                    </span>
-                    <div>
-                      <h3 className="font-extrabold text-sm text-[#0F172A]">Materi {currentBelt.split(" (")[0]}</h3>
-                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mt-0.5">{currentBeltConfig.level} Syllabus</span>
-                    </div>
-                  </div>
+                  {(() => {
+                    // Temukan sabuk terpilih atau fallback ke sabuk member saat ini
+                    const activeBeltObj = curriculumData.find((b: any) => 
+                      selectedCurriculumBeltId 
+                        ? b.id === selectedCurriculumBeltId 
+                        : b.name.toLowerCase().includes((currentBelt || "").toLowerCase().split(" (")[0])
+                    ) || curriculumData[0];
 
-                  <div className="flex flex-col gap-4">
-                    {currentBeltConfig.syllabus.map((syl: any, idx: number) => {
-                      const isExpanded = expandedSyl === idx;
-                      return (
-                        <div 
-                          key={idx} 
-                          onClick={() => setExpandedSyl(isExpanded ? null : idx)}
-                          className="flex flex-col gap-3 bg-slate-50 hover:bg-slate-100/50 rounded-xl p-4 border border-slate-100 cursor-pointer transition-all duration-300"
-                        >
-                          <div className="flex gap-3 items-start">
-                            <span className="w-6 h-6 rounded-full bg-[#E10600] text-white font-bold text-xs flex items-center justify-center shrink-0">
-                              {idx + 1}
+                    const categories = activeBeltObj?.categories || [];
+
+                    return (
+                      <div>
+                        <div className="flex items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
+                          <div className="flex items-center gap-3">
+                            <span className="p-2.5 bg-blue-50 text-blue-600 rounded-xl">
+                              <Award className="w-5 h-5" />
                             </span>
-                            <div className="flex-grow">
-                              <span className="font-bold text-xs text-[#0F172A] block">{syl.title}</span>
-                              <span className="text-[9px] text-[#E10600] font-black uppercase tracking-wider mt-0.5 block">{syl.type}</span>
+                            <div>
+                              <h3 className="font-extrabold text-base text-[#0F172A]">{activeBeltObj?.name || currentBelt}</h3>
+                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block mt-0.5">
+                                Level {activeBeltObj?.level || currentBeltConfig.level} • {categories.length} Kategori
+                              </span>
                             </div>
-                            <span className="text-[10px] text-gray-400 font-extrabold select-none">
-                              {isExpanded ? "▲ Tutup" : "▼ Pelajari"}
-                            </span>
                           </div>
-
-                          {isExpanded && (
-                            <div className="mt-2 pt-3 border-t border-slate-200/50 flex flex-col gap-3 text-xs text-gray-600">
-                              <div>
-                                <span className="font-extrabold text-[10px] text-[#0F172A] uppercase block mb-1">Filosofi &amp; Teori:</span>
-                                <p className="text-[11px] leading-relaxed italic text-gray-500">"{syl.philosophy}"</p>
-                              </div>
-                              <div>
-                                <span className="font-extrabold text-[10px] text-[#0F172A] uppercase block mb-1">Panduan Langkah Latihan:</span>
-                                <ol className="list-decimal pl-4 text-[11px] leading-relaxed flex flex-col gap-1">
-                                  {syl.steps.map((step: string, sIdx: number) => (
-                                    <li key={sIdx}>{step}</li>
-                                  ))}
-                                </ol>
-                              </div>
-                              <div className="bg-amber-50 border border-amber-200/40 p-3 rounded-lg">
-                                <span className="font-extrabold text-[10px] text-amber-800 uppercase block mb-0.5">Wejangan Grandmaster (Dan 9):</span>
-                                <p className="text-[11px] leading-relaxed text-amber-700 font-medium">{syl.tips}</p>
-                              </div>
-                            </div>
+                          {activeBeltObj?.imageUrl && (
+                            <img src={activeBeltObj.imageUrl} alt="Sabuk" className="w-12 h-12 object-contain rounded-lg" />
                           )}
                         </div>
-                      );
-                    })}
-                  </div>
+
+                        {categories.length === 0 ? (
+                          <div className="text-center py-10 text-slate-400 text-xs">
+                            <p className="font-medium">Belum ada materi kurikulum yang ditambahkan Pelatih untuk sabuk ini.</p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-6">
+                            {categories.map((cat: any, cIdx: number) => (
+                              <div key={cat.id || cIdx} className="bg-slate-50/70 border border-slate-100 rounded-2xl p-5">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <span className="w-2 h-2 rounded-full bg-[#E10600]"></span>
+                                  <h4 className="font-extrabold text-xs text-[#0F172A] uppercase tracking-wider">{cat.name}</h4>
+                                </div>
+
+                                {(!cat.materials || cat.materials.length === 0) ? (
+                                  <p className="text-[11px] text-gray-400 italic">Belum ada daftar teknik di kategori ini.</p>
+                                ) : (
+                                  <div className="flex flex-col gap-2.5">
+                                    {cat.materials.map((mat: any, mIdx: number) => {
+                                      const hasVideo = Boolean(mat.videoUrl);
+                                      return (
+                                        <div key={mat.id || mIdx} className="bg-white border border-slate-100 p-3.5 rounded-xl flex items-center justify-between gap-3 shadow-2xs hover:border-slate-200 transition-all">
+                                          <div className="flex items-center gap-3">
+                                            <span className="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 font-bold text-xs flex items-center justify-center shrink-0">
+                                              {mIdx + 1}
+                                            </span>
+                                            <div>
+                                              <span className="font-bold text-xs text-[#0F172A] block">{mat.title}</span>
+                                            </div>
+                                          </div>
+
+                                          {hasVideo ? (
+                                            <button
+                                              onClick={() => setActiveVideoModal({ title: mat.title, videoUrl: mat.videoUrl })}
+                                              className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-[10px] font-extrabold flex items-center gap-1.5 shadow-xs transition-all shrink-0 cursor-pointer"
+                                            >
+                                              <Play className="w-3 h-3 fill-current" />
+                                              <span>Tonton Video</span>
+                                            </button>
+                                          ) : (
+                                            <span className="text-[10px] text-slate-400 font-medium italic shrink-0">Teks Panduan</span>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Progress Tracking Timeline */}
@@ -4419,6 +4475,69 @@ export default function MemberDashboard({
               >
                 Batal
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dynamic Video Tutorial Modal */}
+      {activeVideoModal && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-[28px] max-w-3xl w-full p-6 sm:p-8 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 bg-red-50 text-red-600 rounded-xl">
+                  <Play className="w-4 h-4 fill-current" />
+                </span>
+                <h3 className="font-extrabold text-sm sm:text-base text-[#0F172A]">{activeVideoModal.title}</h3>
+              </div>
+              <button
+                onClick={() => setActiveVideoModal(null)}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-sm flex items-center justify-center transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-inner">
+              {(() => {
+                const rawUrl = activeVideoModal.videoUrl || "";
+                let embedUrl = rawUrl;
+
+                if (rawUrl.includes("youtube.com/watch?v=")) {
+                  const videoId = rawUrl.split("v=")[1]?.split("&")[0];
+                  embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                } else if (rawUrl.includes("youtu.be/")) {
+                  const videoId = rawUrl.split("youtu.be/")[1]?.split("?")[0];
+                  embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                }
+
+                if (embedUrl.includes("youtube.com/embed/")) {
+                  return (
+                    <iframe
+                      src={embedUrl}
+                      title={activeVideoModal.title}
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    ></iframe>
+                  );
+                }
+
+                return (
+                  <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-slate-900 text-white">
+                    <p className="text-xs text-slate-300 mb-4">Link video ini tidak dapat diputar langsung di dalam pemutar tersemat.</p>
+                    <a
+                      href={rawUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl transition-all shadow-md inline-flex items-center gap-2"
+                    >
+                      <span>Buka Link Video Asli ↗</span>
+                    </a>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

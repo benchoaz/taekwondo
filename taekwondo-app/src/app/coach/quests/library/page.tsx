@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Edit, ListFilter, Trash2, Library, PlusCircle, Send, ToggleLeft, ToggleRight, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Edit, Trash2, PenTool, BookOpen, BarChart3, Send, ToggleLeft, ToggleRight, AlertCircle, CheckCircle2 } from "lucide-react";
+
 
 export default function QuestLibraryPage() {
   const [quests, setQuests] = useState<any[]>([]);
@@ -126,15 +127,16 @@ export default function QuestLibraryPage() {
 
           <div className="flex justify-center gap-2 sm:gap-3 mb-3 relative z-10 flex-wrap">
             <Link href="/coach/quests" className="bg-red-950/50 hover:bg-white hover:text-red-600 text-white text-[10px] sm:text-xs font-bold px-3.5 py-1.5 rounded-xl border border-red-500/30 uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
-              <PlusCircle className="w-3.5 h-3.5" /> Buat Misi Baru
+              <PenTool className="w-3.5 h-3.5" /> Buat Misi Baru
             </Link>
             <span className="bg-white text-red-700 shadow-md ring-2 ring-red-400/40 text-[10px] sm:text-xs font-black px-4 py-1.5 rounded-xl uppercase tracking-wider flex items-center gap-1.5">
-              <Library className="w-3.5 h-3.5 text-red-600" /> Library Misi
+              <BookOpen className="w-3.5 h-3.5 text-red-600" /> Library Misi
             </span>
-            <Link href="/coach/quests/logs" className="bg-red-950/50 hover:bg-white hover:text-red-600 text-white text-[10px] sm:text-xs font-bold px-3.5 py-1.5 rounded-xl border border-red-500/30 uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
-              <ListFilter className="w-3.5 h-3.5" /> Pantau Latihan
+            <Link href="/coach/quests/logs" className="bg-red-950/50 hover:bg-white hover:text-red-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl border border-red-500/30 uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+              <BarChart3 className="w-3.5 h-3.5" /> Pantau Latihan
             </Link>
           </div>
+
 
           <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight relative z-10">
             Library Misi

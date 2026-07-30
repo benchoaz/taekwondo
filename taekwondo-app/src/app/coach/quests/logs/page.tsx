@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Video, User, FileText, Loader2, Calendar, Search, ChevronDown, ChevronUp, CheckSquare, Clock, ExternalLink } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Video, User, FileText, Loader2, Calendar, Search, ChevronDown, ChevronUp, CheckSquare, Clock, ExternalLink, PenTool, BookOpen, BarChart3 } from "lucide-react";
+
 
 interface QuestLog {
   id: string;
@@ -150,15 +151,16 @@ export default function CoachQuestLogs() {
           <div>
             <div className="flex gap-2 mb-3 bg-slate-200/60 p-1.5 rounded-2xl w-fit border border-slate-300/40">
               <Link href="/coach/quests" className="text-slate-600 hover:text-slate-900 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
-                <ArrowLeft className="w-3.5 h-3.5" /> Buat Misi
+                <PenTool className="w-3.5 h-3.5" /> Buat Misi
               </Link>
               <Link href="/coach/quests/library" className="text-slate-600 hover:text-slate-900 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
-                Library Misi
+                <BookOpen className="w-3.5 h-3.5" /> Library Misi
               </Link>
               <span className="bg-white text-[#E10600] shadow-md px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5">
-                ✨ Pantau Latihan
+                <BarChart3 className="w-3.5 h-3.5 text-[#E10600]" /> Pantau Latihan
               </span>
             </div>
+
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
               Aktivitas Misi Harian Murid
             </h1>

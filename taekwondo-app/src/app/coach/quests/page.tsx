@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Award, CheckSquare, Square, Video, ShieldAlert, ListFilter } from "lucide-react";
+import { Award, PlusCircle, PenTool, BookOpen, BarChart3, Video, ShieldAlert } from "lucide-react";
+
 
 import { Suspense } from "react";
 
@@ -208,60 +209,64 @@ function CoachQuestFormContent() {
   };
 
   return (
-    <div className={`min-h-screen ${isIframe ? 'bg-transparent py-0 px-0' : 'bg-[#f3f4f5] py-4 sm:py-12 px-2 sm:px-6 lg:px-8'} font-sans`}>
-      <div className={`max-w-5xl mx-auto bg-white ${isIframe ? 'rounded-none shadow-none border-none' : 'rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden border border-gray-100'}`}>
+    <div className={`min-h-screen ${isIframe ? 'bg-transparent py-1 px-1 sm:px-6' : 'bg-[#f3f4f5] py-3 sm:py-12 px-3 sm:px-8'} font-sans`}>
+      <div className={`max-w-5xl mx-auto bg-white ${isIframe ? 'rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200/80 p-4 sm:p-10' : 'rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden border border-gray-100'}`}>
         
         {/* Header Premium Merah - Hidden in Iframe */}
         {!isIframe && (
-          <div className="bg-gradient-to-r from-red-600 via-red-700 to-red-800 px-6 py-5 text-center relative overflow-hidden">
+          <div className="bg-gradient-to-r from-red-600 via-red-700 to-red-800 px-5 sm:px-10 py-5 sm:py-6 text-center relative overflow-hidden">
             <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl"></div>
             <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
             
-            <div className="flex justify-center gap-3 mb-3 relative z-10 flex-wrap">
-              <span className="bg-white text-red-700 shadow-md ring-2 ring-red-400/40 text-xs font-black px-4 py-1.5 rounded-xl uppercase tracking-wider">
-                ✨ Buat Misi Baru
+            <div className="flex justify-center gap-2 sm:gap-3 mb-3 relative z-10 flex-wrap">
+              <span className="bg-white text-red-700 shadow-md ring-2 ring-red-400/40 text-[11px] sm:text-xs font-black px-3.5 py-1.5 rounded-xl uppercase tracking-wider flex items-center gap-1.5">
+                <PenTool className="w-3.5 h-3.5 text-red-600" /> Buat Misi Baru
               </span>
-              <Link href="/coach/quests/library" className="bg-red-950/50 hover:bg-white hover:text-red-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl border border-red-500/30 uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
-                <CheckSquare className="w-3.5 h-3.5" /> Library Misi
+              <Link href="/coach/quests/library" className="bg-red-950/50 hover:bg-white hover:text-red-600 text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-xl border border-red-500/30 uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+                <BookOpen className="w-3.5 h-3.5" /> Library Misi
               </Link>
-              <Link href="/coach/quests/logs" className="bg-red-950/50 hover:bg-white hover:text-red-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-xl border border-red-500/30 uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
-                <ListFilter className="w-3.5 h-3.5" /> Pantau Latihan Murid
+              <Link href="/coach/quests/logs" className="bg-red-950/50 hover:bg-white hover:text-red-600 text-white text-[11px] sm:text-xs font-bold px-3 py-1.5 rounded-xl border border-red-500/30 uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
+                <BarChart3 className="w-3.5 h-3.5" /> Pantau Latihan Murid
               </Link>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight relative z-10">
+            <h2 className="text-lg sm:text-2xl font-black text-white tracking-tight relative z-10">
               Kreator Misi Harian
             </h2>
-            <p className="mt-0.5 text-xs text-red-100 font-medium relative z-10">
+            <p className="mt-0.5 text-[11px] sm:text-xs text-red-100 font-medium relative z-10">
               Rancang tantangan baru untuk menguji batas kemampuan murid Dojang
             </p>
           </div>
         )}
 
-        {/* Navigation Tabs - Visible in Iframe */}
+        {/* Navigation Tabs - Dinamis Mobile View (Responsive Flex & Scroll) */}
         {isIframe && (
-          <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-5 gap-3 flex-wrap">
-            <div>
-              <h2 className="text-lg font-black text-[#0F172A] font-display">Daily Quests Builder</h2>
-              <p className="text-gray-400 text-xs mt-0.5">Rancang tantangan baru untuk menguji kemampuan teori &amp; fisik murid.</p>
+          <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-3">
+            <div className="pl-1">
+              <h2 className="text-lg sm:text-xl font-black text-[#0F172A] font-display tracking-tight">Daily Quests Builder</h2>
+              <p className="text-slate-400 text-xs mt-0.5 font-medium">Rancang tantangan baru untuk menguji kemampuan teori &amp; fisik murid.</p>
             </div>
-            <div className="flex gap-2 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200/60 shadow-inner">
-              <span className="bg-white text-[#E10600] shadow-md shadow-slate-200/50 px-3.5 py-2 rounded-xl font-black text-xs flex items-center gap-1.5">
-                ✨ Buat Misi
+            
+            {/* Tab Navigasi Dinamis & Touch-Friendly untuk Mobile */}
+            <div className="flex items-center gap-1.5 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/80 shadow-inner overflow-x-auto max-w-full">
+              <span className="bg-white text-[#E10600] shadow-md shadow-slate-200/50 px-3.5 py-2 rounded-xl font-black text-xs flex items-center gap-1.5 shrink-0 ring-1 ring-black/5">
+                <PenTool className="w-3.5 h-3.5 text-[#E10600]" /> Buat Misi
               </span>
-              <Link href="/coach/quests/library" className="text-slate-600 hover:text-slate-900 hover:bg-white/50 px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all">
-                <CheckSquare className="w-3.5 h-3.5" /> Library Misi
+              <Link href="/coach/quests/library" className="text-slate-600 hover:text-slate-900 hover:bg-white/60 px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shrink-0">
+                <BookOpen className="w-3.5 h-3.5 text-slate-500" /> Library Misi
               </Link>
-              <Link href="/coach/quests/logs" className="text-slate-600 hover:text-slate-900 hover:bg-white/50 px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all">
-                <ListFilter className="w-3.5 h-3.5" /> Pantau Latihan
+              <Link href="/coach/quests/logs" className="text-slate-600 hover:text-slate-900 hover:bg-white/60 px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shrink-0">
+                <BarChart3 className="w-3.5 h-3.5 text-slate-500" /> Pantau Latihan
               </Link>
             </div>
           </div>
         )}
 
         
-        {/* Form Isi */}
-        <form onSubmit={handleSubmit} className={`${isIframe ? 'px-0 py-0' : 'px-8 py-8'} space-y-6`}>
+        {/* Form Isi Dinamis Mobile */}
+        <form onSubmit={handleSubmit} className={`${isIframe ? 'px-1 sm:px-2 py-0' : 'px-4 sm:px-10 py-6 sm:py-8'} space-y-5 sm:space-y-6`}>
+
+
           <div>
             <label className="block text-sm font-bold text-gray-800 mb-1">Nama Latihan / Misi</label>
             <input 

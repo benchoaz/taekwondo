@@ -65,10 +65,28 @@ export async function GET(request: Request) {
         const heightM = height / 100;
         bmi = parseFloat((weight / (heightM * heightM)).toFixed(1));
 
-        if (bmi < 18.5) category = 'Underweight';
-        else if (bmi <= 22.9) category = 'Ideal';
-        else if (bmi <= 24.9) category = 'Overweight';
-        else category = 'Obesity';
+        // Hitung Usia Atlet untuk membedakan kategori Anak vs Dewasa
+        let age = 18;
+        if (m.dateOfBirth) {
+          const today = new Date();
+          const dob = new Date(m.dateOfBirth);
+          age = today.getFullYear() - dob.getFullYear();
+          const monthDiff = today.getMonth() - dob.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) age--;
+        }
+
+        if (age < 18) {
+          // Kategori Persentil Anak (< 18 Thn)
+          if (bmi < 14.5) category = 'Underweight';
+          else if (bmi < 19.5) category = 'Ideal';
+          else category = 'Overweight';
+        } else {
+          // Kategori Standar Asia Pasifik Dewasa (>= 18 Thn)
+          if (bmi < 18.5) category = 'Underweight';
+          else if (bmi <= 22.9) category = 'Ideal';
+          else if (bmi <= 24.9) category = 'Overweight';
+          else category = 'Obesity';
+        }
 
         if (weight <= 33) tournamentClass = 'Under 33 kg';
         else if (weight <= 37) tournamentClass = 'Under 37 kg';

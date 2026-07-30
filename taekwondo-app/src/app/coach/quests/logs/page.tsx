@@ -146,24 +146,28 @@ export default function CoachQuestLogs() {
       <div className="max-w-5xl mx-auto">
         
         {/* Navigation & Header */}
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex gap-4 mb-2">
-              <Link href="/coach/quests" className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-red-600 font-bold transition-colors">
-                <ArrowLeft className="w-4 h-4" /> Kembali ke Builder
+            <div className="flex gap-2 mb-3 bg-slate-200/60 p-1.5 rounded-2xl w-fit border border-slate-300/40">
+              <Link href="/coach/quests" className="text-slate-600 hover:text-slate-900 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                <ArrowLeft className="w-3.5 h-3.5" /> Buat Misi
               </Link>
-              <Link href="/coach/quests/library" className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 hover:text-red-600 font-bold transition-colors">
-                Library Misi <ArrowRight className="w-4 h-4" />
+              <Link href="/coach/quests/library" className="text-slate-600 hover:text-slate-900 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                Library Misi
               </Link>
+              <span className="bg-white text-[#E10600] shadow-md px-3.5 py-1.5 rounded-xl text-xs font-black flex items-center gap-1.5">
+                ✨ Pantau Latihan
+              </span>
             </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
               Aktivitas Misi Harian Murid
             </h1>
-            <p className="text-slate-500 text-xs sm:text-sm mt-1">
+            <p className="text-slate-500 text-xs mt-0.5">
               Pantau pengerjaan, catatan mandiri, dan rekaman video latihan murid
             </p>
           </div>
         </div>
+
 
         {/* Mini Dashboard Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">

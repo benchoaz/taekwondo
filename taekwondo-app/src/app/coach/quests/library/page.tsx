@@ -119,30 +119,31 @@ export default function QuestLibraryPage() {
 
       <div className="max-w-4xl mx-auto bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden border border-gray-100">
 
-        {/* Header */}
-        <div className="bg-gradient-to-r from-red-600 to-red-800 px-4 sm:px-8 py-8 sm:py-10 text-center relative overflow-hidden">
+        {/* Header Ringkas & Kontras */}
+        <div className="bg-gradient-to-r from-red-600 via-red-700 to-red-800 px-4 sm:px-6 py-5 text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-2xl"></div>
           <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl"></div>
 
-          <div className="flex justify-center gap-2 sm:gap-4 mb-4 relative z-10 flex-wrap">
-            <Link href="/coach/quests" className="bg-red-950/40 text-red-100 hover:text-white text-[10px] sm:text-xs font-black px-3 py-1 rounded-full border border-red-700/30 uppercase tracking-widest transition-colors flex items-center gap-1.5">
+          <div className="flex justify-center gap-2 sm:gap-3 mb-3 relative z-10 flex-wrap">
+            <Link href="/coach/quests" className="bg-red-950/50 hover:bg-white hover:text-red-600 text-white text-[10px] sm:text-xs font-bold px-3.5 py-1.5 rounded-xl border border-red-500/30 uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
               <PlusCircle className="w-3.5 h-3.5" /> Buat Misi Baru
             </Link>
-            <span className="bg-white/20 text-white text-[10px] sm:text-xs font-black px-3 py-1 rounded-full border border-white/30 uppercase tracking-widest flex items-center gap-1.5">
-              <Library className="w-3.5 h-3.5" /> Library Misi
+            <span className="bg-white text-red-700 shadow-md ring-2 ring-red-400/40 text-[10px] sm:text-xs font-black px-4 py-1.5 rounded-xl uppercase tracking-wider flex items-center gap-1.5">
+              <Library className="w-3.5 h-3.5 text-red-600" /> Library Misi
             </span>
-            <Link href="/coach/quests/logs" className="bg-red-950/40 text-red-100 hover:text-white text-[10px] sm:text-xs font-black px-3 py-1 rounded-full border border-red-700/30 uppercase tracking-widest transition-colors flex items-center gap-1.5">
+            <Link href="/coach/quests/logs" className="bg-red-950/50 hover:bg-white hover:text-red-600 text-white text-[10px] sm:text-xs font-bold px-3.5 py-1.5 rounded-xl border border-red-500/30 uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-sm active:scale-95">
               <ListFilter className="w-3.5 h-3.5" /> Pantau Latihan
             </Link>
           </div>
 
-          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight relative z-10">
+          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight relative z-10">
             Library Misi
           </h2>
-          <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-red-100 font-medium relative z-10">
+          <p className="mt-0.5 text-xs text-red-100 font-medium relative z-10">
             Kolam template misi yang siap didistribusikan ke member sesuai sabuk &amp; usia.
           </p>
         </div>
+
 
         {/* Legend */}
         <div className="bg-amber-50 border-b border-amber-100 px-4 sm:px-8 py-3 flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4 text-[10px] sm:text-xs text-amber-800 font-semibold">

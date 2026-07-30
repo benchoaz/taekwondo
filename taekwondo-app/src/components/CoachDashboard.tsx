@@ -853,21 +853,43 @@ export default function CoachDashboard({
     count: allMembers.filter(m => (m.currentBelt || "").startsWith(belt.split(" (")[0])).length
   })).filter(b => b.count > 0);
 
-  // Sidebar nav items
-  const navItems = [
-    { id: "dashboard", label: "Ringkasan", icon: <TrendingUp className="w-4 h-4" /> },
-    { id: "members", label: "Data Siswa", icon: <Users className="w-4 h-4" /> },
-    { id: "grading", label: "Penilaian UKT", icon: <Calendar className="w-4 h-4" /> },
-    { id: "belt_claims", label: "Verifikasi Klaim Sabuk", icon: <CheckCircle className="w-4 h-4" /> },
-    { id: "history", label: "Progres Sabuk", icon: <Award className="w-4 h-4" /> },
-    { id: "quests", label: "Misi Atlet", icon: <Activity className="w-4 h-4" /> },
-    { id: "quest_builder", label: "Kelola Quest", icon: <Award className="w-4 h-4" /> },
-    { id: "curriculum_builder", label: "Kurikulum Builder", icon: <FileText className="w-4 h-4" /> },
-    { id: "finance", label: "Keuangan & SPP", icon: <DollarSign className="w-4 h-4" /> },
-    { id: "schedule", label: "Jadwal Latihan", icon: <Clock className="w-4 h-4" /> },
-    { id: "certificates", label: "Sertifikat", icon: <FileText className="w-4 h-4" /> },
-    { id: "announcements", label: "Buat Pengumuman", icon: <Send className="w-4 h-4" /> },
+  // Structured & Grouped Sidebar nav items
+  const navSections = [
+    {
+      title: "UTAMA",
+      items: [
+        { id: "dashboard", label: "Ringkasan", icon: <TrendingUp className="w-4 h-4" /> }
+      ]
+    },
+    {
+      title: "AKADEMIK & SISWA",
+      items: [
+        { id: "members", label: "Data Siswa", icon: <Users className="w-4 h-4" /> },
+        { id: "history", label: "Progres Sabuk", icon: <Award className="w-4 h-4" /> },
+        { id: "belt_claims", label: "Verifikasi Klaim Sabuk", icon: <CheckCircle className="w-4 h-4" /> },
+        { id: "grading", label: "Penilaian UKT", icon: <Calendar className="w-4 h-4" /> }
+      ]
+    },
+    {
+      title: "KURIKULUM & MISI",
+      items: [
+        { id: "quests", label: "Misi Atlet", icon: <Activity className="w-4 h-4" /> },
+        { id: "quest_builder", label: "Kelola Quest", icon: <Award className="w-4 h-4" /> },
+        { id: "curriculum_builder", label: "Kurikulum Builder", icon: <FileText className="w-4 h-4" /> },
+        { id: "schedule", label: "Jadwal Latihan", icon: <Clock className="w-4 h-4" /> }
+      ]
+    },
+    {
+      title: "ADMINISTRASI",
+      items: [
+        { id: "finance", label: "Keuangan & SPP", icon: <DollarSign className="w-4 h-4" /> },
+        { id: "certificates", label: "Sertifikat", icon: <FileText className="w-4 h-4" /> },
+        { id: "announcements", label: "Buat Pengumuman", icon: <Send className="w-4 h-4" /> }
+      ]
+    }
   ];
+  const navItems = navSections.flatMap(s => s.items);
+
 
   const dayOrder = ["Senin","Selasa","Rabu","Kamis","Jumat","Sabtu","Minggu"];
   const sortedSchedules = [...schedules].sort((a,b) => dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek));
@@ -944,23 +966,34 @@ export default function CoachDashboard({
               );
             })()}
 
-            {/* Nav */}
-            <div className="flex flex-col gap-1.5">
-              {navItems.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => { setActiveTab(tab.id); setSidebarOpen(false); }}
-                  className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl font-bold text-xs text-left transition-all ${
-                    activeTab === tab.id
-                      ? "bg-[#E10600] text-white shadow-md shadow-[#E10600]/15"
-                      : "text-gray-500 hover:bg-[#0F172A]/5 hover:text-[#0F172A]"
-                  }`}
-                >
-                  {tab.icon}
-                  {tab.label}
-                </button>
+            {/* Nav Grouped by Category */}
+            <div className="flex flex-col gap-5">
+              {navSections.map((sec, secIdx) => (
+                <div key={secIdx} className="flex flex-col gap-1">
+                  <div className="text-[10px] font-black uppercase text-slate-400 tracking-wider px-3 mb-1">
+                    {sec.title}
+                  </div>
+                  {sec.items.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => { setActiveTab(tab.id); setSidebarOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl font-bold text-xs text-left transition-all ${
+                        activeTab === tab.id
+                          ? "bg-[#E10600] text-white shadow-md shadow-[#E10600]/20 font-black"
+                          : "text-slate-600 hover:bg-slate-100 hover:text-[#0F172A]"
+                      }`}
+                    >
+                      {tab.icon}
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                  {secIdx < navSections.length - 1 && (
+                    <div className="h-[1px] bg-slate-100 my-1 mx-2" />
+                  )}
+                </div>
               ))}
             </div>
+
           </div>
 
           <div className="flex flex-col gap-1 px-6 pb-6 pt-4 border-t border-slate-100">
@@ -2332,18 +2365,19 @@ export default function CoachDashboard({
 
           {/* ══════════════ TAB: QUEST BUILDER ══════════════ */}
           {activeTab === "quest_builder" && (
-            <div className="flex flex-col gap-6 animate-fade-in pb-12 h-[80vh] w-full">
+            <div className="flex flex-col gap-6 animate-fade-in pb-12 w-full min-h-[750px]">
               <div>
                 <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Kelola Misi & Kuis</h2>
                 <p className="text-gray-400 text-xs mt-1">Buat misi latihan baru, atur pertanyaan kuis materi teori, dan verifikasi batas pencapaian umur/sabuk.</p>
               </div>
               <iframe 
                 src="/coach/quests" 
-                className="w-full h-full border border-slate-200 rounded-[24px] shadow-sm bg-white"
+                className="w-full min-h-[700px] border border-slate-200 rounded-[24px] shadow-sm bg-white"
                 title="Daily Quests Builder"
               />
             </div>
           )}
+
 
           {/* ══════════════ TAB: CURRICULUM BUILDER ══════════════ */}
           {activeTab === "curriculum_builder" && (

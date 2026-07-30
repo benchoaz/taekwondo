@@ -1977,11 +1977,12 @@ export default function MemberDashboard({
                 <button
                   key={tab.id}
                   onClick={() => { setActiveTab(tab.id); setSidebarOpen(false); }}
-                  className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl font-bold text-xs text-left transition-all ${
+                  className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl font-extrabold text-xs text-left transition-all ${
                     activeTab === tab.id 
                       ? "bg-[#E10600] text-white shadow-md shadow-[#E10600]/15" 
-                      : "text-gray-500 hover:bg-[#0F172A]/5 hover:text-[#0F172A]"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-[#0F172A]"
                   }`}
+
                 >
                   {tab.icon}
                   {tab.label}
@@ -2257,32 +2258,65 @@ export default function MemberDashboard({
                 if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
               }
 
+              const isChild = age < 18;
               let category = "Ideal";
               let bgHeader = "from-emerald-500/10 to-teal-500/10 border-emerald-500/20";
               let bgBadge = "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
-              let description = "Indeks Massa Tubuh (BMI) Anda berada pada rentang ideal. Pertahankan nutrisi dan pola latihan fisik Taekwondo secara konsisten.";
-              let recommendation = "Jaga asupan gizi seimbang serta porsi latihan Poomsae & Kyorugi rutin.";
-              let barPercent = Math.min(Math.max(((bmiVal - 15) / 15) * 100, 5), 95);
+              let description = "";
+              let recommendation = "";
+              let spectrumLabels = ["Kurus (<18.5)", "Ideal (18.5 - 22.9)", "Kelebihan (23.0+)"];
+              let barPercent = 50;
 
-              if (bmiVal < 18.5) {
-                category = "Underweight";
-                bgHeader = "from-amber-500/10 to-orange-500/10 border-amber-500/20";
-                bgBadge = "bg-amber-500/10 text-amber-600 border-amber-500/20";
-                description = "Berat badan di bawah rentang ideal. Tambah asupan kalori dan protein untuk menunjang daya tahan tanding.";
-                recommendation = "Tingkatkan protein & karbohidrat kompleks. Makan 5x/hari + susu/telur setelah latihan.";
-              } else if (bmiVal >= 25.0) {
-                category = "Overweight";
-                bgHeader = "from-red-500/10 to-rose-500/10 border-red-500/20";
-                bgBadge = "bg-red-500/10 text-red-600 border-red-500/20";
-                description = "Berat badan di atas rentang ideal. Lakukan program penurunan berat badan terkontrol sebelum kejuaraan.";
-                recommendation = "Kurangi karbohidrat sederhana. Tambah kardio 30 menit/hari + skipping 500 lompatan/hari.";
-              } else if (bmiVal >= 23.0) {
-                category = "Berisiko";
-                bgHeader = "from-orange-500/10 to-amber-500/10 border-orange-500/20";
-                bgBadge = "bg-orange-500/10 text-orange-600 border-orange-500/20";
-                description = "BMI mendekati batas atas. Perhatikan pola makan agar tidak naik ke kategori overweight menjelang kejuaraan.";
-                recommendation = "Kurangi gula & makanan berminyak. Jaga konsistensi latihan 4x/minggu.";
+              if (isChild) {
+                // Logika Persentil WHO / CDC untuk Atlet Usia Dini (Anak-anak < 18 Thn)
+                spectrumLabels = ["Kurus (<14.5)", "Ideal (14.5 - 19.4)", "Kelebihan (19.5+)"];
+                barPercent = Math.min(Math.max(((bmiVal - 10) / 15) * 100, 5), 95);
+
+                if (bmiVal < 14.5) {
+                  category = "Kurus";
+                  bgHeader = "from-amber-500/10 to-orange-500/10 border-amber-500/20";
+                  bgBadge = "bg-amber-500/10 text-amber-600 border-amber-500/20";
+                  description = `BMI Anak (${bmiVal} kg/m²) berada di bawah persentil ke-5 WHO Usia Dini. Menunjukkan berat badan kurang untuk atlet seusianya.`;
+                  recommendation = "Tingkatkan porsi makan bergizi 5x sehari + suplemen kalsium & protein setelah latihan Taekwondo.";
+                } else if (bmiVal >= 19.5) {
+                  category = "Kelebihan Berat Badan";
+                  bgHeader = "from-rose-500/10 to-red-500/10 border-rose-500/20";
+                  bgBadge = "bg-rose-500/10 text-rose-600 border-rose-500/20";
+                  description = `BMI Anak (${bmiVal} kg/m²) berada di atas persentil ke-85 WHO Usia Dini. Diperlukan pengkondisian fisik & nutrisi teratur.`;
+                  recommendation = "Optimalisasi latihan kardio & kelincahan (Footwork). Kurangi jajanan manis & minuman tinggi gula.";
+                } else {
+                  category = "Ideal";
+                  bgHeader = "from-emerald-500/10 to-teal-500/10 border-emerald-500/20";
+                  bgBadge = "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
+                  description = `BMI Anak (${bmiVal} kg/m²) berada pada rentang ideal persentil WHO Usia Dini. Pertumbuhan fisik berkembang sangat baik!`;
+                  recommendation = "Pertahankan nutrisi seimbang, hidrasi harian yang cukup, serta konsistensi latihan teknik & fisik Dojang.";
+                }
+              } else {
+                // Logika Standar Asia Pasifik Dewasa (>= 18 Thn)
+                spectrumLabels = ["Kurus (<18.5)", "Ideal (18.5 - 22.9)", "Kelebihan (23.0+)"];
+                barPercent = Math.min(Math.max(((bmiVal - 15) / 15) * 100, 5), 95);
+
+                if (bmiVal < 18.5) {
+                  category = "Kurus";
+                  bgHeader = "from-amber-500/10 to-orange-500/10 border-amber-500/20";
+                  bgBadge = "bg-amber-500/10 text-amber-600 border-amber-500/20";
+                  description = "Berat badan di bawah rentang ideal. Tambah asupan kalori dan protein untuk menunjang daya tahan tanding.";
+                  recommendation = "Tingkatkan protein & karbohidrat kompleks. Makan 5x/hari + susu/telur setelah latihan.";
+                } else if (bmiVal >= 23.0) {
+                  category = "Kelebihan Berat Badan";
+                  bgHeader = "from-rose-500/10 to-red-500/10 border-rose-500/20";
+                  bgBadge = "bg-rose-500/10 text-rose-600 border-rose-500/20";
+                  description = "Berat badan di atas rentang ideal. Lakukan program pengkondisian berat badan terkontrol menjelang kejuaraan.";
+                  recommendation = "Kurangi karbohidrat sederhana. Tambah kardio 30 menit/hari + skipping 500 lompatan/hari.";
+                } else {
+                  category = "Ideal";
+                  bgHeader = "from-emerald-500/10 to-teal-500/10 border-emerald-500/20";
+                  bgBadge = "bg-emerald-500/10 text-emerald-600 border-emerald-500/20";
+                  description = "Indeks Massa Tubuh (BMI) Anda berada pada rentang ideal. Pertahankan nutrisi dan pola latihan fisik Taekwondo secara konsisten.";
+                  recommendation = "Jaga asupan gizi seimbang serta porsi latihan Poomsae & Kyorugi rutin.";
+                }
               }
+
 
               // === KATEGORI KYORUGI PBTI RESMI (berdasarkan usia & berat) ===
               let ageGroup = "";
@@ -2425,11 +2459,12 @@ export default function MemberDashboard({
 
               return {
                 bmiVal, category, bgHeader, bgBadge, description, recommendation,
-                barPercent, height, weight, waist, deltaHeight, deltaWeight,
-                kyorugiCat, kyorugiDesc, ageGroup, age,
+                spectrumLabels, barPercent, height, weight, waist, deltaHeight, deltaWeight,
+                kyorugiCat, kyorugiDesc, ageGroup, age, isChild,
                 eventEligible, eventNote, beltNote,
                 poomsaeForms, poomsaeCategoryDesc, poomsaeDivisions,
               };
+
             };
 
 
@@ -2437,18 +2472,18 @@ export default function MemberDashboard({
             return (
               <div className="flex flex-col gap-8">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                   <div>
-                    <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] font-display flex items-center gap-2">
-                      Laporan Tumbuh Kembang & BMI <Activity className="w-6 h-6 text-[#E10600]" />
+                    <h2 className="text-xl sm:text-2xl font-black text-[#0F172A] font-display flex items-center gap-2">
+                      Laporan Tumbuh Kembang & BMI <Activity className="w-5 h-5 text-[#E10600]" />
                     </h2>
-                    <p className="text-gray-400 text-xs mt-1">Pantau Indeks Massa Tubuh (BMI), pertumbuhan fisik, dan rekomendasi kategori kelas tanding Kyorugi.</p>
+                    <p className="text-slate-500 text-xs mt-0.5">Pantau Indeks Massa Tubuh (BMI), pertumbuhan fisik, dan rekomendasi kategori kelas tanding Kyorugi.</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => {
-                        const h = prompt("Masukkan Tinggi Badan Terbaru (cm):", "165");
-                        const w = prompt("Masukkan Berat Badan Terbaru (kg):", "55");
+                        const h = prompt("Masukkan Tinggi Badan Terbaru (cm):", String(bmiData.height));
+                        const w = prompt("Masukkan Berat Badan Terbaru (kg):", String(bmiData.weight));
                         if (h && w) {
                           fetch("/api/physical-growth", {
                             method: "POST",
@@ -2464,12 +2499,13 @@ export default function MemberDashboard({
                           });
                         }
                       }}
-                      className="px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-bold text-xs shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                      className="px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
                     >
-                      <Plus className="w-4 h-4" /> Input Ukuran Fisik Baru
+                      <Plus className="w-4 h-4 text-slate-500" /> Input Ukuran Fisik Baru
                     </button>
                   </div>
                 </div>
+
 
                 {bmiData ? (
                   <>
@@ -2497,10 +2533,11 @@ export default function MemberDashboard({
                           {/* BMI Spectrum Bar */}
                           <div className="my-6">
                             <div className="flex justify-between items-center text-[10px] font-extrabold text-slate-400 mb-2 uppercase tracking-wider">
-                              <span>Underweight (&lt;18.5)</span>
-                              <span>Ideal (18.5 - 22.9)</span>
-                              <span>Overweight (23.0+)</span>
+                              <span>{bmiData.spectrumLabels[0]}</span>
+                              <span>{bmiData.spectrumLabels[1]}</span>
+                              <span>{bmiData.spectrumLabels[2]}</span>
                             </div>
+
 
                             {/* Meter Track */}
                             <div className="relative w-full h-4 rounded-full bg-slate-100 p-0.5 border border-slate-200/80 overflow-hidden flex">

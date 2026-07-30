@@ -2035,29 +2035,63 @@ export default function AdminDashboard({
     setSettings({ ...settings, uktRequirements: updated });
   };
 
-  const NAV_TABS = [
-    { id: "payments", label: "Administrasi Keuangan", icon: <CreditCard className="w-4 h-4" /> },
-    { id: "physical_growth", label: "Tumbuh Kembang & Turnamen", icon: <Activity className="w-4 h-4" /> },
-    { id: "ukt_candidates", label: "Pendaftar Ujian UKT", icon: <UserCheck className="w-4 h-4" /> },
-    { id: "ukt_schedule", label: "Kelola Jadwal UKT", icon: <Calendar className="w-4 h-4" /> },
-    { id: "analytics", label: "Dashboard Analytics", icon: <TrendingUp className="w-4 h-4" /> },
-    { id: "curriculum", label: "Curriculum Builder", icon: <BookOpen className="w-4 h-4" /> },
-    { id: "exercises", label: "Daily Quests", icon: <Edit className="w-4 h-4" /> },
-    { id: "gamification", label: "Toko Gamifikasi", icon: <Gamepad className="w-4 h-4" /> },
-    { id: "belt_requirements", label: "Syarat Ujian (Belt Req)", icon: <Check className="w-4 h-4" /> },
-    { id: "schedules", label: "Pengaturan Jadwal", icon: <Calendar className="w-4 h-4" /> },
-    { id: "spp", label: "Manajemen SPP", icon: <DollarSign className="w-4 h-4" /> },
-    { id: "users", label: "Manajemen User", icon: <Users className="w-4 h-4" /> },
-    { id: "events", label: "Agenda Kegiatan & Kejuaraan", icon: <FileText className="w-4 h-4" /> },
-    { id: "coaches", label: "Manajemen Pelatih", icon: <Shield className="w-4 h-4" /> },
-    { id: "achievements", label: "Prestasi Member", icon: <Award className="w-4 h-4" /> },
-    { id: "announcements", label: "Pengumuman", icon: <Megaphone className="w-4 h-4" /> },
-    { id: "hero_slides", label: "Slider Hero (Juara)", icon: <Sparkles className="w-4 h-4" /> },
-    { id: "gallery", label: "Galeri Foto", icon: <FileText className="w-4 h-4" /> },
-    { id: "settings", label: "Pengaturan Aplikasi", icon: <SettingsIcon className="w-4 h-4" /> },
+  const NAV_CATEGORIES = [
+    {
+      title: "Keuangan & Analytics",
+      key: "finance",
+      items: [
+        { id: "payments", label: "Administrasi Keuangan", icon: <CreditCard className="w-4 h-4 shrink-0" /> },
+        { id: "spp", label: "Manajemen SPP", icon: <DollarSign className="w-4 h-4 shrink-0" /> },
+        { id: "analytics", label: "Dashboard Analytics", icon: <TrendingUp className="w-4 h-4 shrink-0" /> },
+      ]
+    },
+    {
+      title: "Manajemen UKT & Atlet",
+      key: "ukt",
+      items: [
+        { id: "ukt_candidates", label: "Pendaftar Ujian UKT", icon: <UserCheck className="w-4 h-4 shrink-0" /> },
+        { id: "ukt_schedule", label: "Kelola Jadwal UKT", icon: <Calendar className="w-4 h-4 shrink-0" /> },
+        { id: "belt_requirements", label: "Syarat Ujian (Belt Req)", icon: <Check className="w-4 h-4 shrink-0" /> },
+        { id: "physical_growth", label: "Tumbuh Kembang & Turnamen", icon: <Activity className="w-4 h-4 shrink-0" /> },
+        { id: "achievements", label: "Prestasi Member", icon: <Award className="w-4 h-4 shrink-0" /> },
+      ]
+    },
+    {
+      title: "Kurikulum & Gamifikasi",
+      key: "learning",
+      items: [
+        { id: "curriculum", label: "Curriculum Builder", icon: <BookOpen className="w-4 h-4 shrink-0" /> },
+        { id: "exercises", label: "Daily Quests", icon: <Edit className="w-4 h-4 shrink-0" /> },
+        { id: "gamification", label: "Toko Gamifikasi", icon: <Gamepad className="w-4 h-4 shrink-0" /> },
+        { id: "schedules", label: "Pengaturan Jadwal", icon: <Calendar className="w-4 h-4 shrink-0" /> },
+      ]
+    },
+    {
+      title: "User & Konten",
+      key: "user_content",
+      items: [
+        { id: "users", label: "Manajemen User", icon: <Users className="w-4 h-4 shrink-0" /> },
+        { id: "coaches", label: "Manajemen Pelatih", icon: <Shield className="w-4 h-4 shrink-0" /> },
+        { id: "events", label: "Agenda & Kejuaraan", icon: <FileText className="w-4 h-4 shrink-0" /> },
+        { id: "announcements", label: "Pengumuman", icon: <Megaphone className="w-4 h-4 shrink-0" /> },
+        { id: "hero_slides", label: "Slider Hero (Juara)", icon: <Sparkles className="w-4 h-4 shrink-0" /> },
+        { id: "gallery", label: "Galeri Foto", icon: <ImageIcon className="w-4 h-4 shrink-0" /> },
+      ]
+    }
   ];
-  const activeTabLabel = NAV_TABS.find(t => t.id === activeTab)?.label || "Admin";
-  const activeTabIcon = NAV_TABS.find(t => t.id === activeTab)?.icon;
+
+  const ALL_TABS = [
+    ...NAV_CATEGORIES.flatMap(c => c.items),
+    { id: "settings", label: "Pengaturan Aplikasi", icon: <SettingsIcon className="w-4 h-4 shrink-0" /> }
+  ];
+
+  const activeTabItem = ALL_TABS.find(t => t.id === activeTab);
+  const activeTabLabel = activeTabItem?.label || "Admin";
+  const activeTabIcon = activeTabItem?.icon;
+  const activeCategory = NAV_CATEGORIES.find(c => c.items.some(i => i.id === activeTab))?.title || "Sistem";
+
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [globalSearchTerm, setGlobalSearchTerm] = useState("");
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col font-sans">
@@ -2092,82 +2126,158 @@ export default function AdminDashboard({
         {/* ── SIDEBAR ── */}
         <aside className={`
           fixed md:static top-0 left-0 h-full md:h-auto z-50 md:z-auto
-          w-72 md:w-64
+          ${isSidebarCollapsed ? 'w-72 md:w-20' : 'w-72 md:w-64'}
           bg-white border-r border-[#0F172A]/5
           flex flex-col justify-between
-          transition-transform duration-300 ease-in-out
+          transition-all duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
-          overflow-y-auto
+          overflow-y-auto scrollbar-none
         `}>
           {/* Sidebar header */}
-          <div className="flex flex-col gap-6 p-6">
-            {/* Close button (mobile only) */}
-            <div className="flex items-center justify-between md:hidden">
+          <div className="flex flex-col gap-4 p-4 sm:p-6">
+            {/* Close button (mobile only) & Toggle Collapse (Desktop) */}
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#E10600] flex items-center justify-center bg-red-50 text-[#E10600] font-bold text-sm">
+                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-[#E10600] flex items-center justify-center bg-red-50 text-[#E10600] font-bold text-sm shrink-0">
                   AD
                 </div>
-                <div>
+                {!isSidebarCollapsed && (
+                  <div className="hidden md:block min-w-0">
+                    <h3 className="font-extrabold text-sm text-[#0F172A] leading-none truncate">Admin Panel</h3>
+                    <span className="text-[10px] text-gray-400 font-bold block mt-0.5 uppercase tracking-wider truncate">Super Admin</span>
+                  </div>
+                )}
+                <div className="md:hidden">
                   <h3 className="font-extrabold text-sm text-[#0F172A] leading-none">Admin Panel</h3>
-                  <span className="text-[10px] text-gray-400 font-bold block mt-0.5 uppercase tracking-wider">Super Administrator</span>
+                  <span className="text-[10px] text-gray-400 font-bold block mt-0.5 uppercase tracking-wider">Super Admin</span>
                 </div>
               </div>
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors"
-              >
-                <X className="w-4 h-4 text-gray-500" />
-              </button>
-            </div>
 
-            {/* Admin Profile (desktop only) */}
-            <div className="hidden md:flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#E10600] flex items-center justify-center bg-red-50 text-[#E10600] font-bold text-lg">
-                AD
-              </div>
-              <div>
-                <h3 className="font-extrabold text-sm text-[#0F172A] leading-none">Admin Panel</h3>
-                <span className="text-[10px] text-gray-400 font-bold block mt-1 uppercase tracking-wider">Super Administrator</span>
-              </div>
-            </div>
-
-            {/* Nav Menu */}
-            <div className="flex flex-col gap-1">
-              {NAV_TABS.filter(t => t.id !== 'settings').map((tab) => (
+              <div className="flex items-center gap-1">
+                {/* Desktop Sidebar Collapse Toggle */}
                 <button
-                  key={tab.id}
-                  onClick={() => { setActiveTab(tab.id); setSidebarOpen(false); }}
-                  className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-xl font-bold text-xs text-left transition-all ${
-                    activeTab === tab.id
-                      ? "bg-[#E10600] text-white shadow-md shadow-[#E10600]/15"
-                      : "text-gray-500 hover:bg-[#0F172A]/5 hover:text-[#0F172A]"
-                  }`}
+                  onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                  className="hidden md:flex w-8 h-8 items-center justify-center rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors"
+                  title={isSidebarCollapsed ? "Perluas Sidebar" : "Lipat Sidebar"}
                 >
-                  {tab.icon}
-                  {tab.label}
+                  <RefreshCw className={`w-4 h-4 transition-transform duration-300 ${isSidebarCollapsed ? 'rotate-180' : ''}`} />
                 </button>
+
+                {/* Mobile Close Button */}
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="md:hidden w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors"
+                >
+                  <X className="w-4 h-4 text-gray-500" />
+                </button>
+              </div>
+            </div>
+
+            {/* Categorized Nav Menu */}
+            <div className="flex flex-col gap-5 mt-2">
+              {NAV_CATEGORIES.map((cat) => (
+                <div key={cat.key} className="flex flex-col gap-1">
+                  {!isSidebarCollapsed && (
+                    <div className="px-3 text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                      {cat.title}
+                    </div>
+                  )}
+                  {cat.items.map((tab) => {
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => { setActiveTab(tab.id); setSidebarOpen(false); }}
+                        title={tab.label}
+                        className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3.5'} py-2.5 rounded-xl text-xs font-bold text-left transition-all ${
+                          isActive
+                            ? "bg-red-50 text-[#E10600] border-l-4 border-[#E10600] font-black shadow-sm"
+                            : "text-slate-600 hover:bg-slate-50 hover:text-[#0F172A]"
+                        }`}
+                      >
+                        <span className={isActive ? "text-[#E10600]" : "text-slate-400"}>
+                          {tab.icon}
+                        </span>
+                        {!isSidebarCollapsed && (
+                          <span className="truncate">{tab.label}</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               ))}
             </div>
           </div>
 
           {/* Bottom actions */}
-          <div className="flex flex-col gap-1 px-6 pb-6 pt-4 border-t border-slate-100">
+          <div className="flex flex-col gap-1 px-4 pb-6 pt-4 border-t border-slate-100">
             <button
               onClick={() => { setActiveTab("settings"); setSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-xs text-left transition-all ${
-                activeTab === "settings" ? "bg-[#0F172A] text-white" : "text-gray-500 hover:text-[#0F172A]"
+              title="Pengaturan Aplikasi"
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3.5'} py-2.5 rounded-xl font-bold text-xs text-left transition-all ${
+                activeTab === "settings" ? "bg-red-50 text-[#E10600] border-l-4 border-[#E10600] font-black" : "text-slate-500 hover:bg-slate-50 hover:text-[#0F172A]"
               }`}
             >
-              <SettingsIcon className="w-4 h-4" /> Pengaturan Aplikasi
+              <SettingsIcon className="w-4 h-4 shrink-0 text-slate-400" /> 
+              {!isSidebarCollapsed && <span>Pengaturan Aplikasi</span>}
             </button>
-            <button onClick={onBack} className="flex items-center gap-3 px-4 py-2.5 text-[#E10600] hover:bg-red-50 font-bold text-xs text-left rounded-xl transition-all">
-              <LogOut className="w-4 h-4" /> Back to SSO
+            <button 
+              onClick={onBack} 
+              title="Back to SSO"
+              className={`w-full flex items-center ${isSidebarCollapsed ? 'justify-center px-2' : 'gap-3 px-3.5'} py-2.5 text-[#E10600] hover:bg-red-50 font-bold text-xs text-left rounded-xl transition-all`}
+            >
+              <LogOut className="w-4 h-4 shrink-0" /> 
+              {!isSidebarCollapsed && <span>Back to SSO</span>}
             </button>
           </div>
         </aside>
 
-        {/* ── MAIN CONTENT ── */}
-        <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8 lg:p-10 overflow-x-hidden">
+        {/* ── MAIN CONTENT WRAPPER WITH TOP HEADER BAR ── */}
+        <div className="flex-1 flex flex-col min-w-0">
+          
+          {/* Top Header Bar (Desktop & Tablet) */}
+          <header className="hidden md:flex h-16 bg-white border-b border-slate-100 items-center justify-between px-8 sticky top-0 z-30 shadow-xs">
+            {/* Breadcrumb Navigation */}
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+              <span className="text-slate-400">Dashboard</span>
+              <span className="text-slate-300">/</span>
+              <span className="text-slate-400">{activeCategory}</span>
+              <span className="text-slate-300">/</span>
+              <span className="text-[#0F172A] font-black">{activeTabLabel}</span>
+            </div>
+
+            {/* Global Search & User Profile Quick Actions */}
+            <div className="flex items-center gap-4">
+              {/* Global Search Bar */}
+              <div className="relative w-64">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Cari fitur / menu... (Ctrl+K)"
+                  value={globalSearchTerm}
+                  onChange={(e) => setGlobalSearchTerm(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 text-xs rounded-xl pl-9 pr-4 py-2 outline-none font-semibold text-slate-800 focus:ring-2 focus:ring-[#E10600]"
+                />
+              </div>
+
+              {/* Notification Bell */}
+              <button className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 relative transition-colors">
+                <Bell className="w-4 h-4" />
+                <span className="w-2 h-2 rounded-full bg-[#E10600] absolute top-2 right-2 ring-2 ring-white"></span>
+              </button>
+
+              {/* Back to SSO Button */}
+              <button 
+                onClick={onBack} 
+                className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 transition-all shadow-sm"
+              >
+                <LogOut className="w-3.5 h-3.5" /> Back to SSO
+              </button>
+            </div>
+          </header>
+
+          {/* Main Content Area */}
+          <main className="flex-1 min-w-0 p-4 sm:p-6 md:p-8 lg:p-10 overflow-x-hidden">
 
           {activeTab === "physical_growth" && (
             <div className="flex flex-col gap-8">
@@ -4345,6 +4455,7 @@ export default function AdminDashboard({
           )}
         </main>
       </div>
+    </div>
 
       {/* Dynamic Requirements Review Modal */}
       {selectedCandidate && (

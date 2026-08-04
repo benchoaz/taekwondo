@@ -128,13 +128,19 @@ function IntroAnimation({ onDone }: { onDone: () => void }) {
           >
             <motion.div className="w-24 h-24 bg-gradient-to-tr from-[#E10600] via-orange-600 to-yellow-500 rounded-2xl shadow-[0_0_50px_rgba(225,6,0,0.8)] flex items-center justify-center p-1 transform -rotate-3 mb-6">
               <div className="w-full h-full bg-[#050505] rounded-xl flex items-center justify-center">
-                <span className="text-4xl font-black text-white italic tracking-tighter drop-shadow-md">TKD</span>
+                <span className="text-4xl font-black text-white italic tracking-tighter drop-shadow-md">WTK</span>
               </div>
             </motion.div>
-            <div className="flex flex-col items-center w-full px-4">
-              <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="text-3xl sm:text-5xl md:text-7xl font-black text-white tracking-[0.1em] sm:tracking-widest font-display text-center">TAEKWONDO</motion.h1>
-              <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }} className="text-2xl sm:text-3xl md:text-5xl font-black text-[#E10600] tracking-[0.1em] sm:tracking-widest font-display text-center mt-[-5px] md:mt-[-10px]">ACADEMY</motion.h1>
-              <motion.p initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.8 }} className="text-gray-300 text-[10px] sm:text-xs md:text-sm mt-6 font-medium tracking-[0.15em] sm:tracking-[0.4em] uppercase text-center">Disiplin • Integritas • Prestasi</motion.p>
+            <div className="flex flex-col items-center w-full px-4 max-w-5xl mx-auto">
+              <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="text-xl min-[375px]:text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-black text-white tracking-[0.05em] sm:tracking-widest font-display text-center whitespace-nowrap drop-shadow-[0_0_25px_rgba(255,255,255,0.4)]">
+                WHITE TIGER KRAKSAAN
+              </motion.h1>
+              <motion.h2 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }} className="text-xs min-[375px]:text-sm sm:text-lg md:text-2xl lg:text-3xl font-extrabold text-[#E10600] tracking-[0.2em] sm:tracking-[0.35em] font-display uppercase text-center mt-1.5 sm:mt-2 drop-shadow-[0_0_15px_rgba(225,6,0,0.6)]">
+                TAEKWONDO ACADEMY
+              </motion.h2>
+              <motion.p initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.8 }} className="text-gray-300 text-[10px] sm:text-xs md:text-sm mt-4 sm:mt-5 font-medium tracking-[0.15em] sm:tracking-[0.4em] uppercase text-center">
+                Disiplin • Integritas • Prestasi
+              </motion.p>
             </div>
           </motion.div>
         )}

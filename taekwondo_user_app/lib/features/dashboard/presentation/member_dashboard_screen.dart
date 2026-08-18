@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 import 'dart:ui';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -1897,13 +1896,17 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                   _expandedQuestId = null;
                                   _isQuestSubmitting = false;
                                 });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Misi berhasil diselesaikan!')),
-                                );
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Misi berhasil diselesaikan!')),
+                                  );
+                                }
                               } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Error: $e')),
-                                );
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error: $e')),
+                                  );
+                                }
                                 setState(() => _isQuestSubmitting = false);
                               }
                             },
@@ -2033,19 +2036,23 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                   _selectedQuizOption = null;
                                   _quizTextController.clear();
                                 });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    backgroundColor: Colors.green,
-                                    content: Text('Jawaban benar! Misi kuis berhasil diselesaikan.'),
-                                  ),
-                                );
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      backgroundColor: Colors.green,
+                                      content: Text('Jawaban benar! Misi kuis berhasil diselesaikan.'),
+                                    ),
+                                  );
+                                }
                               } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    backgroundColor: Color(0xFFBC000A),
-                                    content: Text('Jawaban salah! Silakan coba lagi.'),
-                                  ),
-                                );
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      backgroundColor: Color(0xFFBC000A),
+                                      content: Text('Jawaban salah! Silakan coba lagi.'),
+                                    ),
+                                  );
+                                }
                                 setState(() => _isQuestSubmitting = false);
                               }
                             },
@@ -2108,6 +2115,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                         await ref.read(questServiceProvider).completeQuest(log.id);
                         ref.invalidate(questProvider);
                         ref.invalidate(profileProvider);
+                        if (!mounted) return;
                         setState(() {
                           _expandedQuestId = null;
                           _isQuestSubmitting = false;
@@ -2116,6 +2124,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                           const SnackBar(content: Text('Misi berhasil diselesaikan!')),
                         );
                       } catch (e) {
+                        if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Gagal: $e')),
                         );

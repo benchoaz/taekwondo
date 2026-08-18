@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:file_picker/file_picker.dart' as fp;
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:typed_data';
 import 'package:go_router/go_router.dart';
 
 import '../../auth/domain/user_model.dart';

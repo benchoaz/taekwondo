@@ -1016,7 +1016,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
                     Navigator.pop(ctx);
                     final success = await ref.read(profileServiceProvider).updateName(newName);
-                    if (mounted) {
+                    if (context.mounted) {
                       if (success) {
                         ref.invalidate(profileProvider);
                         ref.invalidate(authProvider);

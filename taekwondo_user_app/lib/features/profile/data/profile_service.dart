@@ -138,7 +138,9 @@ class ProfileService {
     String mimeType = 'image/jpeg';
     if (ext == 'png') {
       mimeType = 'image/png';
-    } else if (ext == 'webp') mimeType = 'image/webp';
+    } else if (ext == 'webp') {
+      mimeType = 'image/webp';
+    }
 
     FormData formData = FormData.fromMap({
       'file': await MultipartFile.fromFile(

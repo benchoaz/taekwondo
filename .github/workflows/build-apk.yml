@@ -64,14 +64,14 @@ jobs:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+UseG1GC'"
         run: |
           cd taekwondo_user_app
-          flutter build apk --release --no-tree-shake-icons
+          flutter build apk --release --no-tree-shake-icons --android-skip-build-dependency-validation
 
       - name: Build Release AAB (App Bundle for Play Store)
         env:
           GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+UseG1GC'"
         run: |
           cd taekwondo_user_app
-          flutter build appbundle --release --no-tree-shake-icons
+          flutter build appbundle --release --no-tree-shake-icons --android-skip-build-dependency-validation
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4

@@ -40,7 +40,7 @@ jobs:
           cd taekwondo_user_app
           flutter pub get
 
-      - name: Setup Android Keystore (Optional Signed Release)
+      - name: Setup Android Keystore (Signed Release)
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE || secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -48,15 +48,21 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS || secrets.ANDROID_KEY_ALIAS }}
         run: |
           if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
-            echo "Keystore secret detected, setting up signed build configuration..."
+            echo "Setting up signed release keystore from secrets..."
             printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '\r\n' | base64 --decode > taekwondo_user_app/android/key.jks
             mkdir -p taekwondo_user_app/android/app
             cp taekwondo_user_app/android/key.jks taekwondo_user_app/android/app/key.jks
             printf 'storePassword=%s\nkeyPassword=%s\nkeyAlias=%s\nstoreFile=key.jks\n' \
               "$KEYSTORE_PASSWORD" "$KEY_PASSWORD" "$KEY_ALIAS" > taekwondo_user_app/android/key.properties
             chmod 600 taekwondo_user_app/android/key.jks
+          elif [ -f "taekwondo_user_app/android/key.properties" ]; then
+            echo "Direct repository keystore detected. Ensuring keystore paths..."
+            mkdir -p taekwondo_user_app/android/app
+            [ -f "taekwondo_user_app/android/key.jks" ] && cp taekwondo_user_app/android/key.jks taekwondo_user_app/android/app/key.jks || true
+            [ -f "taekwondo_user_app/android/app/key.jks" ] && cp taekwondo_user_app/android/app/key.jks taekwondo_user_app/android/key.jks || true
+            echo "Keystore successfully configured for signed release build."
           else
-            echo "Notice: ANDROID_KEYSTORE secret is not set, proceeding with default release build."
+            echo "Warning: Keystore not found! Build will be unsigned."
           fi
 
       - name: Build Release APK

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,7 +10,8 @@ import 'image_adjust_dialog.dart';
 import '../../../core/widgets/dynamic_asset_widget.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
-  const ProfileScreen({super.key});
+  final bool showBottomNav;
+  const ProfileScreen({super.key, this.showBottomNav = false});
 
   @override
   ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
@@ -57,149 +57,112 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final Color themeColorLight = HSLColor.fromColor(themeColor).withLightness(0.65).toColor();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F1115),
-      body: Stack(
-        children: [
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: themeColor,
-              ),
-            ),
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        child: profileAsync.when(
+          loading: () => Center(child: CircularProgressIndicator(color: themeColor)),
+          error: (err, stack) => Center(
+            child: Text('Gagal memuat profil: $err', style: const TextStyle(color: Color(0xFF0F172A))),
           ),
-          Positioned(
-            bottom: -50,
-            left: -100,
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0xFF2A303F),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-              child: const SizedBox(),
-            ),
-          ),
-          SafeArea(
-            child: profileAsync.when(
-              loading: () => Center(child: CircularProgressIndicator(color: themeColor)),
-              error: (err, stack) => Center(
-                child: Text('Gagal memuat profil: $err', style: const TextStyle(color: Colors.white)),
-              ),
-              data: (profile) => RefreshIndicator(
-                color: themeColor,
-                onRefresh: () async => ref.refresh(profileProvider.future),
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+          data: (profile) => RefreshIndicator(
+            color: themeColor,
+            onRefresh: () async => ref.refresh(profileProvider.future),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+              padding: EdgeInsets.fromLTRB(16, 16, 16, widget.showBottomNav ? 30 : 90),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildVIPCard(profile!, ref, themeColor, themeColorLight, emblemUrl),
+                  const SizedBox(height: 28),
+                  Text(
+                    'Perjalanan Tingkatan Sabuk',
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildLevelBar(profile, themeColor, themeColorLight),
+                  const SizedBox(height: 28),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildVIPCard(profile!, ref, themeColor, themeColorLight, emblemUrl),
-                      const SizedBox(height: 32),
                       Text(
-                        'TAEKWONDO JOURNEY',
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 2,
-                          color: const Color(0xFF8A93A6),
+                        'Data Fisik & Antropometri',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      _buildLevelBar(profile, themeColor, themeColorLight),
-                      const SizedBox(height: 32),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'ANTROPOMETRI',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 2,
-                              color: const Color(0xFF8A93A6),
-                            ),
+                      GestureDetector(
+                        onTap: () => _showEditBiometricsModal(context, ref, profile, themeColor),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
-                          GestureDetector(
-                            onTap: () => _showEditBiometricsModal(context, ref, profile, themeColor),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: themeColor.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: themeColor.withValues(alpha: 0.3)),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.edit, color: Color(0xFF0F172A), size: 12),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Perbarui',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF0F172A),
+                                ),
                               ),
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit, color: themeColor, size: 12),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    'Perbarui',
-                                    style: GoogleFonts.hankenGrotesk(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: themeColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _buildBiometricsPanel(profile),
-                      const SizedBox(height: 32),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'HALL OF FAME',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 2,
-                              color: const Color(0xFF8A93A6),
-                            ),
-                          ),
-                          const Icon(Icons.workspace_premium, color: Color(0xFFFFD700)),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      ...profile.achievements.map((ach) => _buildAchievementCard(ach)),
-                      if (profile.achievements.isEmpty)
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Text(
-                              "Belum ada medali.\nBerlatihlah lebih keras!",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
-                            ),
+                            ],
                           ),
                         ),
-                      const SizedBox(height: 40),
-                      _buildLogoutButton(context, ref, themeColor),
+                      ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  _buildBiometricsPanel(profile),
+                  const SizedBox(height: 28),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Prestasi & Medali Turnamen',
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF0F172A),
+                        ),
+                      ),
+                      const Icon(Icons.workspace_premium, color: Color(0xFFD97706), size: 20),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ...profile.achievements.map((ach) => _buildAchievementCard(ach)),
+                  if (profile.achievements.isEmpty)
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          "Belum ada medali turnamen tercatat.",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 13),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 32),
+                  _buildLogoutButton(context, ref, themeColor),
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
-      bottomNavigationBar: _buildBottomNav(context, themeColor),
+      bottomNavigationBar: widget.showBottomNav ? _buildBottomNav(context, themeColor) : null,
     );
   }
 
@@ -234,22 +197,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
         image: activeThemeUrl != null && activeThemeUrl.isNotEmpty
             ? DecorationImage(
                 image: NetworkImage(_getAbsoluteUrl(activeThemeUrl)),
                 fit: BoxFit.cover,
               )
             : null,
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
+            color: Color(0x06000000),
+            blurRadius: 20,
+            offset: Offset(0, 6),
           )
         ],
       ),
@@ -261,8 +224,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               // Base Gradient border if no frame is equipped
               if (frameUrl == null || frameUrl.isEmpty)
                 Container(
-                  width: 110,
-                  height: 110,
+                  width: 86,
+                  height: 86,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
@@ -272,9 +235,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: themeColor.withValues(alpha: 0.5),
-                        blurRadius: 20,
-                        spreadRadius: 2,
+                        color: themeColor.withValues(alpha: 0.25),
+                        blurRadius: 12,
+                        spreadRadius: 1,
                       )
                     ],
                   ),
@@ -287,11 +250,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   GestureDetector(
                     onTap: _isUploading ? null : () => _pickAndUploadImage(frameUrl),
                     child: Container(
-                      width: 90,
-                      height: 90,
+                      width: 76,
+                      height: 76,
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFF1E222D),
+                        color: Color(0xFFF1F5F9),
                       ),
                       child: ClipOval(
                         child: Image(
@@ -304,34 +267,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
                   
-                  // 2. Frame Overlay (matches 90x90 exactly to prevent displacement)
+                  // 2. Frame Overlay
                   if (frameUrl != null && frameUrl.isNotEmpty)
                     (() {
                       final cssStyles = CssValueParser.parseCss(frameCss);
                       final Color? parsedBorderColor = cssStyles['borderColor'];
                       final double parsedBorderWidth = cssStyles['borderWidth'] ?? 2.0;
                       final Color? parsedGlowColor = cssStyles['glowColor'];
-                      // Multiply blur radius by 2 for large profile view to scale the effect nicely
-                      final double parsedGlowBlurRadius = (cssStyles['glowBlurRadius'] ?? 0.0) * 2;
+                      final double parsedGlowBlurRadius = (cssStyles['glowBlurRadius'] ?? 0.0) * 1.5;
 
                       return IgnorePointer(
                         child: Container(
-                          width: 104, // Marginally larger than photo to wrap it perfectly
-                          height: 104,
+                          width: 86,
+                          height: 86,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             image: DecorationImage(
                               image: NetworkImage(_getAbsoluteUrl(frameUrl!)),
-                              fit: BoxFit.fill, // Using fill to stretch round frame perfectly to container boundaries
+                              fit: BoxFit.fill,
                             ),
                             border: parsedBorderColor != null
                                 ? Border.all(color: parsedBorderColor, width: parsedBorderWidth * 1.5)
                                 : null,
                             boxShadow: [
                               BoxShadow(
-                                color: parsedGlowColor ?? Colors.white.withValues(alpha: 0.2),
-                                blurRadius: parsedGlowBlurRadius > 0 ? parsedGlowBlurRadius : 15,
-                                spreadRadius: 2,
+                                color: parsedGlowColor ?? const Color(0x20000000),
+                                blurRadius: parsedGlowBlurRadius > 0 ? parsedGlowBlurRadius : 10,
+                                spreadRadius: 1,
                               )
                             ],
                           ),
@@ -340,7 +302,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     })(),
 
                   if (_isUploading)
-                    const CircularProgressIndicator(color: Colors.white),
+                    const CircularProgressIndicator(color: Color(0xFFDC2626)),
                   
                   if (!_isUploading)
                     Positioned(
@@ -349,12 +311,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       child: GestureDetector(
                         onTap: () => _pickAndUploadImage(frameUrl),
                         child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.blueAccent,
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F172A),
                             shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 1.5),
                           ),
-                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 14),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 13),
                         ),
                       ),
                     ),
@@ -367,12 +330,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                profile.name.toUpperCase(),
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 1,
+                profile.name,
+                style: GoogleFonts.inter(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0F172A),
+                  letterSpacing: -0.3,
                 ),
               ),
               GestureDetector(
@@ -381,11 +344,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   margin: const EdgeInsets.only(left: 8),
                   padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: const Color(0xFFF1F5F9),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
-                  child: const Icon(Icons.edit_outlined, color: Colors.white70, size: 14),
+                  child: const Icon(Icons.edit_outlined, color: Color(0xFF475569), size: 14),
                 ),
               ),
               if (emblemUrl != null) ...[
@@ -413,46 +376,45 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: titleUrl != null && titleUrl.isNotEmpty
                   ? DynamicAssetWidget(
                       url: _getAbsoluteUrl(titleUrl),
-                      height: 38,
+                      height: 34,
                       fit: BoxFit.contain,
-                      blendMode: BlendMode.screen,
                     )
                   : Padding(
                       padding: const EdgeInsets.only(top: 4, bottom: 4),
                       child: Text(
                         titleName.toUpperCase(),
-                        style: GoogleFonts.spaceGrotesk(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFFFFD700),
-                          letterSpacing: 2,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFD97706),
+                          letterSpacing: 1,
                         ),
                       ),
                     ),
             ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: themeColor.withValues(alpha: 0.2),
+              color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: themeColor.withValues(alpha: 0.5)),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: Text(
               profile.memberNumber,
-              style: GoogleFonts.spaceGrotesk(
-                fontSize: 14,
+              style: GoogleFonts.inter(
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: themeColorLight,
+                color: const Color(0xFF475569),
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildStatColumn('UMUR', '${profile.age} THN'),
-              Container(width: 1, height: 40, color: Colors.white.withValues(alpha: 0.1)),
+              _buildStatColumn('UMUR', '${profile.age} Thn'),
+              Container(width: 1, height: 36, color: const Color(0xFFE2E8F0)),
               _buildStatColumn('SABUK', profile.currentBelt.replaceAll('Sabuk ', '').split(' ').first),
             ],
           )
@@ -466,20 +428,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       children: [
         Text(
           label,
-          style: GoogleFonts.hankenGrotesk(
-            fontSize: 12,
+          style: GoogleFonts.inter(
+            fontSize: 11,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF8A93A6),
-            letterSpacing: 1,
+            color: const Color(0xFF64748B),
+            letterSpacing: 0.5,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: GoogleFonts.spaceGrotesk(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF0F172A),
           ),
         ),
       ],
@@ -488,11 +450,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Widget _buildLevelBar(ProfileData profile, Color themeColor, Color themeColorLight) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E222D),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x04000000),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -502,27 +471,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               Expanded(
                 child: Text(
-                  profile.currentBelt.toUpperCase(),
+                  profile.currentBelt,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.spaceGrotesk(
+                  style: GoogleFonts.inter(
                     fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
               Text(
                 '${profile.progress.clamp(0, 100)}%',
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: themeColor,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFFDC2626),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           LayoutBuilder(
             builder: (context, constraints) {
               final double maxProgressWidth = constraints.maxWidth;
@@ -532,27 +501,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               return Stack(
                 children: [
                   Container(
-                    height: 12,
+                    height: 8,
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
+                      color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                   Container(
-                    height: 12,
+                    height: 8,
                     width: progressWidth,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [themeColor, themeColorLight],
-                      ),
+                      color: const Color(0xFFDC2626),
                       borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: themeColor.withValues(alpha: 0.6),
-                          blurRadius: 10,
-                          spreadRadius: 1,
-                        )
-                      ],
                     ),
                   ),
                 ],
@@ -561,10 +521,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Lanjutkan berlatih untuk kenaikan sabuk (UKT) berikutnya!',
-            style: GoogleFonts.hankenGrotesk(
+            'Lanjutkan kehadiran latihan untuk memenuhi syarat Ujian Kenaikan Tingkat (UKT).',
+            style: GoogleFonts.inter(
               fontSize: 12,
-              color: const Color(0xFF8A93A6),
+              color: const Color(0xFF64748B),
+              height: 1.4,
             ),
           ),
         ],
@@ -575,7 +536,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildBiometricsPanel(ProfileData profile) {
     double? bmi;
     String bmiCategory = "-";
-    Color bmiColor = const Color(0xFF8A93A6);
+    Color bmiColor = const Color(0xFF64748B);
 
     if (profile.weight != null && profile.height != null && profile.height! > 0) {
       final heightInMeter = profile.height! / 100;
@@ -584,63 +545,70 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       
       if (currentBmi < 18.5) {
         bmiCategory = "Kurus";
-        bmiColor = Colors.orange;
+        bmiColor = const Color(0xFFD97706);
       } else if (currentBmi < 24.9) {
         bmiCategory = "Ideal";
-        bmiColor = Colors.greenAccent;
+        bmiColor = const Color(0xFF059669);
       } else if (currentBmi < 29.9) {
         bmiCategory = "Berlebih";
-        bmiColor = Colors.orange;
+        bmiColor = const Color(0xFFD97706);
       } else {
         bmiCategory = "Obesitas";
-        bmiColor = Colors.redAccent;
+        bmiColor = const Color(0xFFDC2626);
       }
     }
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E222D),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x04000000),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildMetricBox("Berat", profile.weight != null ? "${profile.weight} kg" : "-"),
+              Container(width: 1, height: 32, color: const Color(0xFFE2E8F0)),
               _buildMetricBox("Tinggi", profile.height != null ? "${profile.height} cm" : "-"),
+              Container(width: 1, height: 32, color: const Color(0xFFE2E8F0)),
               _buildMetricBox("Perut", profile.waistCircum != null ? "${profile.waistCircum} cm" : "-"),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: bmiColor.withValues(alpha: 0.1),
+              color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: bmiColor.withValues(alpha: 0.3)),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Text(
-                    'Indeks Massa Tubuh (BMI)',
-                    style: GoogleFonts.hankenGrotesk(
-                      fontSize: 12,
-                      color: Colors.white,
-                    ),
+                Text(
+                  'Indeks Massa Tubuh (BMI)',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: const Color(0xFF475569),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(width: 8),
                 Text(
                   bmi != null ? "${bmi.toStringAsFixed(1)} ($bmiCategory)" : "Belum ada data",
-                  style: GoogleFonts.spaceGrotesk(
+                  style: GoogleFonts.inter(
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                     color: bmiColor,
                   ),
                 ),
@@ -657,20 +625,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       children: [
         Text(
           label.toUpperCase(),
-          style: GoogleFonts.hankenGrotesk(
+          style: GoogleFonts.inter(
             fontSize: 11,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF8A93A6),
-            letterSpacing: 1,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF64748B),
+            letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 4),
         Text(
           value,
-          style: GoogleFonts.spaceGrotesk(
+          style: GoogleFonts.inter(
             fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF0F172A),
           ),
         ),
       ],
@@ -681,56 +649,57 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final isGold = ach.rank.toLowerCase() == 'emas';
     final isSilver = ach.rank.toLowerCase() == 'perak';
     final medalColor = isGold
-        ? const Color(0xFFFFD700)
+        ? const Color(0xFFD97706)
         : isSilver
-            ? const Color(0xFFC0C0C0)
-            : const Color(0xFFCD7F32);
+            ? const Color(0xFF64748B)
+            : const Color(0xFFB45309);
     
     final xpBonus = isGold ? "+1000 XP" : isSilver ? "+750 XP" : "+500 XP";
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x04000000),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: medalColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: medalColor.withValues(alpha: 0.2),
-                  blurRadius: 15,
-                )
-              ],
             ),
-            child: Icon(Icons.emoji_events, color: medalColor, size: 30),
+            child: Icon(Icons.emoji_events, color: medalColor, size: 24),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   ach.title,
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF0F172A),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   ach.eventName,
-                  style: GoogleFonts.hankenGrotesk(
-                    fontSize: 13,
-                    color: const Color(0xFF8A93A6),
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: const Color(0xFF64748B),
                   ),
                 ),
               ],
@@ -740,30 +709,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: medalColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
+                  color: medalColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  ach.rank.toUpperCase(),
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                  ach.rank,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
                     color: medalColor,
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               Text(
                 xpBonus,
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
                   color: medalColor,
-                  shadows: [
-                    Shadow(color: medalColor.withValues(alpha: 0.5), blurRadius: 10),
-                  ]
                 ),
               ),
             ],
@@ -776,23 +742,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget _buildLogoutButton(BuildContext context, WidgetRef ref, Color themeColor) {
     return SizedBox(
       width: double.infinity,
-      child: TextButton.icon(
+      child: OutlinedButton.icon(
         onPressed: () {
           ref.read(authProvider.notifier).logout();
           context.go('/login');
         },
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          backgroundColor: Colors.white.withValues(alpha: 0.05),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          backgroundColor: Colors.white,
+          side: const BorderSide(color: Color(0xFFFECACA)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
-        icon: Icon(Icons.logout, color: themeColor),
+        icon: const Icon(Icons.logout, color: Color(0xFFDC2626), size: 18),
         label: Text(
-          'KELUAR DARI AKUN',
-          style: GoogleFonts.spaceGrotesk(
-            fontWeight: FontWeight.bold,
-            color: themeColor,
-            letterSpacing: 1,
+          'Keluar dari Akun',
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+            color: const Color(0xFFDC2626),
           ),
         ),
       ),
@@ -805,7 +772,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final XFile? rawImage = await picker.pickImage(
         source: ImageSource.gallery, 
         maxWidth: 1200, 
-        maxHeight: 1200,
+        maxHeight: 1200, 
         imageQuality: 80,
       );
       if (rawImage == null) return;
@@ -820,7 +787,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       );
 
-      if (adjustedImage == null) return; // User cancelled / backed out
+      if (adjustedImage == null) return;
       
       setState(() => _isUploading = true);
       final success = await ref.read(profileServiceProvider).uploadProfilePicture(adjustedImage);
@@ -850,7 +817,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1E222D),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -868,36 +835,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               Text(
                 'Perbarui Data Fisik',
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0F172A),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               Text(
-                'Data ini digunakan untuk penentuan kelas UKT dan Turnamen.',
-                style: GoogleFonts.hankenGrotesk(
+                'Data ini digunakan untuk penentuan kelas UKT dan turnamen.',
+                style: GoogleFonts.inter(
                   fontSize: 12,
-                  color: const Color(0xFF8A93A6),
+                  color: const Color(0xFF64748B),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               _buildInputRow('Berat Badan (kg)', weight?.toString() ?? '', (val) => weight = double.tryParse(val)),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               _buildInputRow('Tinggi Badan (cm)', height?.toString() ?? '', (val) => height = double.tryParse(val)),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               _buildInputRow('Lingkar Perut (cm)', waist?.toString() ?? '', (val) => waist = double.tryParse(val)),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: themeColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: const Color(0xFFDC2626),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    elevation: 0,
                   ),
                   onPressed: () async {
                     final success = await ref.read(profileServiceProvider).updateBiometrics(weight, height, waist);
@@ -917,9 +885,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   },
                   child: Text(
                     'Simpan Perubahan',
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
                   ),
@@ -939,7 +907,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1E222D),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -957,39 +925,48 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               Text(
                 'Perbarui Nama Panggilan (Nickname)',
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF0F172A),
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                'Nama panggilan / nickname yang ditampilkan pada kartu profil aplikasi APK.',
-                style: GoogleFonts.hankenGrotesk(
+                'Nama panggilan yang ditampilkan pada kartu profil aplikasi.',
+                style: GoogleFonts.inter(
                   fontSize: 12,
-                  color: const Color(0xFF8A93A6),
+                  color: const Color(0xFF64748B),
                 ),
               ),
               const SizedBox(height: 20),
               Text(
-                'NAMA PANGGILAN (NICKNAME)',
-                style: GoogleFonts.hankenGrotesk(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                'NAMA PANGGILAN',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF475569),
+                  letterSpacing: 0.5,
                 ),
               ),
               const SizedBox(height: 8),
               TextFormField(
                 controller: controller,
-                style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 16),
+                style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontSize: 15),
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: const Color(0xFF2A303F),
+                  fillColor: const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFFDC2626)),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
@@ -999,11 +976,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: themeColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: const Color(0xFFDC2626),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    elevation: 0,
                   ),
                   onPressed: () async {
                     final newName = controller.text.trim();
@@ -1022,7 +1000,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         ref.invalidate(authProvider);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Nama berhasil diperbarui dan tersimpan di server!'),
+                            content: Text('Nama berhasil diperbarui!'),
                             backgroundColor: Colors.green,
                           ),
                         );
@@ -1035,9 +1013,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   },
                   child: Text(
                     'Simpan Nama',
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white,
                     ),
                   ),
@@ -1057,25 +1035,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       children: [
         Text(
           label,
-          style: GoogleFonts.hankenGrotesk(
+          style: GoogleFonts.inter(
             fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF334155),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         TextFormField(
           initialValue: initialValue,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 16),
+          style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontSize: 14),
           decoration: InputDecoration(
             filled: true,
-            fillColor: const Color(0xFF2A303F),
+            fillColor: const Color(0xFFF8FAFC),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFDC2626)),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           ),
           onChanged: onChanged,
         ),
@@ -1084,30 +1070,35 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _buildBottomNav(BuildContext context, Color themeColor) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E222D),
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
-      ),
-      child: BottomNavigationBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        selectedItemColor: themeColor,
-        unselectedItemColor: const Color(0xFF8A93A6),
-        type: BottomNavigationBarType.fixed,
-        currentIndex: 3,
-        onTap: (index) {
-          if (index == 0) context.go('/');
-          if (index == 1) context.go('/spp');
-          if (index == 2) context.go('/quest');
-          if (index == 3) context.go('/profile');
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'BERANDA'),
-          BottomNavigationBarItem(icon: Icon(Icons.payment_outlined), activeIcon: Icon(Icons.payment), label: 'SPP'),
-          BottomNavigationBarItem(icon: Icon(Icons.local_fire_department_outlined), activeIcon: Icon(Icons.local_fire_department), label: 'QUEST'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'PROFIL'),
-        ],
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 460),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          selectedItemColor: const Color(0xFFDC2626),
+          unselectedItemColor: const Color(0xFF64748B),
+          selectedLabelStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
+          unselectedLabelStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w500),
+          type: BottomNavigationBarType.fixed,
+          currentIndex: 3,
+          onTap: (index) {
+            if (index == 0) context.go('/');
+            if (index == 1) context.go('/spp');
+            if (index == 2) context.go('/quest');
+            if (index == 3) context.go('/profile');
+          },
+          items: const [
+            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Beranda'),
+            BottomNavigationBarItem(icon: Icon(Icons.payment_outlined), activeIcon: Icon(Icons.payment), label: 'SPP'),
+            BottomNavigationBarItem(icon: Icon(Icons.local_fire_department_outlined), activeIcon: Icon(Icons.local_fire_department), label: 'Quest'),
+            BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profil'),
+          ],
+        ),
       ),
     );
   }

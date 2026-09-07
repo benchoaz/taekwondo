@@ -46,34 +46,41 @@ class _CoachAttendanceScreenState extends ConsumerState<CoachAttendanceScreen> {
     final attendancesAsync = ref.watch(attendancesProvider(selectedDate));
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: Text('Absensi Latihan', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: const Color(0xFF0F172A),
-        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text('Absensi Latihan', style: GoogleFonts.inter(fontWeight: FontWeight.w700, color: const Color(0xFF0F172A), fontSize: 16)),
+        backgroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Color(0xFF0F172A)),
         elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: const Color(0xFFE2E8F0), height: 1),
+        ),
       ),
       body: Column(
         children: [
           // Date Selector
           Container(
-            color: const Color(0xFF1E293B),
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+            color: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Tanggal Latihan', style: GoogleFonts.inter(color: Colors.white54, fontSize: 12)),
-                    const SizedBox(height: 4),
+                    Text('Tanggal Latihan', style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 12)),
+                    const SizedBox(height: 2),
                     Text(
                       DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(selectedDate),
-                      style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                      style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontSize: 15, fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),
-                ElevatedButton.icon(
+                TextButton.icon(
                   onPressed: () async {
                     final picked = await showDatePicker(
                       context: context,
@@ -82,12 +89,12 @@ class _CoachAttendanceScreenState extends ConsumerState<CoachAttendanceScreen> {
                       lastDate: DateTime.now(),
                       builder: (context, child) {
                         return Theme(
-                          data: ThemeData.dark().copyWith(
-                            colorScheme: const ColorScheme.dark(
-                              primary: Colors.blue,
+                          data: ThemeData.light().copyWith(
+                            colorScheme: const ColorScheme.light(
+                              primary: Color(0xFFDC2626),
                               onPrimary: Colors.white,
-                              surface: Color(0xFF1E293B),
-                              onSurface: Colors.white,
+                              surface: Colors.white,
+                              onSurface: Color(0xFF0F172A),
                             ),
                           ),
                           child: child!,
@@ -101,12 +108,12 @@ class _CoachAttendanceScreenState extends ConsumerState<CoachAttendanceScreen> {
                       });
                     }
                   },
-                  icon: const Icon(Icons.calendar_today, size: 16),
-                  label: const Text('Ubah'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.withValues(alpha: 0.2),
-                    foregroundColor: Colors.blue,
-                    elevation: 0,
+                  icon: const Icon(Icons.calendar_today, size: 14, color: Color(0xFF475569)),
+                  label: Text('Ubah', style: GoogleFonts.inter(color: const Color(0xFF475569), fontWeight: FontWeight.w600, fontSize: 12)),
+                  style: TextButton.styleFrom(
+                    backgroundColor: const Color(0xFFF1F5F9),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
               ],
@@ -136,7 +143,7 @@ class _CoachAttendanceScreenState extends ConsumerState<CoachAttendanceScreen> {
 
                     if (members.isEmpty) {
                       return Center(
-                        child: Text('Belum ada member aktif.', style: GoogleFonts.inter(color: Colors.white)),
+                        child: Text('Belum ada member aktif.', style: GoogleFonts.inter(color: const Color(0xFF64748B))),
                       );
                     }
 
@@ -151,32 +158,41 @@ class _CoachAttendanceScreenState extends ConsumerState<CoachAttendanceScreen> {
                         return Container(
                           margin: const EdgeInsets.only(bottom: 8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E293B),
-                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: isPresent ? Colors.green.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.3),
+                              color: isPresent ? const Color(0xFFA7F3D0) : const Color(0xFFFECACA),
                             ),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x04000000),
+                                blurRadius: 6,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: isPresent ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
+                              backgroundColor: isPresent ? const Color(0xFFECFDF5) : const Color(0xFFFEF2F2),
                               child: Icon(
                                 isPresent ? Icons.check : Icons.close,
-                                color: isPresent ? Colors.green : Colors.red,
+                                color: isPresent ? const Color(0xFF059669) : const Color(0xFFDC2626),
+                                size: 18,
                               ),
                             ),
                             title: Text(
                               m['name'] ?? 'Unknown',
-                              style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold),
+                              style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontWeight: FontWeight.w600, fontSize: 14),
                             ),
                             subtitle: Text(
                               m['currentBelt'] ?? 'Sabuk Putih',
-                              style: GoogleFonts.inter(color: Colors.white54, fontSize: 12),
+                              style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 12),
                             ),
                             trailing: Switch(
                               value: isPresent,
-                              activeThumbColor: Colors.green,
-                              inactiveTrackColor: Colors.red.withValues(alpha: 0.5),
+                              activeThumbColor: const Color(0xFF059669),
+                              inactiveTrackColor: const Color(0xFFFEE2E2),
+                              inactiveThumbColor: const Color(0xFFDC2626),
                               onChanged: (val) {
                                 setState(() {
                                   attendanceState[memberId] = val;
@@ -188,36 +204,35 @@ class _CoachAttendanceScreenState extends ConsumerState<CoachAttendanceScreen> {
                       },
                     );
                   },
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, s) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.white))),
+                  loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFDC2626))),
+                  error: (e, s) => Center(child: Text('Error: $e', style: const TextStyle(color: Color(0xFF0F172A)))),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, s) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.white))),
+              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFDC2626))),
+              error: (e, s) => Center(child: Text('Error: $e', style: const TextStyle(color: Color(0xFF0F172A)))),
             ),
           ),
 
           // Save Button
           Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 10, offset: const Offset(0, -5))
-              ],
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
             ),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: isSaving ? null : _saveAttendance,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: const Color(0xFFDC2626),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
                 ),
                 child: isSaving 
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : Text('Simpan Absensi', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  : Text('Simpan Absensi', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
               ),
             ),
           ),

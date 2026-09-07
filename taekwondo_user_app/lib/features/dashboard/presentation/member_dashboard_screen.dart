@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -27,13 +26,17 @@ import 'notification_screen.dart';
 import '../data/event_service.dart';
 import '../data/article_service.dart';
 
-// Premium Gamified Palette (matching the web screenshot)
-const Color darkBg = Color(0xFF0F172A); // Dark Slate Blue
-const Color cardBg = Color(0xFF1E293B); // Slate Blue Card
-const Color brandRed = Color(0xFFE10600); // Bright Red Absen
-const Color goldAccent = Color(0xFFEAB308); // Gold coin & LV accent
-const Color textWhite = Colors.white;
-const Color textGray = Color(0xFF94A3B8);
+// Refined Athletic White-Dominant Palette
+const Color darkBg = Color(0xFFF8FAFC); // Canvas background (Slate 50)
+const Color cardBg = Colors.white; // Pure white card surface
+const Color borderSlate = Color(0xFFE2E8F0); // Subtle Slate-200 border
+const Color brandRed = Color(0xFFDC2626); // Refined athletic red
+const Color goldAccent = Color(0xFFD97706); // Refined amber-600
+const Color textWhite = Color(0xFF0F172A); // High-contrast Slate-900
+const Color textGray = Color(0xFF64748B); // Slate-500 secondary
+const Color textPrimary = Color(0xFF0F172A); // Slate-900
+const Color textSecondary = Color(0xFF475569); // Slate-600
+const Color textMuted = Color(0xFF94A3B8); // Slate-400
 
 class MemberDashboardScreen extends ConsumerStatefulWidget {
   final UserModel user;
@@ -110,7 +113,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
   void _showSubmissionOptionDialogFromDashboard(dynamic qLog, Color themeColor) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
@@ -128,10 +131,10 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 Text(
                   'Metode Pengumpulan Bukti',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.spaceGrotesk(
+                  style: GoogleFonts.inter(
                     fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    color: textPrimary,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -140,11 +143,12 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     Navigator.pop(context);
                     _uploadAndCompleteQuestFromDashboard(qLog);
                   },
-                  icon: const Icon(Icons.upload_file, color: Colors.white),
+                  icon: const Icon(Icons.upload_file_rounded, color: Colors.white),
                   label: const Text('Unggah File Video (Otomatis Kompres)'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: themeColor,
                     foregroundColor: Colors.white,
+                    elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -155,11 +159,11 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     Navigator.pop(context);
                     _showLinkInputDialogFromDashboard(qLog);
                   },
-                  icon: const Icon(Icons.link, color: Colors.white),
+                  icon: const Icon(Icons.link_rounded, color: textPrimary),
                   label: const Text('Tempel Link Video (YouTube / GDrive)'),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Color(0xFF475569), width: 1.5),
+                    foregroundColor: textPrimary,
+                    side: const BorderSide(color: borderSlate, width: 1.5),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -184,17 +188,17 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor: const Color(0xFF1E293B),
+              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
-                side: const BorderSide(color: Color(0xFF334155), width: 1.5),
+                side: const BorderSide(color: borderSlate, width: 1),
               ),
               title: Text(
                 'Tempel Link Video',
-                style: GoogleFonts.spaceGrotesk(
-                  fontWeight: FontWeight.bold,
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w700,
                   fontSize: 16,
-                  color: Colors.white,
+                  color: textPrimary,
                 ),
               ),
               content: Column(
@@ -203,26 +207,26 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 children: [
                   Text(
                     'Pastikan link video (Google Drive / YouTube) dapat diakses publik oleh pelatih.',
-                    style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF94A3B8)),
+                    style: GoogleFonts.inter(fontSize: 12, color: textSecondary),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: linkController,
                     keyboardType: TextInputType.url,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: const TextStyle(color: textPrimary, fontSize: 13),
                     decoration: InputDecoration(
                       hintText: 'https://youtube.com/watch?v=... atau link Drive',
-                      hintStyle: const TextStyle(color: Color(0xFF64748B), fontSize: 11),
+                      hintStyle: const TextStyle(color: textMuted, fontSize: 12),
                       filled: true,
-                      fillColor: const Color(0xFF0F172A),
+                      fillColor: const Color(0xFFF8FAFC),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFF334155)),
+                        borderSide: const BorderSide(color: borderSlate),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Colors.blue),
+                        borderSide: const BorderSide(color: brandRed, width: 1.5),
                       ),
                     ),
                   ),
@@ -231,7 +235,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               actions: [
                 TextButton(
                   onPressed: isSubmitting ? null : () => Navigator.pop(context),
-                  child: const Text('Batal', style: TextStyle(color: Color(0xFF94A3B8))),
+                  child: const Text('Batal', style: TextStyle(color: textMuted)),
                 ),
                 ElevatedButton(
                   onPressed: isSubmitting
@@ -443,36 +447,36 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       }
 
       return Scaffold(
-        backgroundColor: darkBg,
+        backgroundColor: Colors.transparent,
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, color: themeColor, size: 80),
-                const SizedBox(height: 24),
+                Icon(Icons.error_outline_rounded, color: themeColor, size: 70),
+                const SizedBox(height: 20),
                 Text(
                   message,
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
+                    color: textPrimary,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Text(
                   isSessionExpired 
                       ? 'Silakan login kembali untuk memperbarui sesi Anda.' 
                       : 'Pastikan koneksi internet stabil atau hubungi admin.',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 14,
+                  style: const TextStyle(
+                    color: textSecondary,
+                    fontSize: 13,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -480,27 +484,28 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       onPressed: () {
                         ref.invalidate(profileProvider);
                       },
-                      icon: const Icon(Icons.refresh),
+                      icon: const Icon(Icons.refresh_rounded),
                       label: const Text('Coba Lagi'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: themeColor,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     OutlinedButton.icon(
                       onPressed: () {
                         ref.read(authProvider.notifier).logout();
                       },
-                      icon: const Icon(Icons.logout, color: Colors.white),
-                      label: const Text('Keluar / Login Ulang', style: TextStyle(color: Colors.white)),
+                      icon: const Icon(Icons.logout_rounded, color: textPrimary),
+                      label: const Text('Keluar / Login Ulang', style: TextStyle(color: textPrimary)),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.white24),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                        side: const BorderSide(color: borderSlate),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -528,52 +533,18 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     }
 
     return Scaffold(
-      backgroundColor: darkBg,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Background glowing orbs
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: brandRed.withValues(alpha: 0.15),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -50,
-            left: -100,
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF2A303F).withValues(alpha: 0.2),
-              ),
-            ),
-          ),
-          // Glassmorphism Blur
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
-              child: Container(color: Colors.transparent),
-            ),
-          ),
-
-          // Taekwondo Logo Background (Watermark)
+          // Subtle Taekwondo Logo Background (Watermark)
           Positioned.fill(
             child: Center(
               child: Opacity(
-                opacity: 0.07, // Transparan agar tidak mengganggu teks
+                opacity: 0.03,
                 child: Image.asset(
                   'assets/images/logo.png',
-                  width: MediaQuery.of(context).size.width * 0.8,
+                  width: MediaQuery.of(context).size.width * 0.75,
                   fit: BoxFit.contain,
-                  color: Colors.white, // Membuatnya monokrom elegan jika logonya berwarna
                 ),
               ),
             ),
@@ -637,10 +608,13 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        color: darkBg.withValues(alpha: 0.95),
-        border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05), width: 1)),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: borderSlate, width: 1)),
+        boxShadow: [
+          BoxShadow(color: Color(0x04000000), blurRadius: 4, offset: Offset(0, 1)),
+        ],
       ),
       child: Row(
         children: [
@@ -660,7 +634,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   height: 44,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Color(0xFF1E293B),
+                    color: Color(0xFFF1F5F9),
                   ),
                   child: ClipOval(
                     child: Image(
@@ -674,7 +648,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 // 2. Frame Overlay (Circle)
                 if (frameUrl != null && frameUrl.isNotEmpty)
                   Container(
-                    width: 54, // Frame is slightly larger than the avatar
+                    width: 54,
                     height: 54,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
@@ -703,7 +677,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     height: 44,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF3B82F6), width: 2),
+                      border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
                     ),
                   ),
                 Positioned(
@@ -713,9 +687,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     width: 10,
                     height: 10,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF3B82F6), // Blue status dot
+                      color: const Color(0xFF10B981), // Emerald online dot
                       shape: BoxShape.circle,
-                      border: Border.all(color: darkBg, width: 1.5),
+                      border: Border.all(color: Colors.white, width: 1.5),
                     ),
                   ),
                 ),
@@ -744,17 +718,17 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       child: titleUrl != null && titleUrl.isNotEmpty
                           ? DynamicAssetWidget(
                               url: _getAbsoluteUrl(titleUrl),
-                              height: 26,
+                              height: 24,
                               fit: BoxFit.contain,
                               blendMode: BlendMode.screen,
                             )
                           : Text(
                               (titleName ?? 'ATLET MUDA').toUpperCase(),
-                              style: GoogleFonts.spaceGrotesk(
+                              style: GoogleFonts.inter(
                                 fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.5,
-                                color: titleName != null ? const Color(0xFFFFD700) : themeColor,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.8,
+                                color: titleName != null ? goldAccent : themeColor,
                               ),
                             ),
                     ),
@@ -773,19 +747,19 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   _getDisplayName(widget.user.name),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.hankenGrotesk(
+                  style: GoogleFonts.inter(
                     fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    color: textWhite,
+                    fontWeight: FontWeight.w700,
+                    color: textPrimary,
                   ),
                 ),
                 Text(
                   widget.user.memberNumber ?? '#WTK-2026-0089',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.spaceGrotesk(
-                    fontSize: 10,
-                    color: textGray,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: textMuted,
                   ),
                 ),
               ],
@@ -795,32 +769,32 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Coins Pill widget (Matches next.js web UI)
+              // Coins Pill widget
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
+                  color: const Color(0xFFFFFBEB),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: goldAccent, width: 1.5), // Gold outline matching Next.js
+                  border: Border.all(color: const Color(0xFFFDE68A), width: 1),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.monetization_on, color: goldAccent, size: 16),
+                    const Icon(Icons.monetization_on_rounded, color: goldAccent, size: 16),
                     const SizedBox(width: 4),
                     Text(
                       '$coins',
-                      style: GoogleFonts.spaceGrotesk(
+                      style: GoogleFonts.inter(
                         color: goldAccent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
                       ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 6),
-              // Bell icon inside a premium circle
+              // Bell icon inside a clean white circle
               (() {
                 final notifsAsync = ref.watch(notificationProvider);
                 final hasUnread = notifsAsync.valueOrNull?.any((n) => !n.isRead) ?? false;
@@ -833,12 +807,12 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       height: 36,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color(0xFF1E293B),
-                        border: Border.all(color: Colors.white10),
+                        color: Colors.white,
+                        border: Border.all(color: borderSlate),
                       ),
                       child: IconButton(
                         padding: EdgeInsets.zero,
-                        icon: const Icon(Icons.notifications_none, color: textWhite, size: 18),
+                        icon: const Icon(Icons.notifications_none_rounded, color: textSecondary, size: 19),
                         onPressed: () {
                           Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationScreen()));
                         },
@@ -846,13 +820,13 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     ),
                     if (hasUnread)
                       Positioned(
-                        top: -2,
-                        right: -2,
+                        top: -1,
+                        right: -1,
                         child: Container(
-                          width: 10,
-                          height: 10,
+                          width: 9,
+                          height: 9,
                           decoration: const BoxDecoration(
-                            color: Colors.red,
+                            color: brandRed,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -861,18 +835,18 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 );
               })(),
               const SizedBox(width: 6),
-              // Exit/logout icon inside a premium circle
+              // Exit/logout icon inside a clean white circle
               Container(
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF1E293B),
-                  border: Border.all(color: Colors.white10),
+                  color: Colors.white,
+                  border: Border.all(color: borderSlate),
                 ),
                 child: IconButton(
                   padding: EdgeInsets.zero,
-                  icon: const Icon(Icons.logout_rounded, color: Colors.white, size: 18),
+                  icon: const Icon(Icons.logout_rounded, color: textSecondary, size: 18),
                   onPressed: () {
                     ref.read(authProvider.notifier).logout();
                   },
@@ -904,546 +878,563 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Level & XP Bar (RPG Exponential XP Curve)
-          Builder(
-            builder: (context) {
-              // totalXp adalah total akumulasi XP milik member
-              final int totalXp = progress; 
-              
-              // Fungsi RPG Leveling: hitung batas XP kumulatif untuk setiap level
-              // level 1 butuh 0 XP kumulatif.
-              // Batas naik ke level L+1 adalah: Max XP level L = 100 * L^1.5 (dibulatkan).
-              int level = 1;
-              int accumulatedXpForCurrentLevel = 0;
-              int nextLevelThreshold = 100; // batas naik ke level 2
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Level & XP Bar (RPG Exponential XP Curve)
+            Builder(
+              builder: (context) {
+                final int totalXp = progress; 
+                int level = 1;
+                int accumulatedXpForCurrentLevel = 0;
+                int nextLevelThreshold = 100;
 
-              while (true) {
-                // Formula Max XP level saat ini: 100 * (level)^1.5
-                final double multiplier = math.pow(level, 1.5).toDouble();
-                final int currentLevelMaxXp = (100 * multiplier).round();
-                
-                if (totalXp >= accumulatedXpForCurrentLevel + currentLevelMaxXp) {
-                  accumulatedXpForCurrentLevel += currentLevelMaxXp;
-                  level++;
-                } else {
-                  // Berhenti jika totalXp berada di dalam rentang level ini
-                  nextLevelThreshold = currentLevelMaxXp;
-                  break;
+                while (true) {
+                  final double multiplier = math.pow(level, 1.5).toDouble();
+                  final int currentLevelMaxXp = (100 * multiplier).round();
+                  
+                  if (totalXp >= accumulatedXpForCurrentLevel + currentLevelMaxXp) {
+                    accumulatedXpForCurrentLevel += currentLevelMaxXp;
+                    level++;
+                  } else {
+                    nextLevelThreshold = currentLevelMaxXp;
+                    break;
+                  }
                 }
-              }
 
-              final int currentLevelXp = totalXp - accumulatedXpForCurrentLevel;
-              final double widthFactor = (currentLevelXp / nextLevelThreshold).clamp(0.0, 1.0);
+                final int currentLevelXp = totalXp - accumulatedXpForCurrentLevel;
+                final double widthFactor = (currentLevelXp / nextLevelThreshold).clamp(0.0, 1.0);
 
-              return Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: cardBg,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1.5),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: goldAccent,
-                            borderRadius: BorderRadius.circular(12),
+                return Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: borderSlate),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x05000000),
+                        blurRadius: 8,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFFBEB),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: const Color(0xFFFDE68A)),
+                            ),
+                            child: Text(
+                              'LV.$level',
+                              style: GoogleFonts.inter(
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFFB45309),
+                                fontSize: 11,
+                              ),
+                            ),
                           ),
-                          child: Text(
-                            'LV.$level',
-                            style: GoogleFonts.spaceGrotesk(
-                              fontWeight: FontWeight.w900,
-                              color: Colors.black,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'Chukjae (Novice) • $belt',
+                              style: GoogleFonts.inter(
+                                color: textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '$currentLevelXp / $nextLevelThreshold XP',
+                            style: GoogleFonts.inter(
+                              color: textSecondary,
+                              fontWeight: FontWeight.w500,
                               fontSize: 12,
                             ),
                           ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'CHUKJAE (NOVICE) • $belt',
-                            style: GoogleFonts.hankenGrotesk(
-                              color: textWhite,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 14,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: FractionallySizedBox(
+                            widthFactor: widthFactor,
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 800),
+                              curve: Curves.easeOutQuart,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(6),
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                        Text(
-                          '$currentLevelXp / $nextLevelThreshold XP',
-                          style: GoogleFonts.spaceGrotesk(
-                            color: textWhite,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 14),
+
+            // Elegant Athletic Attendance Card
+            GestureDetector(
+              onTap: _isAbsenLoading ? null : () => _handleSelfAttendance(),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                decoration: BoxDecoration(
+                  color: _isAbsenSuccess ? const Color(0xFFECFDF5) : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _isAbsenSuccess ? const Color(0xFFA7F3D0) : borderSlate,
+                    width: 1.2,
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x06000000),
+                      blurRadius: 10,
+                      offset: Offset(0, 2),
                     ),
-                    const SizedBox(height: 12),
+                  ],
+                ),
+                child: Row(
+                  children: [
                     Container(
-                      height: 14,
+                      width: 46,
+                      height: 46,
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.5),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
+                        color: _isAbsenSuccess ? Colors.white : const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _isAbsenSuccess ? const Color(0xFFA7F3D0) : const Color(0xFFFECACA),
+                        ),
+                      ),
+                      child: _isAbsenLoading
+                          ? const Padding(
+                              padding: EdgeInsets.all(12),
+                              child: CircularProgressIndicator(color: brandRed, strokeWidth: 2.5),
+                            )
+                          : Icon(
+                              _isAbsenSuccess ? Icons.check_circle_rounded : Icons.fingerprint_rounded,
+                              color: _isAbsenSuccess ? const Color(0xFF059669) : brandRed,
+                              size: 26,
+                            ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _isAbsenLoading
+                                ? 'Memverifikasi Presensi...'
+                                : (_isAbsenSuccess
+                                    ? 'Kehadiran Tercatat'
+                                    : 'Presensi Latihan Dojang'),
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: _isAbsenSuccess ? const Color(0xFF065F46) : textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _isAbsenLoading
+                                ? 'Memeriksa lokasi GPS Anda...'
+                                : (_isAbsenSuccess
+                                    ? (_absenSuccessDetail != null
+                                        ? 'Sesi: $_absenSuccessDetail'
+                                        : 'Presensi latihan hari ini berhasil')
+                                    : 'Ketuk untuk mencatat kehadiran via GPS'),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: _isAbsenSuccess ? const Color(0xFF047857) : textSecondary,
+                            ),
                           ),
                         ],
                       ),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: FractionallySizedBox(
-                          widthFactor: widthFactor,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 800),
-                            curve: Curves.easeOutQuart,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFEAB308), Color(0xFFF59E0B), Color(0xFFD97706)],
-                                stops: [0.0, 0.5, 1.0],
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFFEAB308).withValues(alpha: 0.6),
-                                  blurRadius: 12,
-                                  offset: const Offset(0, 0),
-                                ),
-                              ],
-                            ),
-                          ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: _isAbsenSuccess ? Colors.white : brandRed,
+                        borderRadius: BorderRadius.circular(10),
+                        border: _isAbsenSuccess ? Border.all(color: const Color(0xFFA7F3D0)) : null,
+                      ),
+                      child: Text(
+                        _isAbsenSuccess ? 'Hadir ✅' : 'Absen',
+                        style: GoogleFonts.inter(
+                          color: _isAbsenSuccess ? const Color(0xFF065F46) : Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
                         ),
                       ),
                     ),
                   ],
                 ),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Big Red Attendance Button (Premium Glow Design)
-          GestureDetector(
-            onTap: () => _handleSelfAttendance(),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: _isAbsenSuccess 
-                      ? [Colors.green.shade500, Colors.green.shade700]
-                      : [brandRed, const Color(0xFFB91C1C)], // brandRed to darker red
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2), 
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: (_isAbsenSuccess ? Colors.green : brandRed).withValues(alpha: 0.5),
-                    blurRadius: 20,
-                    spreadRadius: 2,
-                    offset: const Offset(0, 8),
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    blurRadius: 0,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (_isAbsenLoading)
-                    const SizedBox(
-                      width: 28, height: 28,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
-                    )
-                  else if (_isAbsenSuccess)
-                    const Icon(Icons.check_circle_outline, color: Colors.white, size: 28)
-                  else
-                    const Icon(Icons.fingerprint, color: Colors.white, size: 28),
-                  
-                  Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        _isAbsenLoading 
-                            ? 'MEMPROSES ABSEN...' 
-                            : (_isAbsenSuccess 
-                                ? (_absenSuccessDetail != null 
-                                    ? 'SUDAH ABSEN: $_absenSuccessDetail' 
-                                    : 'ANDA SUDAH ABSEN HARI INI ✅')
-                                : 'KLIK UNTUK ABSEN SEKARANG!'),
-                        style: GoogleFonts.outfit(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.2,
-                          shadows: [
-                            const Shadow(
-                              color: Colors.black45,
-                              blurRadius: 4,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 14),
 
-          // Daily Quest Card (Red Outlined + Tiger Mascot + Count Badge)
-          GestureDetector(
-            onTap: () => setState(() => _currentTab = 2),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: cardBg,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: brandRed.withValues(alpha: 0.8), width: 1.5),
-              ),
-              child: Row(
-                children: [
-                  ClipOval(
-                    child: Image.asset(
-                      'assets/images/daily_quest_tiger_transparent.png',
-                      width: 36,
-                      height: 36,
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'MISI HARIAN (DAILY QUESTS)',
-                          style: GoogleFonts.spaceGrotesk(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w900,
-                            color: textWhite,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          totalQuests == 0 
-                              ? 'Tidak ada misi aktif untuk hari ini.' 
-                              : '$completedQuests/$totalQuests Misi Selesai',
-                          style: GoogleFonts.hankenGrotesk(
-                            fontSize: 13,
-                            color: textGray,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: brandRed.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: brandRed.withValues(alpha: 0.4), width: 1),
-                    ),
-                    child: Text(
-                      '$completedQuests/$totalQuests SELSEAI',
-                      style: GoogleFonts.spaceGrotesk(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        color: themeColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-
-
-          // Quick Menu Grid (2x2)
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 2.1,
-            children: [
-              _buildGridMenuButton(
-                icon: Icons.calendar_today,
-                color: Colors.blueAccent,
-                label: 'JADWAL',
-                subLabel: 'Latihan',
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const ScheduleScreen()));
-                },
-              ),
-              _buildGridMenuButton(
-                icon: Icons.emoji_events,
-                color: Colors.amber,
-                label: 'UJIAN UKT',
-                subLabel: 'Progress',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => UktScreen(user: widget.user),
-                    ),
-                  );
-                },
-              ),
-              _buildGridMenuButton(
-                icon: Icons.stars,
-                color: Colors.purpleAccent,
-                label: 'PROFIL',
-                subLabel: 'Atlet',
-                onTap: () => setState(() => _currentTab = 4),
-              ),
-              _buildGridMenuButton(
-                icon: Icons.trending_up,
-                color: Colors.teal,
-                label: 'RIWAYAT',
-                subLabel: 'Pembayaran',
-                onTap: () => setState(() => _currentTab = 3),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Turnamen & Kejuaraan Section
-          Row(
-            children: [
-              const Icon(Icons.whatshot, color: Colors.amber, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'TURNAMEN & KEJUARAAN',
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
+            // Daily Quest Card in Lobby (Clean White Card)
+            GestureDetector(
+              onTap: () => setState(() => _currentTab = 2),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
                   color: Colors.white,
-                  letterSpacing: 0.5,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: borderSlate),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x04000000),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ref.watch(eventProvider).when(
-            data: (events) {
-              if (events.isEmpty) {
-                return const Text('Belum ada turnamen dalam waktu dekat.', style: TextStyle(color: Colors.white54));
-              }
-              return SizedBox(
-                height: 180,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: events.length,
-                  itemBuilder: (context, index) {
-                    final event = events[index];
-                    return Container(
-                      width: 280,
-                      margin: const EdgeInsets.only(right: 16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: cardBg.withValues(alpha: 0.8),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                        image: event.posterUrl != null && event.posterUrl!.isNotEmpty
-                            ? DecorationImage(
-                                image: NetworkImage(event.posterUrl!),
-                                fit: BoxFit.cover,
-                                colorFilter: ColorFilter.mode(
-                                  Colors.black.withValues(alpha: 0.75),
-                                  BlendMode.srcOver,
-                                ),
-                              )
-                            : null,
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: borderSlate),
                       ),
-                      child: Stack(
+                      child: Image.asset(
+                        'assets/images/daily_quest_tiger_transparent.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (event.posterUrl == null || event.posterUrl!.isEmpty)
-                            Positioned.fill(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      brandRed.withValues(alpha: 0.15),
-                                      Colors.transparent,
-                                      darkBg.withValues(alpha: 0.4),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                          Text(
+                            'Misi Harian',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: textPrimary,
                             ),
-                          Padding(
-                            padding: const EdgeInsets.all(18),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                      decoration: BoxDecoration(
-                                        color: brandRed.withValues(alpha: 0.25),
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(color: brandRed.withValues(alpha: 0.4)),
-                                      ),
-                                      child: Text(
-                                        event.level.toUpperCase(),
-                                        style: GoogleFonts.spaceGrotesk(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withValues(alpha: 0.3),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        '${event.startDate.day}/${event.startDate.month}',
-                                        style: GoogleFonts.spaceGrotesk(
-                                          fontSize: 10,
-                                          color: goldAccent,
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        event.title,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: GoogleFonts.hankenGrotesk(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          height: 1.2,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.location_on, color: brandRed, size: 14),
-                                          const SizedBox(width: 4),
-                                          Expanded(
-                                            child: Text(
-                                              event.location,
-                                              style: GoogleFonts.hankenGrotesk(
-                                                fontSize: 11,
-                                                color: Colors.white70,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            totalQuests == 0 
+                                ? 'Tidak ada misi aktif untuk hari ini.' 
+                                : '$completedQuests dari $totalQuests misi telah selesai',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: textSecondary,
                             ),
                           ),
                         ],
                       ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: (completedQuests == totalQuests && totalQuests > 0)
+                            ? const Color(0xFFECFDF5)
+                            : const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: (completedQuests == totalQuests && totalQuests > 0)
+                              ? const Color(0xFFA7F3D0)
+                              : const Color(0xFFFECACA),
+                        ),
+                      ),
+                      child: Text(
+                        '$completedQuests/$totalQuests Selesai',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: (completedQuests == totalQuests && totalQuests > 0)
+                              ? const Color(0xFF059669)
+                              : brandRed,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Quick Menu Grid (2x2)
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 2.2,
+              children: [
+                _buildGridMenuButton(
+                  icon: Icons.calendar_today_rounded,
+                  color: const Color(0xFF2563EB),
+                  bgColor: const Color(0xFFEFF6FF),
+                  label: 'Jadwal',
+                  subLabel: 'Latihan Dojang',
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ScheduleScreen()));
+                  },
+                ),
+                _buildGridMenuButton(
+                  icon: Icons.emoji_events_rounded,
+                  color: const Color(0xFFD97706),
+                  bgColor: const Color(0xFFFFFBEB),
+                  label: 'Ujian UKT',
+                  subLabel: 'Progress Sabuk',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => UktScreen(user: widget.user),
+                      ),
                     );
                   },
                 ),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator(color: Colors.red)),
-            error: (e, s) => Text('Gagal memuat event: $e', style: const TextStyle(color: Colors.red)),
-          ),
-          const SizedBox(height: 24),
-
-          // Berita Dojang Section
-          Row(
-            children: [
-              const Icon(Icons.newspaper, color: Colors.blueAccent, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'BERITA DOJANG',
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: 0.5,
+                _buildGridMenuButton(
+                  icon: Icons.person_outline_rounded,
+                  color: const Color(0xFF9333EA),
+                  bgColor: const Color(0xFFFAF5FF),
+                  label: 'Profil',
+                  subLabel: 'Data Atlet',
+                  onTap: () => setState(() => _currentTab = 4),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ref.watch(articleProvider).when(
-            data: (articles) {
-              if (articles.isEmpty) {
-                return const Text('Belum ada berita terbaru.', style: TextStyle(color: Colors.white54));
-              }
-              return Column(
-                children: articles.map((article) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: _buildArticleCard(
-                    title: article.title,
-                    content: article.content,
-                    author: article.author,
-                    date: '${article.createdAt.day}/${article.createdAt.month}',
+                _buildGridMenuButton(
+                  icon: Icons.credit_card_rounded,
+                  color: const Color(0xFF059669),
+                  bgColor: const Color(0xFFECFDF5),
+                  label: 'SPP',
+                  subLabel: 'Riwayat Iuran',
+                  onTap: () => setState(() => _currentTab = 3),
+                ),
+              ],
+            ),
+            const SizedBox(height: 22),
+
+            // Turnamen & Kejuaraan Section
+            Row(
+              children: [
+                const Icon(Icons.emoji_events_outlined, color: goldAccent, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Turnamen & Kejuaraan',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: textPrimary,
                   ),
-                )).toList(),
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator(color: Colors.red)),
-            error: (e, s) => Text('Gagal memuat berita: $e', style: const TextStyle(color: Colors.red)),
-          ),
-        ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ref.watch(eventProvider).when(
+              data: (events) {
+                if (events.isEmpty) {
+                  return Text('Belum ada turnamen dalam waktu dekat.', style: GoogleFonts.inter(color: textMuted, fontSize: 13));
+                }
+                return SizedBox(
+                  height: 180,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: events.length,
+                    itemBuilder: (context, index) {
+                      final event = events[index];
+                      final hasPoster = event.posterUrl != null && event.posterUrl!.isNotEmpty;
+
+                      return Container(
+                        width: 280,
+                        margin: const EdgeInsets.only(right: 14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: borderSlate),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x04000000),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                          image: hasPoster
+                              ? DecorationImage(
+                                  image: NetworkImage(event.posterUrl!),
+                                  fit: BoxFit.cover,
+                                  colorFilter: ColorFilter.mode(
+                                    Colors.black.withValues(alpha: 0.6),
+                                    BlendMode.srcOver,
+                                  ),
+                                )
+                              : null,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: hasPoster ? Colors.black.withValues(alpha: 0.5) : const Color(0xFFFEF2F2),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: hasPoster ? Colors.white24 : const Color(0xFFFECACA)),
+                                    ),
+                                    child: Text(
+                                      event.level.toUpperCase(),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: hasPoster ? Colors.white : brandRed,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: hasPoster ? Colors.black.withValues(alpha: 0.5) : const Color(0xFFFFFBEB),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: hasPoster ? Colors.white24 : const Color(0xFFFDE68A)),
+                                    ),
+                                    child: Text(
+                                      '${event.startDate.day}/${event.startDate.month}',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 11,
+                                        color: goldAccent,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      event.title,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: hasPoster ? Colors.white : textPrimary,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.location_on_rounded, color: brandRed, size: 14),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            event.location,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 12,
+                                              color: hasPoster ? Colors.white70 : textSecondary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator(color: brandRed)),
+              error: (e, s) => Text('Gagal memuat event: $e', style: const TextStyle(color: brandRed)),
+            ),
+            const SizedBox(height: 22),
+
+            // Berita Dojang Section
+            Row(
+              children: [
+                const Icon(Icons.newspaper_rounded, color: Color(0xFF2563EB), size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  'Berita & Pengumuman',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: textPrimary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ref.watch(articleProvider).when(
+              data: (articles) {
+                if (articles.isEmpty) {
+                  return Text('Belum ada berita terbaru.', style: GoogleFonts.inter(color: textMuted, fontSize: 13));
+                }
+                return Column(
+                  children: articles.map((article) => Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _buildArticleCard(
+                      title: article.title,
+                      content: article.content,
+                      author: article.author,
+                      date: '${article.createdAt.day}/${article.createdAt.month}',
+                    ),
+                  )).toList(),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator(color: brandRed)),
+              error: (e, s) => Text('Gagal memuat berita: $e', style: const TextStyle(color: brandRed)),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildGridMenuButton({
     required IconData icon,
     required Color color,
+    required Color bgColor,
     required String label,
     required String subLabel,
     required VoidCallback onTap,
@@ -1451,25 +1442,31 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1.5),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: borderSlate),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x04000000),
+              blurRadius: 6,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
             Container(
-              width: 36,
-              height: 36,
+              width: 38,
+              height: 38,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: bgColor,
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: color.withValues(alpha: 0.2)),
               ),
-              child: Icon(icon, color: color, size: 18),
+              child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1477,21 +1474,20 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 children: [
                   Text(
                     label,
-                    style: GoogleFonts.spaceGrotesk(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      color: textGray,
-                      letterSpacing: 0.5,
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: textMuted,
                     ),
                   ),
                   Text(
                     subLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.hankenGrotesk(
+                    style: GoogleFonts.inter(
                       fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      color: textPrimary,
                     ),
                   ),
                 ],
@@ -1512,27 +1508,35 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cardBg.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderSlate),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x04000000),
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: textPrimary,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             content,
-            style: GoogleFonts.hankenGrotesk(
-              fontSize: 11,
-              color: textGray,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: textSecondary,
+              height: 1.4,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -1543,18 +1547,18 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
             children: [
               Text(
                 'Oleh $author',
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w900,
-                  color: textGray,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: textMuted,
                 ),
               ),
               Text(
                 date,
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 9,
-                  color: textGray,
-                  fontWeight: FontWeight.bold,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  color: textMuted,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -1566,68 +1570,57 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
 
   Widget _buildTokoTab(AsyncValue<ShopData> shopDataAsync, Color themeColor) {
     return shopDataAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator(color: Colors.red)),
-      error: (err, stack) => Center(child: Text('Gagal memuat Toko: $err', style: const TextStyle(color: Colors.white))),
+      loading: () => const Center(child: CircularProgressIndicator(color: brandRed)),
+      error: (err, stack) => Center(child: Text('Gagal memuat Toko: $err', style: const TextStyle(color: textPrimary))),
       data: (shopData) {
         if (shopData.items.isEmpty) {
-          return const Center(child: Text('Toko kosong saat ini.', style: TextStyle(color: Colors.white)));
+          return Center(child: Text('Toko kosong saat ini.', style: GoogleFonts.inter(color: textMuted, fontSize: 14)));
         }
         return GridView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 110),
+          padding: const EdgeInsets.fromLTRB(14, 12, 14, 80),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            childAspectRatio: 0.65, // Expanded height to prevent text overlap
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.78,
           ),
           itemCount: shopData.items.length,
           itemBuilder: (context, index) {
             final item = shopData.items[index];
-            // Determine Rarity Theme Styling
             Color rarityColor;
             String rarityText;
             switch (item.rarity.toUpperCase()) {
               case 'LEGENDARY':
-                rarityColor = const Color(0xFFFFD700); // Gold
+                rarityColor = const Color(0xFFD97706); // Refined amber
                 rarityText = 'LEGENDARY';
                 break;
               case 'RARE':
-                rarityColor = const Color(0xFF8B5CF6); // Purple
+                rarityColor = const Color(0xFF7C3AED); // Refined violet
                 rarityText = 'RARE';
                 break;
               case 'COMMON':
               default:
-                rarityColor = const Color(0xFF94A3B8); // Slate/Silver
+                rarityColor = const Color(0xFF64748B); // Slate
                 rarityText = 'COMMON';
                 break;
             }
 
             return Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B),
-                borderRadius: BorderRadius.circular(20),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: item.equipped 
-                      ? const Color(0xFFEF4444) // Bright red border for active equipped items so it's clear
-                      : rarityColor.withValues(alpha: 0.5),
-                  width: item.equipped ? 2.0 : 1.5,
+                  color: item.equipped ? brandRed : borderSlate,
+                  width: item.equipped ? 1.5 : 1.0,
                 ),
-                boxShadow: item.equipped
-                    ? [
-                        BoxShadow(
-                          color: const Color(0xFFEF4444).withValues(alpha: 0.2),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                        )
-                      ]
-                    : [
-                        BoxShadow(
-                          color: rarityColor.withValues(alpha: 0.05),
-                          blurRadius: 4,
-                          spreadRadius: 0.5,
-                        )
-                      ],
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x04000000),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1637,52 +1630,51 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                          width: 64,
-                          height: 64,
+                          width: 52,
+                          height: 52,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.03),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: rarityColor.withValues(alpha: 0.3), width: 1.5),
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: borderSlate),
                           ),
                           child: item.itemUrl != null && item.itemUrl!.isNotEmpty
                               ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(12),
                                   child: DynamicAssetWidget(
                                     url: _getAbsoluteUrl(item.itemUrl!),
                                     fit: BoxFit.cover,
-                                    placeholder: Icon(Icons.redeem, color: rarityColor, size: 30),
+                                    placeholder: Icon(Icons.redeem_rounded, color: rarityColor, size: 24),
                                   ),
                                 )
-                              : Icon(Icons.redeem, color: rarityColor, size: 32),
+                              : Icon(Icons.redeem_rounded, color: rarityColor, size: 24),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 6),
                         Text(
                           item.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.hankenGrotesk(
-                            color: textWhite,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 13,
+                          style: GoogleFonts.inter(
+                            color: textPrimary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 4),
-                        // Rarity Badge Tag (Legendary / Rare / Common)
+                        const SizedBox(height: 3),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                           decoration: BoxDecoration(
-                            color: rarityColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: rarityColor.withValues(alpha: 0.3), width: 0.8),
+                            color: rarityColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: rarityColor.withValues(alpha: 0.25), width: 0.6),
                           ),
                           child: Text(
                             rarityText,
-                            style: GoogleFonts.spaceGrotesk(
+                            style: GoogleFonts.inter(
                               color: rarityColor,
-                              fontSize: 8,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.3,
                             ),
                           ),
                         ),
@@ -1691,34 +1683,34 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   ),
                   Column(
                     children: [
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.monetization_on, color: goldAccent, size: 14),
-                          const SizedBox(width: 4),
+                          const Icon(Icons.monetization_on_rounded, color: goldAccent, size: 13),
+                          const SizedBox(width: 3),
                           Text(
                             '${item.price} DC',
-                            style: GoogleFonts.spaceGrotesk(
+                            style: GoogleFonts.inter(
                               color: goldAccent,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11.5,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: item.equipped 
-                              ? Colors.red.withValues(alpha: 0.9) // Red for unequip/lepas
-                              : (item.owned ? Colors.green : themeColor),
+                              ? const Color(0xFFEF4444)
+                              : (item.owned ? const Color(0xFF059669) : themeColor),
                           foregroundColor: Colors.white,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          minimumSize: const Size(double.infinity, 34),
+                          minimumSize: const Size(double.infinity, 30),
                           padding: EdgeInsets.zero,
                         ),
                         onPressed: item.equipped 
@@ -1727,12 +1719,10 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                 ? () => _handleEquipItem(item.id) 
                                 : () => _handleBuyItem(item.id)),
                         child: Text(
-                          item.equipped 
-                              ? 'Lepas' // Benar-benar terpasang -> Lepas (Red button)
-                              : (item.owned ? 'Pasang' : 'Beli'), // Benar-benar lepas -> Pasang / Beli
-                          style: GoogleFonts.hankenGrotesk(
+                          item.equipped ? 'Lepas' : (item.owned ? 'Pasang' : 'Beli'),
+                          style: GoogleFonts.inter(
                             fontSize: 11, 
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
@@ -1765,11 +1755,11 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       children: [
         Text(
           quest.description,
-          style: GoogleFonts.hankenGrotesk(fontSize: 13, color: textGray),
+          style: GoogleFonts.inter(fontSize: 13, color: textSecondary, height: 1.4),
         ),
         const SizedBox(height: 16),
         
-        // A. JIKA MISI NONTON VIDEO (Punya videoUrl, bukan requireVideo)
+        // A. JIKA MISI NONTON VIDEO
         if (quest.videoUrl != null && quest.videoUrl!.isNotEmpty && !quest.requireVideo) ...[
           Builder(
             builder: (context) {
@@ -1786,7 +1776,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       });
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          backgroundColor: Colors.green,
+                          backgroundColor: Color(0xFF059669),
                           content: Text('Video selesai ditonton! Silakan klaim reward Anda.'),
                         ),
                       );
@@ -1813,7 +1803,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       });
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          backgroundColor: Colors.green,
+                          backgroundColor: Color(0xFF059669),
                           content: Text('Video selesai ditonton! Silakan klaim reward Anda.'),
                         ),
                       );
@@ -1832,11 +1822,11 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                     Container(
                       height: 240,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white10, width: 1.5),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: borderSlate),
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(13),
                         child: HtmlElementView(
                           viewType: 'youtube-web-$videoId',
                         ),
@@ -1847,11 +1837,11 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   else if (!isWeb && videoId != null && _ytControllers.containsKey(log.id)) ...[
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white10, width: 1.5),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: borderSlate),
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(13),
                         child: YoutubePlayer(
                           controller: _ytControllers[log.id] as YoutubePlayerController,
                           aspectRatio: 16 / 9,
@@ -1863,8 +1853,8 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   Row(
                     children: [
                       Icon(
-                        isWatched ? Icons.check_circle : Icons.info_outline,
-                        color: isWatched ? Colors.green : Colors.amber,
+                        isWatched ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+                        color: isWatched ? const Color(0xFF059669) : goldAccent,
                         size: 16,
                       ),
                       const SizedBox(width: 6),
@@ -1872,11 +1862,11 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                         child: Text(
                           isWatched 
                               ? 'Video selesai ditonton! Tombol klaim aktif.' 
-                              : 'Tonton video di atas sampai selesai (100%) untuk klaim reward.',
-                          style: GoogleFonts.hankenGrotesk(
+                              : 'Tonton video tutorial di atas hingga selesai untuk klaim reward.',
+                          style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: isWatched ? Colors.green : Colors.amber,
+                            color: isWatched ? const Color(0xFF059669) : goldAccent,
                           ),
                         ),
                       ),
@@ -1917,16 +1907,17 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                               }
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isWatched ? themeColor : Colors.grey,
+                        backgroundColor: isWatched ? themeColor : const Color(0xFFCBD5E1),
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       child: _isQuestSubmitting
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                           : Text(
-                              'KLAIM XP',
-                              style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
+                              'Klaim Reward XP',
+                              style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
                             ),
                     ),
                   ),
@@ -1936,7 +1927,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
           ),
         ]
         
-        // B. JIKA MISI KUIS (Punya quizQuestions)
+        // B. JIKA MISI KUIS
         else if (quest.quizQuestions != null && quest.quizQuestions!.isNotEmpty) ...[
           Builder(
             builder: (context) {
@@ -1948,18 +1939,18 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 children: [
                   Text(
                     quiz.question,
-                    style: GoogleFonts.hankenGrotesk(fontSize: 14, fontWeight: FontWeight.bold, color: textWhite),
+                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700, color: textPrimary),
                   ),
                   const SizedBox(height: 12),
                   
                   if (hasOptions) ...[
-                    // Tipe Kuis Pilihan Ganda
                     ...(quiz.options as List).map((optionItem) {
                       final option = optionItem.toString();
                       final isSelected = _selectedQuizOption == option;
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
                         child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
                           onTap: _isQuestSubmitting ? null : () {
                             setState(() {
                               _selectedQuizOption = option;
@@ -1967,21 +1958,21 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                           },
                           child: Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                             decoration: BoxDecoration(
-                              color: isSelected ? themeColor.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.03),
-                              borderRadius: BorderRadius.circular(12),
+                              color: isSelected ? const Color(0xFFFEF2F2) : const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: isSelected ? themeColor : Colors.white10,
-                                width: 1.5,
+                                color: isSelected ? brandRed : borderSlate,
+                                width: isSelected ? 1.5 : 1.0,
                               ),
                             ),
                             child: Text(
                               option,
-                              style: GoogleFonts.hankenGrotesk(
+                              style: GoogleFonts.inter(
                                 fontSize: 13,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                color: isSelected ? themeColor : textWhite,
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                color: isSelected ? brandRed : textPrimary,
                               ),
                             ),
                           ),
@@ -1989,31 +1980,30 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       );
                     }),
                   ] else ...[
-                    // Tipe Kuis Isian/Tulis Teks
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.03),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white10),
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: borderSlate),
                       ),
                       child: TextField(
                         controller: _quizTextController,
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                        style: const TextStyle(color: textPrimary, fontSize: 13),
                         decoration: InputDecoration(
                           hintText: 'Ketik jawaban Anda di sini...',
-                          hintStyle: const TextStyle(color: Colors.white30, fontSize: 13),
-                          contentPadding: const EdgeInsets.all(16),
+                          hintStyle: const TextStyle(color: textMuted, fontSize: 12),
+                          contentPadding: const EdgeInsets.all(14),
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                             borderSide: BorderSide(color: themeColor, width: 1.5),
                           ),
                         ),
                       ),
                     ),
                   ],
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -2045,7 +2035,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      backgroundColor: Colors.green,
+                                      backgroundColor: Color(0xFF059669),
                                       content: Text('Jawaban benar! Misi kuis berhasil diselesaikan.'),
                                     ),
                                   );
@@ -2054,7 +2044,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      backgroundColor: Color(0xFFBC000A),
+                                      backgroundColor: Color(0xFFDC2626),
                                       content: Text('Jawaban salah! Silakan coba lagi.'),
                                     ),
                                   );
@@ -2065,14 +2055,15 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: themeColor,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                       child: _isQuestSubmitting
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                           : Text(
-                              'KIRIM JAWABAN',
-                              style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
+                              'Kirim Jawaban',
+                              style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
                             ),
                     ),
                   ),
@@ -2082,7 +2073,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
           ),
         ]
         
-        // C. JIKA MISI UPLOAD VIDEO (requireVideo true)
+        // C. JIKA MISI UPLOAD VIDEO
         else if (quest.requireVideo) ...[
           SizedBox(
             width: double.infinity,
@@ -2091,24 +2082,25 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   ? null
                   : () => _showSubmissionOptionDialogFromDashboard(log, themeColor),
               icon: Icon(
-                _isUploadingVideo ? Icons.hourglass_empty : Icons.upload_file,
+                _isUploadingVideo ? Icons.hourglass_empty_rounded : Icons.upload_file_rounded,
                 color: Colors.white,
               ),
               label: Text(
-                _isUploadingVideo ? 'MENGUNGGAH...' : 'PILIH & UNGGAH VIDEO',
-                style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
+                _isUploadingVideo ? 'Mengunggah Video...' : 'Pilih & Unggah Video',
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: themeColor,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
             ),
           ),
         ]
         
-        // D. TIPE HANYA KLAIM (CHECK-IN)
+        // D. TIPE CHECK-IN/KLAIM LANGSUNG
         else ...[
           SizedBox(
             width: double.infinity,
@@ -2140,14 +2132,15 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: themeColor,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
               ),
               child: _isQuestSubmitting
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : Text(
-                      'KLAIM SEKARANG',
-                      style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.bold),
+                      'Klaim Reward',
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
                     ),
             ),
           ),
@@ -2167,12 +2160,11 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Misi Harian (Daily Quests)',
-                style: GoogleFonts.spaceGrotesk(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: textWhite,
-                  letterSpacing: 0.3,
+                'Misi Harian',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: textPrimary,
                 ),
               ),
               questsAsync.whenOrNull(
@@ -2180,20 +2172,20 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   final done = logs.where((l) => l.completed).length;
                   final total = logs.length;
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: (done == total && total > 0) ? Colors.green.withValues(alpha: 0.15) : themeColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
+                      color: (done == total && total > 0) ? const Color(0xFFECFDF5) : const Color(0xFFFEF2F2),
+                      borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: (done == total && total > 0) ? Colors.green.withValues(alpha: 0.4) : themeColor.withValues(alpha: 0.4),
+                        color: (done == total && total > 0) ? const Color(0xFFA7F3D0) : const Color(0xFFFECACA),
                       ),
                     ),
                     child: Text(
-                      '$done/$total SELESAI',
-                      style: GoogleFonts.spaceGrotesk(
+                      '$done/$total Selesai',
+                      style: GoogleFonts.inter(
                         fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        color: (done == total && total > 0) ? Colors.green : themeColor,
+                        fontWeight: FontWeight.w600,
+                        color: (done == total && total > 0) ? const Color(0xFF059669) : brandRed,
                       ),
                     ),
                   );
@@ -2210,9 +2202,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.inbox_outlined, color: Colors.white24, size: 64),
+                      Icon(Icons.inbox_outlined, color: textMuted.withValues(alpha: 0.5), size: 56),
                       const SizedBox(height: 12),
-                      Text('Tidak ada misi hari ini.', style: GoogleFonts.hankenGrotesk(color: Colors.white54, fontSize: 15)),
+                      Text('Tidak ada misi aktif untuk hari ini.', style: GoogleFonts.inter(color: textMuted, fontSize: 14)),
                     ],
                   ),
                 );
@@ -2221,12 +2213,11 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
               return LayoutBuilder(builder: (context, constraints) {
                 final isWide = constraints.maxWidth >= 680;
 
-                // ── WEB LAYOUT (2 KOLOM) ──
+                // ── WEB LAYOUT ──
                 if (isWide) {
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // KIRI: Daftar Quest Card Kecil
                       SizedBox(
                         width: 320,
                         child: ListView.builder(
@@ -2248,33 +2239,34 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                 margin: const EdgeInsets.only(bottom: 10),
                                 padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
-                                  color: isExpanded
-                                      ? themeColor.withValues(alpha: 0.15)
-                                      : log.completed
-                                          ? Colors.white.withValues(alpha: 0.04)
-                                          : cardBg,
-                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
                                   border: Border.all(
                                     color: isExpanded
-                                        ? themeColor.withValues(alpha: 0.6)
-                                        : log.completed
-                                            ? Colors.green.withValues(alpha: 0.3)
-                                            : Colors.white10,
+                                        ? brandRed
+                                        : (log.completed ? const Color(0xFFA7F3D0) : borderSlate),
                                     width: isExpanded ? 1.5 : 1,
                                   ),
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      color: Color(0x04000000),
+                                      blurRadius: 6,
+                                      offset: Offset(0, 2),
+                                    ),
+                                  ],
                                 ),
                                 child: Row(
                                   children: [
                                     Container(
-                                      width: 42,
-                                      height: 42,
+                                      width: 40,
+                                      height: 40,
                                       decoration: BoxDecoration(
-                                        color: log.completed ? Colors.green.withValues(alpha: 0.15) : goldAccent.withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(13),
+                                        color: log.completed ? const Color(0xFFECFDF5) : const Color(0xFFFFFBEB),
+                                        borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: Icon(
-                                        log.completed ? Icons.check_circle : Icons.assignment,
-                                        color: log.completed ? Colors.green : goldAccent,
+                                        log.completed ? Icons.check_circle_rounded : Icons.assignment_outlined,
+                                        color: log.completed ? const Color(0xFF059669) : goldAccent,
                                         size: 20,
                                       ),
                                     ),
@@ -2285,10 +2277,10 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                         children: [
                                           Text(
                                             quest.title,
-                                            style: GoogleFonts.hankenGrotesk(
+                                            style: GoogleFonts.inter(
                                               fontSize: 13,
-                                              fontWeight: FontWeight.bold,
-                                              color: textWhite,
+                                              fontWeight: FontWeight.w600,
+                                              color: textPrimary,
                                               decoration: log.completed ? TextDecoration.lineThrough : null,
                                             ),
                                           ),
@@ -2297,7 +2289,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                             children: [
                                               Text(
                                                 '+${quest.baseXp} XP',
-                                                style: GoogleFonts.hankenGrotesk(fontSize: 11, color: goldAccent),
+                                                style: GoogleFonts.inter(fontSize: 11, color: goldAccent, fontWeight: FontWeight.w600),
                                               ),
                                               if (quest.videoUrl != null && quest.videoUrl!.isNotEmpty && !quest.requireVideo) ...[
                                                 const SizedBox(width: 6),
@@ -2309,12 +2301,12 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                       ),
                                     ),
                                     if (log.completed)
-                                      const Icon(Icons.check, color: Colors.green, size: 16)
+                                      const Icon(Icons.check_rounded, color: Color(0xFF059669), size: 16)
                                     else
                                       Icon(
-                                        isExpanded ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_right,
-                                        color: isExpanded ? themeColor : Colors.white24,
-                                        size: 16,
+                                        isExpanded ? Icons.keyboard_arrow_down_rounded : Icons.keyboard_arrow_right_rounded,
+                                        color: isExpanded ? brandRed : textMuted,
+                                        size: 18,
                                       )
                                   ],
                                 ),
@@ -2324,21 +2316,19 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                         ),
                       ),
                       
-                      // VERTICAL SPLITTER
-                      Container(width: 1, color: Colors.white10),
+                      Container(width: 1, color: borderSlate),
                       
-                      // KANAN: Panel Detail/Pengerjaan Quest
                       Expanded(
                         child: _expandedQuestId == null
                             ? Center(
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(Icons.touch_app_outlined, color: Colors.white24, size: 48),
-                                    const SizedBox(height: 12),
+                                    Icon(Icons.touch_app_outlined, color: textMuted.withValues(alpha: 0.5), size: 44),
+                                    const SizedBox(height: 10),
                                     Text(
                                       'Pilih misi di kiri untuk melihat detail',
-                                      style: GoogleFonts.hankenGrotesk(color: Colors.white38, fontSize: 13),
+                                      style: GoogleFonts.inter(color: textMuted, fontSize: 13),
                                     ),
                                   ],
                                 ),
@@ -2352,9 +2342,9 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                   child: Container(
                                     padding: const EdgeInsets.all(20),
                                     decoration: BoxDecoration(
-                                      color: cardBg,
-                                      borderRadius: BorderRadius.circular(24),
-                                      border: Border.all(color: Colors.white10),
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(color: borderSlate),
                                     ),
                                     child: _buildQuestExpandedContent(log, log.quest, themeColor),
                                   ),
@@ -2365,7 +2355,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                   );
                 }
 
-                // ── MOBILE LAYOUT (1 KOLOM SEPERTI BIASA) ──
+                // ── MOBILE LAYOUT ──
                 return RefreshIndicator(
                   onRefresh: () async {
                     ref.invalidate(questProvider);
@@ -2383,45 +2373,60 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                         margin: const EdgeInsets.only(bottom: 12),
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: log.completed ? Colors.white.withValues(alpha: 0.05) : cardBg,
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(color: log.completed ? Colors.green.withValues(alpha: 0.3) : Colors.white10),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: log.completed 
+                                ? const Color(0xFFA7F3D0) 
+                                : (isExpanded ? brandRed : borderSlate),
+                            width: isExpanded ? 1.5 : 1,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x04000000),
+                              blurRadius: 6,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
                         child: Column(
                           children: [
                             Row(
                               children: [
                                 Container(
-                                  width: 48,
-                                  height: 48,
+                                  width: 44,
+                                  height: 44,
                                   decoration: BoxDecoration(
-                                    color: log.completed ? Colors.green.withValues(alpha: 0.15) : goldAccent.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(16),
+                                    color: log.completed ? const Color(0xFFECFDF5) : const Color(0xFFFFFBEB),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Icon(
-                                    log.completed ? Icons.check_circle : Icons.assignment,
-                                    color: log.completed ? Colors.green : goldAccent,
+                                    log.completed ? Icons.check_circle_rounded : Icons.assignment_outlined,
+                                    color: log.completed ? const Color(0xFF059669) : goldAccent,
+                                    size: 22,
                                   ),
                                 ),
-                                const SizedBox(width: 16),
+                                const SizedBox(width: 14),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         quest.title,
-                                        style: GoogleFonts.hankenGrotesk(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                          color: textWhite,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: textPrimary,
                                           decoration: log.completed ? TextDecoration.lineThrough : null,
                                         ),
                                       ),
+                                      const SizedBox(height: 2),
                                       Text(
                                         '+${quest.baseXp} XP',
-                                        style: GoogleFonts.hankenGrotesk(
+                                        style: GoogleFonts.inter(
                                           fontSize: 12,
-                                          color: textGray,
+                                          color: goldAccent,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                     ],
@@ -2436,17 +2441,17 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                                       });
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                                       decoration: BoxDecoration(
-                                        color: isExpanded ? Colors.grey.withValues(alpha: 0.2) : themeColor,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: isExpanded ? Border.all(color: Colors.white24) : null,
+                                        color: isExpanded ? const Color(0xFFF1F5F9) : themeColor,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: isExpanded ? Border.all(color: borderSlate) : null,
                                       ),
                                       child: Text(
-                                        isExpanded ? 'Tutup' : 'Ambil',
-                                        style: GoogleFonts.hankenGrotesk(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
+                                        isExpanded ? 'Tutup' : 'Mulai',
+                                        style: GoogleFonts.inter(
+                                          color: isExpanded ? textPrimary : Colors.white,
+                                          fontWeight: FontWeight.w600,
                                           fontSize: 12,
                                         ),
                                       ),
@@ -2457,7 +2462,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                             if (isExpanded && !log.completed) ...[
                               const Padding(
                                 padding: EdgeInsets.symmetric(vertical: 12),
-                                child: Divider(color: Colors.white10, height: 1),
+                                child: Divider(color: borderSlate, height: 1),
                               ),
                               _buildQuestExpandedContent(log, quest, themeColor),
                             ],
@@ -2469,8 +2474,8 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                 );
               });
             },
-            loading: () => const Center(child: CircularProgressIndicator(color: Colors.red)),
-            error: (e, s) => Center(child: Text('Gagal memuat misi: $e', style: const TextStyle(color: Colors.white))),
+            loading: () => const Center(child: CircularProgressIndicator(color: brandRed)),
+            error: (e, s) => Center(child: Text('Gagal memuat misi: $e', style: const TextStyle(color: textPrimary))),
           ),
         ),
       ],
@@ -2478,28 +2483,31 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
   }
 
   Widget _buildBottomNavBar() {
-    return Container(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0B1326).withValues(alpha: 0.95), // Deep obsidian
-        border: const Border(top: BorderSide(color: Colors.white12, width: 1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(Icons.home_outlined, Icons.home, 'Lobby', 0),
-          _buildNavItem(Icons.shopping_bag_outlined, Icons.shopping_bag, 'Toko', 1),
-          _buildMisiNavItem(2),
-          _buildNavItem(Icons.credit_card_outlined, Icons.credit_card, 'SPP', 3),
-          _buildNavItem(Icons.person_outline, Icons.person, 'Atlet', 4),
-        ],
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 460),
+        padding: const EdgeInsets.only(left: 12, right: 12, top: 6, bottom: 8),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: borderSlate, width: 1)),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x06000000),
+              blurRadius: 8,
+              offset: Offset(0, -2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(Icons.home_outlined, Icons.home_rounded, 'Lobby', 0),
+            _buildNavItem(Icons.shopping_bag_outlined, Icons.shopping_bag_rounded, 'Toko', 1),
+            _buildMisiNavItem(2),
+            _buildNavItem(Icons.credit_card_outlined, Icons.credit_card_rounded, 'SPP', 3),
+            _buildNavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Atlet', 4),
+          ],
+        ),
       ),
     );
   }
@@ -2512,33 +2520,33 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 96,
-            height: 38, // Tinggi dinaikkan sedikit untuk ruang
+            width: 44,
+            height: 28,
             child: Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.center,
               children: [
                 Positioned(
-                  top: -38, // Dinaikkan dari -26 agar melayang keluar dari garis bawah dojang
+                  top: -14,
                   child: Image.asset(
                     'assets/images/daily_quest_tiger_transparent.png',
-                    width: 96,
-                    height: 96,
+                    width: 44,
+                    height: 44,
                     fit: BoxFit.contain,
-                    color: isActive ? null : Colors.white.withValues(alpha: 0.4),
-                    colorBlendMode: isActive ? null : BlendMode.modulate,
+                    color: isActive ? null : Colors.black.withValues(alpha: 0.3),
+                    colorBlendMode: isActive ? null : BlendMode.srcIn,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             'Misi',
-            style: GoogleFonts.spaceGrotesk(
-              fontSize: 10,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              color: isActive ? brandRed : textGray,
+            style: GoogleFonts.inter(
+              fontSize: 10.5,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              color: isActive ? brandRed : textMuted,
             ),
           )
         ],
@@ -2555,16 +2563,16 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
         children: [
           Icon(
             isActive ? selectedIcon : unselectedIcon,
-            color: isActive ? brandRed : textGray,
-            size: 24,
+            color: isActive ? brandRed : textMuted,
+            size: 20,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             label,
-            style: GoogleFonts.spaceGrotesk(
-              fontSize: 10,
-              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-              color: isActive ? brandRed : textGray,
+            style: GoogleFonts.inter(
+              fontSize: 10.5,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+              color: isActive ? brandRed : textMuted,
             ),
           )
         ],

@@ -165,25 +165,29 @@ class _UktScreenState extends ConsumerState<UktScreen> {
     final targetBelt = _getNextBelt(widget.user.currentBelt);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
           'Ujian Kenaikan Tingkat',
-          style: GoogleFonts.spaceGrotesk(
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            fontSize: 18,
+          style: GoogleFonts.inter(
+            color: const Color(0xFF0F172A),
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
           ),
         ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: const Color(0xFFE2E8F0), height: 1),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF0F172A)),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white54),
+            icon: const Icon(Icons.refresh, color: Color(0xFF64748B)),
             onPressed: () => ref.invalidate(uktStatusProvider(widget.user.id)),
           ),
         ],
@@ -198,8 +202,8 @@ class _UktScreenState extends ConsumerState<UktScreen> {
 
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(uktStatusProvider(widget.user.id)),
-            color: const Color(0xFFE10600),
-            backgroundColor: const Color(0xFF1E293B),
+            color: const Color(0xFFDC2626),
+            backgroundColor: Colors.white,
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
@@ -227,26 +231,30 @@ class _UktScreenState extends ConsumerState<UktScreen> {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFE10600))),
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFDC2626))),
         error: (err, stack) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                const Icon(Icons.error_outline, color: Color(0xFFDC2626), size: 48),
                 const SizedBox(height: 16),
                 Text(
                   'Gagal memuat data UKT',
-                  style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontWeight: FontWeight.w700, fontSize: 16),
                 ),
                 const SizedBox(height: 8),
-                Text(err.toString(), textAlign: TextAlign.center, style: GoogleFonts.inter(color: Colors.white54, fontSize: 12)),
+                Text(err.toString(), textAlign: TextAlign.center, style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 12)),
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: () => ref.invalidate(uktStatusProvider(widget.user.id)),
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE10600)),
-                  child: const Text('Coba Lagi'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFDC2626),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text('Coba Lagi', style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),
@@ -267,18 +275,22 @@ class _UktScreenState extends ConsumerState<UktScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 90, height: 90,
-              decoration: const BoxDecoration(color: Color(0xFF1E293B), shape: BoxShape.circle),
-              child: const Icon(Icons.emoji_events_outlined, size: 48, color: Colors.amber),
+              width: 80, height: 80,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFFDE68A)),
+              ),
+              child: const Icon(Icons.emoji_events_outlined, size: 40, color: Color(0xFFD97706)),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Text('Belum Ada Jadwal UKT',
-              style: GoogleFonts.spaceGrotesk(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
+              style: GoogleFonts.inter(fontSize: 18, color: const Color(0xFF0F172A), fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
             Text(
               'Pelatih akan mengumumkan jadwal ujian kenaikan tingkat melalui portal dojang.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 14, height: 1.5),
+              style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 13, height: 1.5),
             ),
           ],
         ),
@@ -342,23 +354,48 @@ class _UktScreenState extends ConsumerState<UktScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x04000000),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.emoji_events, color: Colors.amber, size: 20),
-              const SizedBox(width: 8),
-              Text('EVENT UKT AKTIF', style: GoogleFonts.spaceGrotesk(color: Colors.amber, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFFDE68A)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.emoji_events, color: Color(0xFFD97706), size: 15),
+                    const SizedBox(width: 6),
+                    Text(
+                      'EVENT UKT AKTIF',
+                      style: GoogleFonts.inter(color: const Color(0xFFD97706), fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 0.5),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(exam.title, style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
+          Text(
+            exam.title,
+            style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontSize: 17, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 14),
           _buildInfoRow(Icons.calendar_month, 'Tanggal Ujian', formattedDate),
           const SizedBox(height: 8),
           _buildInfoRow(Icons.location_on, 'Lokasi', exam.location),
@@ -375,15 +412,15 @@ class _UktScreenState extends ConsumerState<UktScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: const Color(0xFF94A3B8), size: 18),
+        Icon(icon, color: const Color(0xFF64748B), size: 18),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.bold)),
+              Text(label, style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 11, fontWeight: FontWeight.w500)),
               const SizedBox(height: 2),
-              Text(value, style: GoogleFonts.inter(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+              Text(value, style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.w600)),
             ],
           ),
         )
@@ -396,13 +433,16 @@ class _UktScreenState extends ConsumerState<UktScreen> {
   // ─────────────────────────────────────────────────────
   Widget _buildEligibilityCard(UktEligibility el) {
     final isOk = el.eligible;
-    final color = isOk ? Colors.green : Colors.orange;
+    final color = isOk ? const Color(0xFF059669) : const Color(0xFFD97706);
+    final bgColor = isOk ? const Color(0xFFECFDF5) : const Color(0xFFFFFBEB);
+    final borderColor = isOk ? const Color(0xFFA7F3D0) : const Color(0xFFFDE68A);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: bgColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -413,7 +453,7 @@ class _UktScreenState extends ConsumerState<UktScreen> {
               const SizedBox(width: 8),
               Text(
                 isOk ? 'Syarat Kehadiran Terpenuhi ✅' : 'Peringatan Syarat Kehadiran ⚠️',
-                style: GoogleFonts.spaceGrotesk(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+                style: GoogleFonts.inter(color: color, fontWeight: FontWeight.w700, fontSize: 13),
               ),
             ],
           ),
@@ -422,15 +462,15 @@ class _UktScreenState extends ConsumerState<UktScreen> {
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: el.persentaseKehadiran / 100,
-              minHeight: 8,
-              backgroundColor: Colors.white12,
+              minHeight: 7,
+              backgroundColor: Colors.black.withValues(alpha: 0.05),
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             'Kehadiran ${el.persentaseKehadiran}% dari ${el.totalSesiTerjadwal} sesi (${el.totalHadir} hadir) dalam ${el.periodMonths} bulan terakhir\nMinimum: ${el.minAttendancePercent}% kehadiran',
-            style: GoogleFonts.inter(color: Colors.white70, fontSize: 11, height: 1.5),
+            style: GoogleFonts.inter(color: const Color(0xFF334155), fontSize: 11, height: 1.5),
           ),
         ],
       ),
@@ -445,25 +485,38 @@ class _UktScreenState extends ConsumerState<UktScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF334155)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x04000000),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Formulir Pendaftaran UKT',
-            style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
+          Text(
+            'Formulir Pendaftaran UKT',
+            style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 6),
           Text(
             'Dengan mendaftar, Anda menyetujui persyaratan administrasi dan tagihan biaya ujian sabuk akan dibuat secara otomatis.',
-            style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 13, height: 1.5),
+            style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 13, height: 1.5),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           // Ringkasan pendaftaran
           Container(
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: const Color(0xFF0F172A), borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
             child: Column(
               children: [
                 _buildDetailRow('Sabuk Saat Ini', widget.user.currentBelt ?? 'Sabuk Putih'),
@@ -477,16 +530,16 @@ class _UktScreenState extends ConsumerState<UktScreen> {
             child: ElevatedButton(
               onPressed: (canRegister && !_isRegistering) ? () => _handleRegister(exam, targetBelt) : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: canRegister ? const Color(0xFFE10600) : Colors.grey,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                backgroundColor: canRegister ? const Color(0xFFDC2626) : const Color(0xFF94A3B8),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
               ),
               child: _isRegistering
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                   : Text(
                       canRegister ? 'Daftar UKT Sekarang' : 'Kehadiran Belum Memenuhi Syarat',
-                      style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                      style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13),
                     ),
             ),
           ),
@@ -499,121 +552,133 @@ class _UktScreenState extends ConsumerState<UktScreen> {
   // WIDGET: Card menunggu approval & Upload Dokumen
   // ─────────────────────────────────────────────────────
   Widget _buildWaitingApprovalCard(UktParticipant reg) {
-
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF334155)),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x04000000),
+            blurRadius: 10,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Detail Pendaftaran', style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
+          Text(
+            'Detail Pendaftaran',
+            style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 14),
           _buildDetailRow('No. Registrasi', reg.id.split('-').first.toUpperCase()),
           _buildDetailRow('Sabuk Saat Ini', widget.user.currentBelt ?? 'Sabuk Putih'),
           _buildDetailRow('Sabuk Target', reg.targetBelt),
           _buildDetailRow('Status Verifikasi', reg.status),
           const SizedBox(height: 12),
-          const Divider(color: Color(0xFF334155)),
+          const Divider(color: Color(0xFFE2E8F0)),
           const SizedBox(height: 8),
           
-          Text('Dokumen Persyaratan', style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+          Text(
+            'Dokumen Persyaratan',
+            style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontSize: 13, fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 12),
           
           Column(
             children: reg.uploadedDocs.keys.map((docName) {
               final fileUrl = reg.uploadedDocs[docName];
-                  final hasFile = fileUrl != null && fileUrl.isNotEmpty;
-                  final isUploadingThis = _uploadingDocName == docName;
+              final hasFile = fileUrl != null && fileUrl.isNotEmpty;
+              final isUploadingThis = _uploadingDocName == docName;
 
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 10),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0F172A),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: hasFile ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.1)),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(docName, style: GoogleFonts.inter(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 3),
-                              Text(
-                                hasFile ? 'Sudah diunggah' : 'Belum diunggah',
-                                style: GoogleFonts.inter(color: hasFile ? Colors.green : Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
-                              ),
-                            ],
+              return Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: hasFile ? const Color(0xFFA7F3D0) : const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(docName, style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontSize: 12, fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 3),
+                          Text(
+                            hasFile ? 'Sudah diunggah' : 'Belum diunggah',
+                            style: GoogleFonts.inter(color: hasFile ? const Color(0xFF059669) : const Color(0xFFDC2626), fontSize: 11, fontWeight: FontWeight.w600),
                           ),
-                        ),
-                        if (isUploadingThis)
-                          const SizedBox(
-                            width: 20, height: 20,
-                            child: CircularProgressIndicator(color: Color(0xFFE10600), strokeWidth: 2),
-                          )
-                        else if (hasFile)
-                          Row(
-                            children: [
-                              const Icon(Icons.check_circle, color: Colors.green, size: 16),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.replay, color: Colors.white54, size: 16),
-                                onPressed: () => _pickAndUploadDocument(docName),
-                                tooltip: 'Unggah Ulang',
-                              )
-                            ],
-                          )
-                        else
-                          ElevatedButton.icon(
+                        ],
+                      ),
+                    ),
+                    if (isUploadingThis)
+                      const SizedBox(
+                        width: 20, height: 20,
+                        child: CircularProgressIndicator(color: Color(0xFFDC2626), strokeWidth: 2),
+                      )
+                    else if (hasFile)
+                      Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Color(0xFF059669), size: 16),
+                          const SizedBox(width: 6),
+                          IconButton(
+                            icon: const Icon(Icons.replay, color: Color(0xFF64748B), size: 16),
                             onPressed: () => _pickAndUploadDocument(docName),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFE10600),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            ),
-                            icon: const Icon(Icons.upload, color: Colors.white, size: 12),
-                            label: Text('Upload', style: GoogleFonts.spaceGrotesk(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                          ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
+                            tooltip: 'Unggah Ulang',
+                          )
+                        ],
+                      )
+                    else
+                      ElevatedButton.icon(
+                        onPressed: () => _pickAndUploadDocument(docName),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFDC2626),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          elevation: 0,
+                        ),
+                        icon: const Icon(Icons.upload, color: Colors.white, size: 12),
+                        label: Text('Upload', style: GoogleFonts.inter(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                      ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
           if (reg.status == 'FAILED') ...[
             const SizedBox(height: 20),
-            const Divider(color: Color(0xFF334155)),
+            const Divider(color: Color(0xFFE2E8F0)),
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () async {
-                  // Konfirmasi pembatalan & daftar ulang
                   final confirm = await showDialog<bool>(
                     context: context,
                     builder: (context) => AlertDialog(
-                      backgroundColor: const Color(0xFF1E293B),
+                      backgroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
-                        side: const BorderSide(color: Color(0xFF334155), width: 1.5),
+                        side: const BorderSide(color: Color(0xFFE2E8F0), width: 1),
                       ),
-                      title: Text('Daftar Ulang UKT', style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold)),
-                      content: Text('Apakah Anda ingin membatalkan pendaftaran yang ditolak ini dan melakukan pendaftaran ulang?', style: GoogleFonts.inter(color: const Color(0xFF94A3B8))),
+                      title: Text('Daftar Ulang UKT', style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontWeight: FontWeight.w700)),
+                      content: Text('Apakah Anda ingin membatalkan pendaftaran yang ditolak ini dan melakukan pendaftaran ulang?', style: GoogleFonts.inter(color: const Color(0xFF64748B))),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: Text('Batal', style: GoogleFonts.spaceGrotesk(color: const Color(0xFF94A3B8))),
+                          child: Text('Batal', style: GoogleFonts.inter(color: const Color(0xFF64748B))),
                         ),
                         ElevatedButton(
                           onPressed: () => Navigator.pop(context, true),
-                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE10600)),
-                          child: Text('Ya, Daftar Ulang', style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold)),
+                          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFDC2626), elevation: 0),
+                          child: Text('Ya, Daftar Ulang', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w600)),
                         ),
                       ],
                     ),
@@ -633,12 +698,13 @@ class _UktScreenState extends ConsumerState<UktScreen> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFE10600),
+                  backgroundColor: const Color(0xFFDC2626),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
                 ),
-                icon: const Icon(Icons.refresh, color: Colors.white),
-                label: Text('Daftar Ulang UKT', style: GoogleFonts.spaceGrotesk(color: Colors.white, fontWeight: FontWeight.bold)),
+                icon: const Icon(Icons.refresh, color: Colors.white, size: 16),
+                label: Text('Daftar Ulang UKT', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.w600)),
               ),
             ),
           ],
@@ -649,15 +715,17 @@ class _UktScreenState extends ConsumerState<UktScreen> {
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: GoogleFonts.inter(color: const Color(0xFF94A3B8), fontSize: 13)),
+          Text(label, style: GoogleFonts.inter(color: const Color(0xFF64748B), fontSize: 13)),
           Flexible(
-            child: Text(value,
+            child: Text(
+              value,
               textAlign: TextAlign.end,
-              style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+              style: GoogleFonts.inter(color: const Color(0xFF0F172A), fontWeight: FontWeight.w600, fontSize: 13),
+            ),
           ),
         ],
       ),

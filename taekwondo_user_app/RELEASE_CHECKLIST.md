@@ -46,6 +46,7 @@ Dokumen ini berisi rangkuman audit, perbaikan otomatis yang telah dilakukan, ser
 
 ## 3. Hasil Akhir Status Build
 
+- **Version**: **1.0.5** (Version Code: **14**)
 - **Status Code Analysis**: 🟢 **PASSED (0 Issues)**
 - **Metode Build**: GitHub Actions Workflow (`.github/workflows/build-aab.yml`)
 - **Lokasi File Bundle (.aab)**: Artifact GitHub Actions (`taekwondo-release-aab`) / `build/app/outputs/bundle/release/app-release.aab`

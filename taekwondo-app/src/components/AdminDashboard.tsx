@@ -57,6 +57,7 @@ import ExerciseBuilder from "./ExerciseBuilder";
 import BeltRequirementBuilder from "./BeltRequirementBuilder";
 import AnnouncementPanel from "./AnnouncementPanel";
 import GamificationManagement from "./GamificationManagement";
+import AdminNotificationBell from "./AdminNotificationBell";
 
 interface SettingData {
   logoUrl: string | null;
@@ -2391,11 +2392,10 @@ export default function AdminDashboard({
                 />
               </div>
 
-              {/* Notification Bell */}
-              <button className="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-500 relative transition-colors">
-                <Bell className="w-4 h-4" />
-                <span className="w-2 h-2 rounded-full bg-[#E10600] absolute top-2 right-2 ring-2 ring-white"></span>
-              </button>
+              {/* Notification Bell Action Center */}
+              <AdminNotificationBell 
+                onNavigateTab={(tab) => setActiveTab(tab)} 
+              />
 
               {/* Back to SSO Button */}
               <button 

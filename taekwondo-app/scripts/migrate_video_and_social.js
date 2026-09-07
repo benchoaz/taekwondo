@@ -56,6 +56,7 @@ async function main() {
     await client.query(`
       UPDATE "Setting" 
       SET 
+        "app_apk_url" = COALESCE("app_apk_url", 'https://play.google.com/store/apps/details?id=com.whitetigerkraksaan.member'),
         "tiktok_url" = COALESCE("tiktok_url", 'https://www.tiktok.com/@whitetigerkraksaan'),
         "instagram_url" = COALESCE("instagram_url", 'https://www.instagram.com/whitetigerkraksaan'),
         "facebook_url" = COALESCE("facebook_url", 'https://www.facebook.com/whitetigerkraksaan'),

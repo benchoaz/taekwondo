@@ -21,7 +21,11 @@ import {
   CalendarOff,
   Play,
   Film,
-  Video as VideoIcon
+  Video as VideoIcon,
+  Smartphone,
+  CheckCircle,
+  QrCode,
+  Download
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import HeroSlider from "@/components/HeroSlider";
@@ -61,13 +65,15 @@ export default function LandingPage({
     email: "halo@whitetiger-tkd.com",
     phone: "+62 811-1234-5678",
     registrationFee: 75000,
-    appApkUrl: null as string | null,
+    appApkUrl: "https://play.google.com/store/apps/details?id=com.whitetigerkraksaan.member" as string | null,
     tiktokUrl: "https://www.tiktok.com/@whitetigerkraksaan" as string | null,
     facebookUrl: "https://www.facebook.com/whitetigerkraksaan" as string | null,
     instagramUrl: "https://www.instagram.com/whitetigerkraksaan" as string | null,
     telegramUrl: "https://t.me/whitetigerkraksaan" as string | null,
     youtubeUrl: "https://www.youtube.com/@whitetigerkraksaan" as string | null,
   });
+
+  const playStoreUrl = settings.appApkUrl || "https://play.google.com/store/apps/details?id=com.whitetigerkraksaan.member";
 
   // Dynamic Articles/Events & Coaches State
   const [articles, setArticles] = useState<any[]>([]);
@@ -380,11 +386,29 @@ export default function LandingPage({
             <a href="#coaches" onClick={(e) => { e.preventDefault(); document.getElementById('coaches')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="hover:text-[#E10600] transition-colors">Pelatih</a>
             <a href="#gallery" className="hover:text-[#E10600] transition-colors">Galeri</a>
             <a href="#videos" onClick={(e) => { e.preventDefault(); document.getElementById('videos')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="hover:text-[#E10600] transition-colors font-bold text-red-600">Video</a>
+            <a href="#download-app" onClick={(e) => { e.preventDefault(); document.getElementById('download-app')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="hover:text-[#E10600] transition-colors font-bold text-emerald-600 flex items-center gap-1">
+              <Smartphone className="w-3.5 h-3.5" /> App
+            </a>
             <button onClick={() => onNavigate("schedule-view")} className="hover:text-[#E10600] transition-colors cursor-pointer text-left">Jadwal</button>
             <button onClick={() => onNavigate("verify")} className="hover:text-[#E10600] transition-colors cursor-pointer text-left">Verifikasi Sertifikat</button>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <a 
+              href={playStoreUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:flex items-center gap-2 bg-[#0F172A] hover:bg-black text-white border border-slate-700/80 px-3 py-2 rounded-[10px] text-xs font-bold transition-all hover:scale-105 shadow-sm active:scale-95 group"
+              title="Download Aplikasi White Tiger di Google Play"
+            >
+              <svg className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3.609 1.814L13.793 12 3.61 22.186a2.37 2.37 0 0 1-.61-1.63V3.444c0-.623.224-1.2.609-1.63zm11.242 11.243l2.463 2.464-12.01 6.944 9.547-9.408zm0-2.114L5.304 1.535l12.01 6.944-2.463 2.464zm1.472 1.057l3.414 1.972c.983.568.983 1.488 0 2.056l-3.414 1.972-2.115-2.115 2.115-1.885z"/>
+              </svg>
+              <div className="text-left leading-none">
+                <span className="text-[7.5px] text-gray-400 block uppercase font-medium">GET IT ON</span>
+                <span className="text-[10px] font-black tracking-wide text-white">Google Play</span>
+              </div>
+            </a>
             <button 
               onClick={() => onNavigate("member")} 
               className="bg-[#E10600] hover:bg-[#C00500] text-white px-3 py-2 md:px-5 md:py-2.5 rounded-[8px] md:rounded-[12px] font-bold text-[10px] md:text-xs transition-all shadow-md shadow-[#E10600]/25 active:scale-95 cursor-pointer"
@@ -417,8 +441,30 @@ export default function LandingPage({
             <a href="#coaches" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-[#0F172A]">Pelatih</a>
             <a href="#gallery" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-[#0F172A]">Galeri</a>
             <a href="#videos" onClick={() => { setMobileMenuOpen(false); document.getElementById('videos')?.scrollIntoView({ behavior: 'smooth' }); }} className="font-semibold text-red-600">Video Dokumentasi</a>
+            <a href="#download-app" onClick={() => { setMobileMenuOpen(false); document.getElementById('download-app')?.scrollIntoView({ behavior: 'smooth' }); }} className="font-semibold text-emerald-600 flex items-center gap-2">
+              <Smartphone className="w-4 h-4" /> Download Aplikasi
+            </a>
             <button onClick={() => { setMobileMenuOpen(false); onNavigate("schedule-view"); }} className="font-semibold text-[#0F172A] text-left">Jadwal</button>
             <button onClick={() => { setMobileMenuOpen(false); onNavigate("verify"); }} className="font-semibold text-[#0F172A] text-left">Verifikasi Sertifikat</button>
+
+            <div className="pt-2 border-t border-slate-100">
+              <a
+                href={playStoreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 bg-[#0F172A] text-white p-3 rounded-xl shadow-md border border-slate-700"
+              >
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3.609 1.814L13.793 12 3.61 22.186a2.37 2.37 0 0 1-.61-1.63V3.444c0-.623.224-1.2.609-1.63zm11.242 11.243l2.463 2.464-12.01 6.944 9.547-9.408zm0-2.114L5.304 1.535l12.01 6.944-2.463 2.464zm1.472 1.057l3.414 1.972c.983.568.983 1.488 0 2.056l-3.414 1.972-2.115-2.115 2.115-1.885z"/>
+                  </svg>
+                </div>
+                <div className="text-left">
+                  <span className="text-[8px] text-gray-400 block uppercase font-medium">Aplikasi Resmi Murid &amp; Orang Tua</span>
+                  <span className="text-xs font-black text-white">Download di Google Play Store</span>
+                </div>
+              </a>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -474,20 +520,21 @@ export default function LandingPage({
             >
               Jadwal Latihan
             </button>
-            {settings.appApkUrl && (
-              <a 
-                href={settings.appApkUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="transition-all hover:scale-105 active:scale-95 w-[160px] inline-block"
-              >
-                <img 
-                  src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
-                  alt="Download di Google Play" 
-                  className="w-full h-auto"
-                />
-              </a>
-            )}
+            <a 
+              href={playStoreUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 bg-black/85 hover:bg-black text-white border border-white/20 hover:border-emerald-500/50 px-5 py-3 rounded-[12px] transition-all backdrop-blur-md hover:scale-105 active:scale-95 shadow-xl group w-full sm:w-auto justify-center"
+              title="Unduh Aplikasi di Google Play Store"
+            >
+              <svg className="w-6 h-6 text-emerald-400 group-hover:scale-110 transition-transform shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3.609 1.814L13.793 12 3.61 22.186a2.37 2.37 0 0 1-.61-1.63V3.444c0-.623.224-1.2.609-1.63zm11.242 11.243l2.463 2.464-12.01 6.944 9.547-9.408zm0-2.114L5.304 1.535l12.01 6.944-2.463 2.464zm1.472 1.057l3.414 1.972c.983.568.983 1.488 0 2.056l-3.414 1.972-2.115-2.115 2.115-1.885z"/>
+              </svg>
+              <div className="text-left leading-tight">
+                <span className="text-[8.5px] text-gray-400 block uppercase tracking-wider font-medium">GET IT ON</span>
+                <span className="text-sm font-black text-white">Google Play</span>
+              </div>
+            </a>
           </div>
 
           <div className="flex flex-wrap justify-center gap-12 mt-8 pt-8 border-t border-white/20 text-white w-full max-w-2xl">
@@ -988,6 +1035,123 @@ export default function LandingPage({
         );
       })()}
 
+      {/* ── APP DOWNLOAD SHOWCASE SECTION ── */}
+      <section className="py-20 bg-gradient-to-b from-slate-900 via-[#0B1120] to-[#0F172A] text-white relative overflow-hidden border-t border-slate-800" id="download-app">
+        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-96 h-96 bg-[#E10600]/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/90 border border-slate-700/60 rounded-[32px] p-8 md:p-14 shadow-2xl backdrop-blur-xl flex flex-col lg:flex-row items-center justify-between gap-12">
+            
+            {/* Left Column: Information & Key App Features */}
+            <div className="flex-1 flex flex-col gap-6 text-left">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#E10600]/20 border border-[#E10600]/40 text-[#ff5c5c] text-[10px] font-black uppercase tracking-widest w-fit">
+                <Smartphone className="w-3.5 h-3.5" /> Aplikasi Resmi White Tiger
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white font-display tracking-tight leading-tight">
+                Latihan &amp; Pantau Prestasi Langsung dari Smartphone
+              </h2>
+
+              <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl">
+                Aplikasi khusus siswa dan wali murid Dojang White Tiger. Presensi otomatis berbasis GPS Geofencing, pantau kurikulum kenaikan tingkat (UKT), serta selesaikan Quest taekwondo harian.
+              </p>
+
+              {/* 4 Feature Highlights Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+                <div className="flex items-start gap-3 bg-white/5 border border-white/5 p-3.5 rounded-2xl">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <MapPin className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white">Presensi GPS Geofencing</h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Absensi latihan otomatis saat murid tiba di lokasi Dojang.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 bg-white/5 border border-white/5 p-3.5 rounded-2xl">
+                  <div className="w-8 h-8 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Award className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white">Progres Sabuk &amp; UKT</h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Daftar ujian kenaikan sabuk &amp; pantau sertifikat digital.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 bg-white/5 border border-white/5 p-3.5 rounded-2xl">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Activity className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white">Daily Quest &amp; Gamifikasi</h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Selesaikan tantangan gerakan untuk raih XP &amp; hadiah.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 bg-white/5 border border-white/5 p-3.5 rounded-2xl">
+                  <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <Shield className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-white">Iuran SPP Transparan</h4>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Cek status tagihan bulanan &amp; upload bukti transfer struk.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Download Buttons CTA */}
+              <div className="flex flex-wrap items-center gap-4 pt-3">
+                <a
+                  href={playStoreUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3.5 bg-black hover:bg-slate-950 text-white border border-white/20 hover:border-emerald-500/80 px-6 py-3.5 rounded-2xl transition-all shadow-xl hover:scale-105 active:scale-95 group"
+                >
+                  <svg className="w-7 h-7 text-emerald-400 group-hover:scale-110 transition-transform shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3.609 1.814L13.793 12 3.61 22.186a2.37 2.37 0 0 1-.61-1.63V3.444c0-.623.224-1.2.609-1.63zm11.242 11.243l2.463 2.464-12.01 6.944 9.547-9.408zm0-2.114L5.304 1.535l12.01 6.944-2.463 2.464zm1.472 1.057l3.414 1.972c.983.568.983 1.488 0 2.056l-3.414 1.972-2.115-2.115 2.115-1.885z"/>
+                  </svg>
+                  <div className="text-left leading-tight">
+                    <span className="text-[9px] text-gray-400 block uppercase tracking-widest font-medium">TEMUKAN DI</span>
+                    <span className="text-base font-black text-white">Google Play Store</span>
+                  </div>
+                </a>
+
+                <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold">
+                  <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>Gratis untuk seluruh murid &amp; orang tua</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: QR Code + Smartphone Mockup Preview */}
+            <div className="w-full lg:w-auto flex flex-col sm:flex-row items-center justify-center gap-6 bg-slate-950/70 border border-slate-800 p-6 sm:p-8 rounded-3xl shadow-inner">
+              <div className="bg-white p-3.5 rounded-2xl shadow-lg shrink-0 flex flex-col items-center">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(playStoreUrl)}&color=0F172A`}
+                  alt="QR Code Google Play Store White Tiger"
+                  className="w-36 h-36 rounded-lg"
+                />
+                <span className="text-[9px] font-black text-[#0F172A] uppercase tracking-wider mt-2.5">
+                  Scan untuk Unduh
+                </span>
+              </div>
+
+              <div className="flex flex-col text-center sm:text-left gap-2 max-w-[200px]">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto sm:mx-0">
+                  <QrCode className="w-5 h-5" />
+                </div>
+                <h4 className="text-sm font-bold text-white">Scan Kamera Ponsel</h4>
+                <p className="text-slate-400 text-xs leading-relaxed">
+                  Arahkan kamera smartphone Anda ke kode QR untuk langsung mengunduh dari Google Play Store.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* Upcoming Events Section */}
       <section className="py-24 bg-[#0F172A] text-white border-y border-white/10" id="events">
         <div className="max-w-7xl mx-auto px-6">
@@ -1059,22 +1223,23 @@ export default function LandingPage({
             <p className="text-[#E10600] text-xs font-bold mt-2">
               📍 Pusat Latihan Taekwondo Terpercaya di Kraksaan, Probolinggo.
             </p>
-            {settings.appApkUrl && (
-              <div className="mt-4">
-                <a 
-                  href={settings.appApkUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block transition-transform hover:scale-105 active:scale-95 w-36"
-                >
-                  <img 
-                    src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" 
-                    alt="Download di Google Play" 
-                    className="w-full h-auto"
-                  />
-                </a>
-              </div>
-            )}
+            {/* Play Store App Download Badge in Footer */}
+            <div className="mt-4">
+              <a 
+                href={playStoreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 bg-black/90 hover:bg-black text-white border border-white/20 hover:border-emerald-500/50 px-4 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-md group"
+              >
+                <svg className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3.609 1.814L13.793 12 3.61 22.186a2.37 2.37 0 0 1-.61-1.63V3.444c0-.623.224-1.2.609-1.63zm11.242 11.243l2.463 2.464-12.01 6.944 9.547-9.408zm0-2.114L5.304 1.535l12.01 6.944-2.463 2.464zm1.472 1.057l3.414 1.972c.983.568.983 1.488 0 2.056l-3.414 1.972-2.115-2.115 2.115-1.885z"/>
+                </svg>
+                <div className="text-left leading-tight">
+                  <span className="text-[7.5px] text-gray-400 block uppercase tracking-wider font-medium">TEMUKAN DI</span>
+                  <span className="text-xs font-black text-white">Google Play</span>
+                </div>
+              </a>
+            </div>
 
             {/* Social Media Links */}
             <div className="mt-6 pt-4 border-t border-white/10">

@@ -13,6 +13,51 @@ function timeToMinutes(timeStr: string): number {
   return h * 60 + m;
 }
 
+// GET: Cek status apakah member sudah absen hari ini
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const memberId = searchParams.get('memberId') || request.headers.get('x-user-id');
+
+    if (!memberId) {
+      return NextResponse.json({ error: "memberId diperlukan" }, { status: 400 });
+    }
+
+    const member = await prisma.member.findFirst({
+      where: {
+        OR: [{ id: memberId }, { userId: memberId }]
+      }
+    });
+
+    if (!member) {
+      return NextResponse.json({ error: "Member tidak ditemukan" }, { status: 404 });
+    }
+
+    const now = new Date();
+    const wibDateStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+    const today = new Date(`${wibDateStr}T00:00:00.000Z`);
+
+    const attendance = await prisma.attendance.findFirst({
+      where: {
+        memberId: member.id,
+        date: today,
+        present: true
+      },
+      include: {
+        schedule: true
+      }
+    });
+
+    return NextResponse.json({
+      attended: !!attendance,
+      attendance: attendance || null
+    });
+  } catch (error: any) {
+    console.error("Error fetching today check-in status:", error);
+    return NextResponse.json({ error: "Gagal memuat status absensi" }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -37,7 +82,7 @@ export async function POST(request: Request) {
     const now = new Date();
 
     // ================================================================
-    // 1. VALIDASI GEOFENCING (Radius Dojang)
+    // 1. VALIDASI GEOFENCING (Radius Dojang dengan Toleransi GPS)
     // ================================================================
     const setting = await prisma.setting.findUnique({ where: { id: "default" } });
     if (setting?.dojangLat && setting?.dojangLng && latitude && longitude) {
@@ -50,20 +95,25 @@ export async function POST(request: Request) {
         Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLng / 2) ** 2;
       const distance = Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
 
-      if (distance > setting.dojangRadius) {
+      // Berikan toleransi akurasi GPS HP (buffer min 250 meter)
+      const allowedRadius = Math.max(setting.dojangRadius || 100, 250);
+
+      if (distance > allowedRadius) {
         return NextResponse.json({
+          code: "OUT_OF_RADIUS",
           error: `Anda berada di luar area dojang`,
-          detail: `Jarak Anda ${distance} meter dari dojang. Maksimal radius absen: ${setting.dojangRadius} meter.`,
+          detail: `Jarak Anda terdeteksi ${distance} meter dari dojang (maksimum toleransi: ${allowedRadius} meter). Pastikan Anda berada di area latihan.`,
           distance,
-          maxRadius: setting.dojangRadius,
+          maxRadius: allowedRadius,
         }, { status: 400 });
       }
     }
 
     // ================================================================
-    // 2. VALIDASI JADWAL — Cek apakah hari ini ada jadwal latihan
+    // 2. VALIDASI JADWAL — Berdasarkan Waktu WIB (Asia/Jakarta, UTC+7)
     // ================================================================
-    const todayIndex = now.getDay(); // 0=Minggu, 1=Senin, dst
+    const wibDate = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Jakarta" }));
+    const todayIndex = wibDate.getDay(); // 0=Minggu, 1=Senin, dst (WIB)
     const hariIniNama = Object.keys(HARI_MAP).find(k => HARI_MAP[k] === todayIndex) || '';
 
     // Ambil semua jadwal yang hari-nya cocok dengan hari ini
@@ -75,17 +125,18 @@ export async function POST(request: Request) {
     if (todaySchedules.length === 0) {
       const hariFormatted = hariIniNama.charAt(0).toUpperCase() + hariIniNama.slice(1);
       return NextResponse.json({
+        code: "NO_SCHEDULE",
         error: `Tidak ada jadwal latihan hari ${hariFormatted}`,
-        detail: `Absen hanya bisa dilakukan pada hari latihan. Silakan cek jadwal latihan Anda.`,
+        detail: `Hari ini (${hariFormatted}) tidak ada jadwal latihan terdaftar. Absen mandiri hanya dibuka pada hari latihan.`,
       }, { status: 400 });
     }
 
     // ================================================================
-    // 3. VALIDASI JAM — Cek apakah sekarang dalam rentang waktu latihan
-    //    Toleransi: 30 menit sebelum mulai s.d. 30 menit setelah selesai
+    // 3. VALIDASI JAM — Berdasarkan Menit WIB (Asia/Jakarta)
+    //    Toleransi: 60 menit sebelum mulai s.d. 60 menit setelah selesai
     // ================================================================
-    const TOLERANSI_MENIT = 30;
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const TOLERANSI_MENIT = 60;
+    const nowMinutes = wibDate.getHours() * 60 + wibDate.getMinutes();
 
     let activeSchedule = todaySchedules.find(s => {
       const start = timeToMinutes(s.startTime) - TOLERANSI_MENIT;
@@ -94,14 +145,14 @@ export async function POST(request: Request) {
     });
 
     if (!activeSchedule) {
-      // Format jadwal hari ini untuk info ke murid
       const jadwalList = todaySchedules
-        .map(s => `${s.className}: ${s.startTime}–${s.endTime}`)
+        .map(s => `${s.className}: ${s.startTime}–${s.endTime} WIB`)
         .join(', ');
 
       return NextResponse.json({
-        error: `Absen belum/sudah melewati jam latihan`,
-        detail: `Absen hanya bisa dilakukan 30 menit sebelum s.d. 30 menit setelah latihan berakhir. Jadwal hari ini: ${jadwalList}`,
+        code: "OUT_OF_TIME",
+        error: `Di luar jam latihan`,
+        detail: `Absen hanya bisa dilakukan mulai 60 menit sebelum hingga 60 menit setelah latihan berakhir. Jadwal hari ini: ${jadwalList}`,
         todaySchedules: todaySchedules.map(s => ({
           className: s.className,
           startTime: s.startTime,
@@ -113,8 +164,8 @@ export async function POST(request: Request) {
     // ================================================================
     // 4. SIMPAN ABSEN
     // ================================================================
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
+    const wibDateStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+    const today = new Date(`${wibDateStr}T00:00:00.000Z`);
 
     const existing = await prisma.attendance.findFirst({
       where: { memberId: targetMemberId, date: today }
@@ -186,6 +237,6 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error("Error creating check-in:", error);
-    return NextResponse.json({ error: "Gagal mencatat absensi" }, { status: 500 });
+    return NextResponse.json({ error: "Gagal mencatat absensi: " + (error?.message || "Internal error") }, { status: 500 });
   }
 }

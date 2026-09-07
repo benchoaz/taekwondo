@@ -23,7 +23,7 @@ ENV DATABASE_URL="postgresql://taekwondo_user:taekwondo_password@localhost:5432/
 RUN npx prisma generate
 RUN npm run build
 
-# Runner stage - salin seluruh /app utuh dari builder
+# Runner stage - gunakan output standalone resmi dari Next.js
 FROM base AS runner
 WORKDIR /app
 
@@ -34,7 +34,9 @@ ENV HOSTNAME="0.0.0.0"
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder --chown=nextjs:nodejs /app ./
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
@@ -43,4 +45,4 @@ EXPOSE 3030
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3030/ || exit 1
 
-CMD ["node", "node_modules/next/dist/bin/next", "start", "-p", "3030", "-H", "0.0.0.0"]
+CMD ["node", "server.js"]

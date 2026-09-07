@@ -61,6 +61,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
   int _currentTab = 0; // 0: Lobby, 1: Toko, 2: Misi, 3: SPP, 4: Atlet
   bool _isAbsenLoading = false;
   bool _isAbsenSuccess = false;
+  String? _absenSuccessDetail;
 
   // States for expandable daily quests
   String? _expandedQuestId;
@@ -82,6 +83,7 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
       } catch (e) {
         debugPrint("FCM Init failed on dashboard startup: $e");
       }
+      _checkTodayAttendanceStatus();
     });
   }
 
@@ -1084,7 +1086,11 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
                       child: Text(
                         _isAbsenLoading 
                             ? 'MEMPROSES ABSEN...' 
-                            : (_isAbsenSuccess ? 'ANDA SUDAH ABSEN HARI INI' : 'KLIK UNTUK ABSEN SEKARANG!'),
+                            : (_isAbsenSuccess 
+                                ? (_absenSuccessDetail != null 
+                                    ? 'SUDAH ABSEN: $_absenSuccessDetail' 
+                                    : 'ANDA SUDAH ABSEN HARI INI ✅')
+                                : 'KLIK UNTUK ABSEN SEKARANG!'),
                         style: GoogleFonts.outfit(
                           color: Colors.white,
                           fontSize: 16,
@@ -2699,51 +2705,72 @@ class _MemberDashboardScreenState extends ConsumerState<MemberDashboardScreen> {
     );
   }
 
+  Future<void> _checkTodayAttendanceStatus() async {
+    try {
+      final status = await AttendanceService(ref.read(dioProvider)).checkTodayStatus(widget.user);
+      if (status != null && status['attended'] == true && mounted) {
+        final att = status['attendance'];
+        String? className = att?['schedule']?['className'];
+        setState(() {
+          _isAbsenSuccess = true;
+          _absenSuccessDetail = className;
+        });
+      }
+    } catch (e) {
+      debugPrint('[Attendance] Gagal periksa status hari ini: $e');
+    }
+  }
+
   void _handleSelfAttendance() async {
-    if (_isAbsenLoading || _isAbsenSuccess) return;
+    if (_isAbsenLoading) return;
+
+    if (_isAbsenSuccess) {
+      _showGamifiedDialog(
+        title: 'Sudah Absen Hari Ini! ✅',
+        message: 'Kehadiran Anda hari ini sudah tercatat${_absenSuccessDetail != null ? " di $_absenSuccessDetail" : ""}. Terima kasih sudah disiplin berlatih!',
+        isSuccess: true,
+      );
+      return;
+    }
 
     setState(() { _isAbsenLoading = true; });
 
     try {
-      final success = await AttendanceService(ref.read(dioProvider)).checkInWithLocation(widget.user);
-      if (success) {
+      final result = await AttendanceService(ref.read(dioProvider)).checkInWithLocation(widget.user);
+      if (mounted) {
         setState(() {
           _isAbsenLoading = false;
-          _isAbsenSuccess = true;
-        });
-        ref.invalidate(profileProvider); // Refresh to get updated coins / XP
-        
-        _showGamifiedDialog(
-          title: 'Hadir Latihan! 🎉',
-          message: 'Absensi Anda berhasil dicatat hari ini. Tetap semangat berlatih!',
-          isSuccess: true,
-          coinsReward: '10',
-        );
-
-        Future.delayed(const Duration(seconds: 3), () {
-          if (mounted) {
-            setState(() { _isAbsenSuccess = false; });
+          if (result.success) {
+            _isAbsenSuccess = true;
+            _absenSuccessDetail = result.scheduleName;
           }
         });
-      } else {
+
+        if (result.success) {
+          ref.invalidate(profileProvider); // Refresh koin / XP
+          _showGamifiedDialog(
+            title: result.title,
+            message: result.message,
+            isSuccess: true,
+            coinsReward: result.coinsGained != null ? '${result.coinsGained}' : '10',
+          );
+        } else {
+          _showGamifiedDialog(
+            title: result.title,
+            message: result.message,
+            isSuccess: false,
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
         setState(() { _isAbsenLoading = false; });
         _showGamifiedDialog(
           title: 'Gagal Absen ❌',
-          message: 'Gagal mencatat absensi. Silakan coba kembali.',
+          message: e.toString().replaceFirst('Exception: ', ''),
           isSuccess: false,
         );
       }
-    } catch (e) {
-      setState(() { _isAbsenLoading = false; });
-      String errMsg = e.toString();
-      if (errMsg.startsWith('Exception: ')) {
-        errMsg = errMsg.substring(11);
-      }
-      _showGamifiedDialog(
-        title: 'Batas Jangkauan! 📍',
-        message: errMsg,
-        isSuccess: false,
-      );
     }
   }
 

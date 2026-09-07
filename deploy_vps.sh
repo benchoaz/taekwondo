@@ -29,24 +29,19 @@ sshpass -p "$PASS" ssh $SSH_OPTS $HOST "
   
   # Lakukan Backup Database sebelum mengubah apapun!
   echo 'Melakukan backup database otomatis...'
-  echo '$PASS' | sudo -S podman exec taekwondo_db pg_dump -U taekwondo_user -d taekwondo_academy > /home/ubuntu/taekwondo_storage/backup_\$(date +%Y%m%d_%H%M%S).sql || true
+  echo '$PASS' | sudo -S podman exec taekwondo_db_v3 pg_dump -U taekwondo_user -d taekwondo_academy > /home/ubuntu/taekwondo_storage/backup_\$(date +%Y%m%d_%H%M%S).sql 2>/dev/null || true
 
-  # Hentikan dan hapus kontainer & image lama untuk memaksakan build baru
-  echo '$PASS' | sudo -S podman stop taekwondo_web taekwondo_web_v3 || true
-  echo '$PASS' | sudo -S podman rm -f taekwondo_web taekwondo_web_v3 || true
-  echo '$PASS' | sudo -S podman rmi -f localhost/ubuntu_web:latest ubuntu_web:latest || true
-  echo '$PASS' | sudo -S podman-compose down || true
+  # Hentikan dan hapus kontainer web lama untuk memaksakan build baru
+  echo '$PASS' | sudo -S podman stop taekwondo_web_v3 2>/dev/null || true
+  echo '$PASS' | sudo -S podman rm -f taekwondo_web_v3 2>/dev/null || true
 
-  # Jalankan podman compose (build ulang) dengan sudo
+  # Jalankan podman compose (build ulang container web) dengan sudo
   echo '$PASS' | sudo -S podman-compose up -d --build
-  
+
   echo 'Menunggu container web siap (10 detik)...'
   sleep 10
   
   # Eksekusi migrasi database di dalam container dengan sudo
-  WEB_CONTAINER=\$(echo '$PASS' | sudo -S podman ps --filter 'name=web' --format '{{.ID}}' | head -n 1)
-  if [ -n \"\$WEB_CONTAINER\" ]; then
-    echo '$PASS' | sudo -S podman exec \$WEB_CONTAINER npx prisma migrate deploy
-  fi
+  echo '$PASS' | sudo -S podman exec taekwondo_web_v3 npx prisma migrate deploy || true
 "
 echo "Deployment Selesai!"

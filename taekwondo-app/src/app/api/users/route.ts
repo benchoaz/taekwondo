@@ -31,6 +31,19 @@ export async function GET() {
                 promotedAt: true,
               },
               orderBy: { promotedAt: "desc" }
+            },
+            beltClaims: {
+              where: { status: "PENDING" },
+              select: {
+                id: true,
+                currentBelt: true,
+                claimedBelt: true,
+                certProofUrl: true,
+                status: true,
+                createdAt: true,
+              },
+              orderBy: { createdAt: "desc" },
+              take: 1
             }
           }
         },
@@ -69,6 +82,7 @@ export async function GET() {
       prepaidMonthsRemaining: u.member?.prepaidMonthsRemaining || 0,
       phone: u.member?.phone || null,
       beltHistory: u.member?.beltHistory || [],
+      pendingBeltClaim: u.member?.beltClaims?.[0] || null,
     }));
 
     return NextResponse.json(formattedUsers);

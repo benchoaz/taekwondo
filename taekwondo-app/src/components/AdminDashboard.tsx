@@ -98,6 +98,14 @@ interface UserData {
   currentBelt?: string | null;
   memberNumber?: string | null;
   certDocUrl?: string | null;
+  pendingBeltClaim?: {
+    id: string;
+    currentBelt: string;
+    claimedBelt: string;
+    certProofUrl?: string | null;
+    status: string;
+    createdAt: string;
+  } | null;
 }
 
 interface ArticleData {
@@ -195,6 +203,7 @@ export default function AdminDashboard({
   const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile sidebar state
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
+  const [userFilterClaimOnly, setUserFilterClaimOnly] = useState(false);
   
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [isStatsLoading, setIsStatsLoading] = useState(true);
@@ -720,6 +729,33 @@ export default function AdminDashboard({
       console.error("Error fetching users:", e);
     } finally {
       setIsLoadingUsers(false);
+    }
+  };
+
+  const handleVerifyBeltClaim = async (claimId: string, action: "APPROVE" | "REJECT") => {
+    const notes = prompt(action === "APPROVE" ? "Catatan persetujuan kenaikan sabuk (opsional):" : "Masukkan alasan penolakan klaim (wajib):");
+    if (action === "REJECT" && notes === null) return;
+    if (action === "REJECT" && !notes?.trim()) {
+      alert("Alasan penolakan wajib diisi.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/coach/belt-claims", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ claimId, action, coachNotes: notes })
+      });
+      const result = await res.json();
+      if (res.ok) {
+        alert(action === "APPROVE" ? "✅ Klaim sabuk disetujui! Sabuk murid berhasil diperbarui." : "❌ Klaim sabuk ditolak.");
+        fetchUsers();
+      } else {
+        alert(result.error || "Gagal memproses verifikasi.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Gagal menghubungi server.");
     }
   };
 
@@ -3491,6 +3527,33 @@ export default function AdminDashboard({
                 </div>
               </div>
 
+              {/* Alert Pengajuan Klaim Sabuk */}
+              {users.filter(u => u.pendingBeltClaim).length > 0 && (
+                <div className="bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-amber-500/5 border-l-4 border-amber-500 p-4 rounded-xl flex items-center justify-between flex-wrap gap-3 text-xs shadow-sm">
+                  <div className="flex items-center gap-2.5 text-amber-950 font-bold">
+                    <span className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-amber-800 shrink-0 text-base">🥋</span>
+                    <div>
+                      <p className="text-amber-950 font-black text-sm">
+                        Ada {users.filter(u => u.pendingBeltClaim).length} Murid Mengajukan Perubahan Sabuk!
+                      </p>
+                      <p className="text-amber-800 text-[11px] font-medium mt-0.5">
+                        Murid telah mengunggah bukti sertifikat dan menunggu persetujuan Admin/Pelatih.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setUserFilterClaimOnly(!userFilterClaimOnly)}
+                    className={`px-3.5 py-2 rounded-xl font-black text-xs transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
+                      userFilterClaimOnly
+                        ? "bg-amber-600 hover:bg-amber-700 text-white"
+                        : "bg-amber-200/80 hover:bg-amber-300 text-amber-900 border border-amber-400/80"
+                    }`}
+                  >
+                    <span>{userFilterClaimOnly ? "✓ Tampilkan Semua Pengguna" : "⚡ Filter Hanya Murid Mengajukan Sabuk"}</span>
+                  </button>
+                </div>
+              )}
+
               {/* Users Table */}
               <div className="bg-white border border-[#0F172A]/5 rounded-2xl overflow-hidden shadow-sm overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse min-w-[700px]">
@@ -3515,13 +3578,31 @@ export default function AdminDashboard({
                       </tr>
                     ) : users
                       .filter(u => 
-                        (u.username || u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-                        u.name.toLowerCase().includes(searchTerm.toLowerCase())
+                        (!userFilterClaimOnly || !!u.pendingBeltClaim) &&
+                        ((u.username || u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                        u.name.toLowerCase().includes(searchTerm.toLowerCase()))
                       )
                       .map((u, idx) => (
-                        <tr key={idx} className="border-b border-[#0F172A]/5 hover:bg-slate-50/50">
+                        <tr 
+                          key={idx} 
+                          className={`border-b transition-all ${
+                            u.pendingBeltClaim 
+                              ? "bg-amber-50/90 hover:bg-amber-100/80 border-amber-200 border-l-4 border-l-amber-500 shadow-sm" 
+                              : "border-[#0F172A]/5 hover:bg-slate-50/50"
+                          }`}
+                        >
                           <td className="p-4 font-mono font-bold text-gray-400">{u.id}</td>
-                          <td className="p-4 font-bold text-[#0F172A]">{u.name}</td>
+                          <td className="p-4 font-bold text-[#0F172A]">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span>{u.name}</span>
+                              {u.pendingBeltClaim && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-200 text-amber-900 border border-amber-400 animate-pulse" title="Murid ini telah mengajukan kenaikan sabuk">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-ping"></span>
+                                  KLAIM SABUK
+                                </span>
+                              )}
+                            </div>
+                          </td>
                           <td className="p-4 font-mono text-gray-600">{u.username || (u.email ? u.email.split('@')[0] : '-')}</td>
                           <td className="p-4">
                             <span className={`px-2.5 py-1 rounded-full font-black text-[9px] uppercase tracking-wider ${
@@ -3536,26 +3617,73 @@ export default function AdminDashboard({
                           </td>
                           <td className="p-4">
                             {u.role === "MEMBER" ? (
-                              <span className="px-2 py-1 bg-slate-100 text-slate-700 rounded-md font-bold text-[10px]">
-                                {u.currentBelt || "Sabuk Putih (10 Geup)"}
-                              </span>
+                              <div className="flex flex-col gap-1.5">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-gray-400 text-[10px]">Aktif:</span>
+                                  <span className="px-2 py-0.5 bg-slate-100 text-slate-700 rounded font-bold text-[10px]">
+                                    {u.currentBelt || "Sabuk Putih (10 Geup)"}
+                                  </span>
+                                </div>
+                                {u.pendingBeltClaim && (
+                                  <div className="flex flex-col gap-1 p-2 rounded-xl bg-amber-100/90 border border-amber-300/90 text-amber-950 shadow-sm">
+                                    <div className="flex items-center gap-1 font-black text-[10px] text-amber-900">
+                                      <span>⚡ Klaim:</span>
+                                      <span className="text-[#E10600] font-black bg-white px-1.5 py-0.5 rounded border border-amber-200">
+                                        {u.pendingBeltClaim.claimedBelt}
+                                      </span>
+                                    </div>
+                                    {u.pendingBeltClaim.certProofUrl && (
+                                      <a
+                                        href={u.pendingBeltClaim.certProofUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center gap-1 text-[9px] font-bold text-blue-700 hover:text-blue-900 underline mt-0.5"
+                                      >
+                                        <FileText className="w-3 h-3" />
+                                        Lihat Sertifikat Bukti ↗
+                                      </a>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             ) : (
                               <span className="text-gray-400 font-bold">-</span>
                             )}
                           </td>
                           <td className="p-4">
-                            <button
-                              onClick={() => handleEditUser(u)}
-                              className="text-[10px] bg-slate-100 hover:bg-slate-200 text-[#0F172A] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all"
-                            >
-                              <Edit className="w-3 h-3 text-[#E10600]" />
-                              Sesuaikan Sabuk / Edit
-                            </button>
-                            {u.certDocUrl && (
-                              <a href={u.certDocUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center p-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors mt-2" title="Lihat Sertifikat">
-                                <FileText className="w-4 h-4" />
-                              </a>
-                            )}
+                            <div className="flex flex-col gap-1.5">
+                              {u.pendingBeltClaim && (
+                                <div className="flex items-center gap-1 mb-1">
+                                  <button
+                                    onClick={() => handleVerifyBeltClaim(u.pendingBeltClaim!.id, "APPROVE")}
+                                    className="text-[10px] bg-emerald-600 hover:bg-emerald-700 text-white font-black px-2.5 py-1.5 rounded-lg flex items-center gap-1 shadow-sm transition-all active:scale-95 cursor-pointer"
+                                    title={`Setujui kenaikan sabuk ke ${u.pendingBeltClaim.claimedBelt}`}
+                                  >
+                                    <Check className="w-3.5 h-3.5" />
+                                    Setujui
+                                  </button>
+                                  <button
+                                    onClick={() => handleVerifyBeltClaim(u.pendingBeltClaim!.id, "REJECT")}
+                                    className="text-[10px] bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold px-2 py-1.5 rounded-lg transition-all active:scale-95 cursor-pointer"
+                                    title="Tolak klaim sabuk"
+                                  >
+                                    Tolak
+                                  </button>
+                                </div>
+                              )}
+                              <button
+                                onClick={() => handleEditUser(u)}
+                                className="text-[10px] bg-slate-100 hover:bg-slate-200 text-[#0F172A] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 transition-all w-fit"
+                              >
+                                <Edit className="w-3 h-3 text-[#E10600]" />
+                                Sesuaikan Sabuk / Edit
+                              </button>
+                              {u.certDocUrl && (
+                                <a href={u.certDocUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center p-2 rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors mt-1 w-fit" title="Lihat Sertifikat">
+                                  <FileText className="w-4 h-4" />
+                                </a>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))}

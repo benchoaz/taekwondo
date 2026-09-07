@@ -37,6 +37,7 @@ export async function middleware(request: NextRequest) {
     '/api/achievements',
     '/api/gallery',
     '/api/landing-stats',
+    '/api/videos',
   ];
   if (request.method === 'GET' && publicGetRoutes.includes(pathname)) {
     return NextResponse.next();

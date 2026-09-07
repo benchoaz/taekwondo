@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { 
   Shield, 
@@ -23,6 +23,14 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import HeroSlider from "@/components/HeroSlider";
 import Image from "next/image";
+
+function getInitials(name?: string | null): string {
+  if (!name) return "WT";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export default function LandingPage({ 
   onNavigate 
 }: { 
@@ -56,6 +64,116 @@ export default function LandingPage({
 
   const [announcement, setAnnouncement] = useState<any>(null);
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
+
+  // Top athletes preview for Hall of Fame section
+  const defaultAthletes = [
+    {
+      memberId: "default-1",
+      fullName: "M. Farhan Al-Ghifari",
+      currentBelt: "Sabuk Merah",
+      selfieUrl: null,
+      goldCount: 3,
+      silverCount: 1,
+      bronzeCount: 0,
+      totalMedals: 4,
+    },
+    {
+      memberId: "default-2",
+      fullName: "Alya Zahra Ramadhani",
+      currentBelt: "Sabuk Merah Strip Hitam",
+      selfieUrl: null,
+      goldCount: 2,
+      silverCount: 2,
+      bronzeCount: 1,
+      totalMedals: 5,
+    },
+    {
+      memberId: "default-3",
+      fullName: "Bintang Satria Wicaksana",
+      currentBelt: "Sabuk Biru Strip Merah",
+      selfieUrl: null,
+      goldCount: 2,
+      silverCount: 0,
+      bronzeCount: 1,
+      totalMedals: 3,
+    },
+    {
+      memberId: "default-4",
+      fullName: "Nadia Putri Kirana",
+      currentBelt: "Sabuk Biru",
+      selfieUrl: null,
+      goldCount: 1,
+      silverCount: 2,
+      bronzeCount: 0,
+      totalMedals: 3,
+    },
+  ];
+
+  const topAthletes = useMemo(() => {
+    if (!Array.isArray(dbAchievements) || dbAchievements.length === 0) {
+      return defaultAthletes;
+    }
+
+    const groupMap = new Map<string, {
+      memberId: string;
+      fullName: string;
+      selfieUrl: string | null;
+      currentBelt: string | null;
+      achievements: any[];
+      goldCount: number;
+      silverCount: number;
+      bronzeCount: number;
+      totalMedals: number;
+    }>();
+
+    dbAchievements.forEach((ach: any) => {
+      const memberId = ach.member?.id || `unknown-${ach.id}`;
+      const memberName = ach.member?.fullName || "Atlet White Tiger";
+      const currentBelt = ach.member?.currentBelt || "Atlet Resmi";
+      const heroPhotoUrl = ach.photoUrl || ach.member?.selfieUrl || null;
+
+      if (!groupMap.has(memberId)) {
+        groupMap.set(memberId, {
+          memberId,
+          fullName: memberName,
+          selfieUrl: heroPhotoUrl,
+          currentBelt,
+          achievements: [],
+          goldCount: 0,
+          silverCount: 0,
+          bronzeCount: 0,
+          totalMedals: 0,
+        });
+      }
+
+      const group = groupMap.get(memberId)!;
+      group.achievements.push(ach);
+
+      if (ach.photoUrl || (!group.selfieUrl && ach.member?.selfieUrl)) {
+        group.selfieUrl = ach.photoUrl || ach.member?.selfieUrl || group.selfieUrl;
+      }
+
+      const rankLower = (ach.rank || "").toLowerCase();
+      if (rankLower.includes("emas") || rankLower.includes("juara 1") || rankLower === "1") {
+        group.goldCount++;
+      } else if (rankLower.includes("perak") || rankLower.includes("juara 2") || rankLower === "2") {
+        group.silverCount++;
+      } else {
+        group.bronzeCount++;
+      }
+      group.totalMedals = group.achievements.length;
+    });
+
+    const sorted = Array.from(groupMap.values()).sort((a, b) => {
+      if (b.goldCount !== a.goldCount) return b.goldCount - a.goldCount;
+      if (b.silverCount !== a.silverCount) return b.silverCount - a.silverCount;
+      if (b.bronzeCount !== a.bronzeCount) return b.bronzeCount - a.bronzeCount;
+      return b.achievements.length - a.achievements.length;
+    });
+
+    return sorted.length > 0 ? sorted.slice(0, 4) : defaultAthletes;
+  }, [dbAchievements]);
+
 
   useEffect(() => {
     // Fetch Settings
@@ -233,7 +351,7 @@ export default function LandingPage({
 
           <div className="hidden lg:flex items-center gap-8 font-medium text-sm text-[#0F172A]">
             <a href="#events" onClick={(e) => { e.preventDefault(); document.getElementById('events')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="hover:text-[#E10600] transition-colors">Informasi</a>
-            <Link href="/hall-of-fame" className="hover:text-[#E10600] transition-colors font-bold text-[#E10600]">Hall of Fame</Link>
+            <a href="#achievements" onClick={(e) => { e.preventDefault(); document.getElementById('achievements')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="hover:text-[#E10600] transition-colors font-bold text-[#E10600]">Hall of Fame</a>
             <a href="#coaches" onClick={(e) => { e.preventDefault(); document.getElementById('coaches')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="hover:text-[#E10600] transition-colors">Pelatih</a>
             <a href="#gallery" className="hover:text-[#E10600] transition-colors">Galeri</a>
             <button onClick={() => onNavigate("schedule-view")} className="hover:text-[#E10600] transition-colors cursor-pointer text-left">Jadwal</button>
@@ -269,6 +387,7 @@ export default function LandingPage({
             <a href="#about" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-[#0F172A]">Tentang Kami</a>
             <a href="#programs" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-[#0F172A]">Program</a>
             <a href="#events" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-[#0F172A]">Agenda</a>
+            <a href="#achievements" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-[#E10600]">Hall of Fame</a>
             <a href="#coaches" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-[#0F172A]">Pelatih</a>
             <a href="#gallery" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-[#0F172A]">Galeri</a>
             <button onClick={() => { setMobileMenuOpen(false); onNavigate("schedule-view"); }} className="font-semibold text-[#0F172A] text-left">Jadwal</button>
@@ -441,7 +560,7 @@ export default function LandingPage({
 
       {/* ── SECTION: PRESTASI (HALL OF FAME PREVIEW) ── */}
       <section className="py-24 bg-[#0a0908] text-[#ece4d3] relative overflow-hidden font-jost" id="achievements">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[900px] h-[500px] bg-[#c6a15b]/10 blur-[150px] rounded-full pointer-events-none"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-[500px] bg-[#c6a15b]/10 blur-[150px] rounded-full pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
           <span className="font-jost text-xs font-black tracking-[0.3em] uppercase text-[#c6a15b] mb-3 block">
@@ -450,9 +569,107 @@ export default function LandingPage({
           <h2 className="font-cinzel text-4xl md:text-5xl font-bold text-[#ece4d3] mb-4">
             HALL OF <span className="text-[#e6c883]">FAME</span>
           </h2>
-          <p className="font-jost text-[#8d8676] text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
+          <p className="font-jost text-[#8d8676] text-base md:text-lg max-w-2xl mx-auto leading-relaxed mb-6">
             Dinding penghormatan resmi atlet sang juara. Dedikasi, disiplin, dan perjuangan mengukir medali kebanggaan Dojang.
           </p>
+
+          {/* Decorative Divider with Central Diamond */}
+          <div className="flex items-center gap-4 w-full max-w-md mx-auto mb-12">
+            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent via-[#c6a15b]/40 to-[#c6a15b]/40" />
+            <div className="w-2.5 h-2.5 rotate-45 border border-[#e6c883] bg-[#7c1f26] shrink-0 shadow-[0_0_8px_rgba(230,200,131,0.5)]" />
+            <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent via-[#c6a15b]/40 to-[#c6a15b]/40" />
+          </div>
+
+          {/* Top Athlete Cards Preview Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-left mb-12">
+            {topAthletes.map((athlete) => (
+              <Link
+                href="/hall-of-fame"
+                key={athlete.memberId}
+                className="group relative bg-gradient-to-b from-[#131110] to-[#1b1815] border border-[#c6a15b]/20 hover:border-[#e6c883] p-6 transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_15px_35px_-10px_rgba(198,161,91,0.25)] cursor-pointer flex flex-col justify-between"
+              >
+                {/* Corner Brackets (Sudut Siku Emas) */}
+                <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-[#c6a15b]/50 group-hover:border-[#e6c883] transition-colors" />
+                <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-[#c6a15b]/50 group-hover:border-[#e6c883] transition-colors" />
+                <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-[#c6a15b]/50 group-hover:border-[#e6c883] transition-colors" />
+                <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-[#c6a15b]/50 group-hover:border-[#e6c883] transition-colors" />
+
+                <div className="flex flex-col items-center text-center">
+                  <div className="relative mb-5">
+                    {/* Cincin Gradasi Emas-Merah */}
+                    <div className="p-[3px] rounded-full bg-gradient-to-tr from-[#7c1f26] via-[#c6a15b] to-[#e6c883] shadow-lg group-hover:shadow-[0_0_15px_rgba(230,200,131,0.4)] transition-shadow">
+                      <div className="p-[2px] bg-[#131110] rounded-full">
+                        {athlete.selfieUrl ? (
+                          <img
+                            src={athlete.selfieUrl}
+                            alt={athlete.fullName}
+                            loading="lazy"
+                            className="w-24 h-24 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-24 h-24 rounded-full bg-[#1b1815] flex items-center justify-center border border-[#c6a15b]/20">
+                            <span className="font-cinzel font-bold text-lg text-[#e6c883]">
+                              {getInitials(athlete.fullName)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Club Seal Badge */}
+                    <div
+                      className="absolute bottom-0 right-0 w-7 h-7 rounded-full bg-[#7c1f26] border-2 border-[#c6a15b] flex items-center justify-center text-[9px] font-black text-[#e6c883] font-cinzel shadow-md"
+                      title="White Tiger Club Seal"
+                    >
+                      WTK
+                    </div>
+                  </div>
+
+                  {/* Member Name */}
+                  <h3 className="font-cinzel text-base font-bold text-[#ece4d3] group-hover:text-[#e6c883] transition-colors leading-tight mb-1 line-clamp-1">
+                    {athlete.fullName}
+                  </h3>
+
+                  {/* Belt Subtitle */}
+                  <p className="font-jost text-[10px] tracking-[0.15em] text-[#8d8676] uppercase line-clamp-1 mb-3">
+                    {athlete.currentBelt || "Atlet Resmi"}
+                  </p>
+
+                  {/* Medal Badges */}
+                  <div className="flex items-center gap-1.5 flex-wrap justify-center bg-[#0a0908]/80 border border-[#c6a15b]/20 px-3 py-1.5 rounded-full mb-3">
+                    {athlete.goldCount > 0 && (
+                      <span className="text-[10px] font-bold text-[#e6c883] flex items-center gap-0.5">
+                        🥇 {athlete.goldCount} <span className="hidden sm:inline">Emas</span>
+                      </span>
+                    )}
+                    {athlete.silverCount > 0 && (
+                      <span className="text-[10px] font-bold text-slate-300 flex items-center gap-0.5">
+                        🥈 {athlete.silverCount} <span className="hidden sm:inline">Perak</span>
+                      </span>
+                    )}
+                    {athlete.bronzeCount > 0 && (
+                      <span className="text-[10px] font-bold text-amber-600 flex items-center gap-0.5">
+                        🥉 {athlete.bronzeCount} <span className="hidden sm:inline">Perunggu</span>
+                      </span>
+                    )}
+                    {athlete.goldCount === 0 && athlete.silverCount === 0 && athlete.bronzeCount === 0 && (
+                      <span className="text-[10px] text-[#8d8676]">{athlete.totalMedals || 1} Prestasi</span>
+                    )}
+                  </div>
+
+                  {/* Divider Line */}
+                  <div className="w-7 h-[1.5px] bg-[#c6a15b]/40 my-2 group-hover:w-12 group-hover:bg-[#e6c883] transition-all" />
+                </div>
+
+                {/* Hover Action Text */}
+                <div className="mt-2 text-center overflow-hidden">
+                  <span className="font-jost text-[10px] font-bold tracking-[0.25em] text-[#e6c883] uppercase opacity-80 group-hover:opacity-100 transform translate-y-0 transition-all duration-300 inline-flex items-center gap-1">
+                    Lihat Prestasi →
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
 
           <Link
             href="/hall-of-fame"

@@ -17,15 +17,24 @@ function timeToMinutes(timeStr: string): number {
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const memberId = searchParams.get('memberId') || request.headers.get('x-user-id');
+    const headerUserId = request.headers.get('x-user-id');
+    const paramId = searchParams.get('memberId');
+    const targetId = paramId || headerUserId;
 
-    if (!memberId) {
+    if (!targetId) {
       return NextResponse.json({ error: "memberId diperlukan" }, { status: 400 });
     }
 
     const member = await prisma.member.findFirst({
       where: {
-        OR: [{ id: memberId }, { userId: memberId }]
+        OR: [
+          { id: targetId },
+          { userId: targetId },
+          ...(headerUserId ? [{ userId: headerUserId }] : []),
+          { user: { email: targetId } },
+          { memberNumber: targetId },
+          { memberNumber: targetId.replace('#', '') }
+        ]
       }
     });
 
@@ -62,15 +71,24 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { memberId, latitude, longitude } = body;
+    const headerUserId = request.headers.get('x-user-id');
+    const targetId = memberId || headerUserId;
 
-    if (!memberId) {
+    if (!targetId) {
       return NextResponse.json({ error: "Data tidak lengkap" }, { status: 400 });
     }
 
-    // Cari member berdasarkan id atau userId
+    // Cari member fleksibel (ID Member, User ID, Session User ID, Email, atau Nomor Anggota)
     const member = await prisma.member.findFirst({
       where: {
-        OR: [{ id: memberId }, { userId: memberId }]
+        OR: [
+          { id: targetId },
+          { userId: targetId },
+          ...(headerUserId ? [{ userId: headerUserId }] : []),
+          { user: { email: targetId } },
+          { memberNumber: targetId },
+          { memberNumber: targetId.replace('#', '') }
+        ]
       }
     });
 

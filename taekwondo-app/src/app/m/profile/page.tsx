@@ -73,11 +73,20 @@ export default function ProfilePage() {
   const beltColor = getBeltColor(profile?.currentBelt || "");
 
   return (
-    <div className="flex-1 flex flex-col pb-28 bg-[#020617] text-white">
+    <div className="flex-1 flex flex-col pb-36 bg-[#020617] text-white">
       {/* Header Profile */}
-      <div className="relative bg-gradient-to-br from-slate-900 to-slate-950 pt-12 pb-10 px-5 border-b-4 border-[#334155]">
-        <div className="absolute top-0 right-0 w-40 h-40 bg-[#E10600]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl" />
-        <button onClick={() => router.back()} className="flex items-center gap-1 text-slate-400 text-xs mb-6 relative z-10">
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-950 pt-12 pb-10 px-5 border-b-4 border-[#334155]">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-[#E10600]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl pointer-events-none" />
+        <button 
+          onClick={() => {
+            if (typeof window !== "undefined" && window.history.length > 1) {
+              router.back();
+            } else {
+              router.push("/m/dashboard");
+            }
+          }} 
+          className="flex items-center gap-1 text-slate-400 hover:text-white transition-colors text-xs mb-6 relative z-10"
+        >
           <ArrowLeft className="w-4 h-4" /> Kembali
         </button>
         <div className="flex items-center gap-4 relative z-10">
@@ -143,7 +152,9 @@ export default function ProfilePage() {
             })()}
             <div className="flex items-center gap-1.5 mt-1.5">
               <div className="w-2.5 h-2.5 rounded-full border border-slate-900 shadow" style={{ backgroundColor: beltColor }} />
-              <span className="text-slate-300 text-xs font-semibold">Sabuk {profile?.currentBelt}</span>
+              <span className="text-slate-300 text-xs font-semibold">
+                {profile?.currentBelt?.toLowerCase().startsWith("sabuk") ? profile.currentBelt : `Sabuk ${profile?.currentBelt}`}
+              </span>
             </div>
             <span className="text-slate-500 text-[10px] font-bold">#{profile?.memberNumber}</span>
              {profile && (() => {

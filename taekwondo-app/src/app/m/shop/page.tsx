@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "../_components/BottomNav";
-import { Star, ChevronRight, ChevronDown, HelpCircle, X, Check, Package, Shield, Scroll, Disc, Medal, ShoppingCart, Coins, Box } from "lucide-react";
+import { Star, ChevronRight, ChevronDown, HelpCircle, X, Check, Package, Shield, Scroll, Disc, Medal, ShoppingCart, Coins, Box, Lock } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface ShopItem {
@@ -120,7 +120,7 @@ export default function ShopPage() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#080c14] text-white font-sans pb-28 select-none">
+    <div className="min-h-screen bg-[#080c14] text-white font-sans pb-36 select-none">
 
       {/* ── Header ── */}
       <div className="relative overflow-hidden bg-gradient-to-b from-[#1a0a2e] to-[#080c14] px-4 pt-10 pb-5">
@@ -221,7 +221,7 @@ export default function ShopPage() {
                   {item.owned ? (
                     <span className="text-[12px] font-black text-green-400">✓ Dimiliki</span>
                   ) : (
-                    <span className="material-symbols-outlined text-[18px]" style={{ color: `${r.color}80` }}>lock</span>
+                    <Lock className="w-3.5 h-3.5" style={{ color: `${r.color}cc` }} />
                   )}
                 </div>
 

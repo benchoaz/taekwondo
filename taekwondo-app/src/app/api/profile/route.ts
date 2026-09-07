@@ -70,6 +70,9 @@ export async function GET(req: NextRequest) {
       : null;
 
     const profileData = {
+      id: user.member.id,
+      memberId: user.member.id,
+      userId: user.id,
       name: user.name || user.member.fullName, // Display Name / Nickname di APK
       fullName: user.member.fullName || user.name, // Nama Lengkap Resmi Member
       email: user.email,

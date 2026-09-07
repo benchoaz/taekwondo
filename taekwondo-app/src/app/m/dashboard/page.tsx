@@ -12,8 +12,14 @@ import NotificationBell from "../_components/NotificationBell";
 import { getLevelInfo } from "@/lib/level";
 
 interface UserProfile {
-  name: string; email: string; memberNumber: string;
-  currentBelt: string; progress: number;
+  id?: string;
+  memberId?: string;
+  userId?: string;
+  name: string;
+  email: string;
+  memberNumber: string;
+  currentBelt: string;
+  progress: number;
 }
 interface SppInvoice {
   id: string; month: number; year: number;
@@ -127,7 +133,7 @@ export default function MobileDashboard() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              memberId: profile.email, // using email as identifier matches API logic fallback
+              memberId: profile.id || profile.memberId || profile.userId || profile.email,
               latitude: pos.coords.latitude,
               longitude: pos.coords.longitude,
             }),
@@ -170,10 +176,10 @@ export default function MobileDashboard() {
   const beltColor = getBeltColor(profile?.currentBelt || "");
 
   return (
-    <div className="flex-1 flex flex-col pb-28 bg-[#0f172a] text-white overflow-y-auto max-h-screen bg-game-taekwondo-theme">
+    <div className="flex-1 flex flex-col pb-36 bg-[#0f172a] text-white overflow-y-auto max-h-screen bg-game-taekwondo-theme">
       {/* Game Lobby Header */}
-      <div className="relative bg-gradient-to-b from-slate-900 to-slate-950 pt-12 pb-20 px-5 border-b-4 border-[#334155] shadow-[0_4px_20px_rgba(0,0,0,0.5)] shrink-0">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-[#E10600]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+      <div className="relative overflow-hidden bg-gradient-to-b from-slate-900 to-slate-950 pt-12 pb-20 px-5 border-b-4 border-[#334155] shadow-[0_4px_20px_rgba(0,0,0,0.5)] shrink-0">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-[#E10600]/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl pointer-events-none" />
 
         <div className="flex items-center justify-between relative z-50">
           <div className="flex items-center gap-3">

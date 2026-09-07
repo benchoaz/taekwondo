@@ -42,11 +42,18 @@ export default function MobileLoginPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between p-6">
+      {/* Top back button */}
+      <div className="w-full max-w-sm mx-auto flex items-center justify-start mt-2">
+        <a href="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors py-1 px-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+          <span>← Kembali ke Beranda</span>
+        </a>
+      </div>
+
       {/* Brand header */}
-      <div className="flex flex-col items-center mt-8">
-        <div className="w-20 h-20 relative bg-slate-900 border-2 border-slate-800 rounded-3xl p-3 flex items-center justify-center shadow-lg shadow-black/40">
+      <div className="flex flex-col items-center mt-4">
+        <div className="w-20 h-20 relative bg-slate-900 border-2 border-slate-800 rounded-3xl p-3 flex items-center justify-center shadow-lg shadow-black/40 overflow-hidden">
           <Image
-            src="/wt-logo-mini.png"
+            src="/logo.png"
             alt="Dojang Logo"
             width={60}
             height={60}
@@ -90,7 +97,14 @@ export default function MobileLoginPage() {
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="text-xs font-black uppercase tracking-wider text-slate-400">Password</label>
-              <a href="#" className="text-[10px] font-black text-[#E10600] uppercase tracking-wide">Lupa PIN/Password?</a>
+              <a 
+                href="https://wa.me/6281234567890?text=Halo%20Admin%20White%20Tiger,%20saya%20lupa%20PIN%20atau%20Password%20akun%20atlet%20saya.%20Mohon%20bantuan%20reset." 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-[10px] font-black text-[#E10600] uppercase tracking-wide hover:underline"
+              >
+                Lupa PIN/Password?
+              </a>
             </div>
             <div className="relative">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />

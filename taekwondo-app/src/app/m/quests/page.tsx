@@ -138,10 +138,19 @@ export default function QuestsPage() {
   const maxXp = quests.reduce((sum, q) => sum + q.quest.baseXp, 0);
 
   return (
-    <div className="flex-1 flex flex-col pb-28 bg-[#020617] text-white min-h-screen">
+    <div className="flex-1 flex flex-col pb-36 bg-[#020617] text-white min-h-screen">
       {/* Header */}
-      <div className="relative bg-gradient-to-br from-slate-900 to-slate-950 pt-12 pb-6 px-5 border-b-4 border-[#334155]">
-        <button onClick={() => router.back()} className="flex items-center gap-1 text-slate-400 text-xs mb-4">
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-950 pt-12 pb-6 px-5 border-b-4 border-[#334155]">
+        <button 
+          onClick={() => {
+            if (typeof window !== "undefined" && window.history.length > 1) {
+              router.back();
+            } else {
+              router.push("/m/dashboard");
+            }
+          }} 
+          className="flex items-center gap-1 text-slate-400 hover:text-white transition-colors text-xs mb-4"
+        >
           <ArrowLeft className="w-4 h-4" /> Kembali ke Lobby
         </button>
         <div className="flex items-center justify-between">

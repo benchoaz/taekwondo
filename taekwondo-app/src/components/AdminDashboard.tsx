@@ -46,7 +46,9 @@ import {
   Download,
   Menu,
   Gamepad,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Film,
+  ExternalLink
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import SppManagement from "./SppManagement";
@@ -77,6 +79,11 @@ interface SettingData {
   dojangLng?: number | null;
   dojangRadius?: number;
   appApkUrl?: string | null;
+  tiktokUrl?: string | null;
+  facebookUrl?: string | null;
+  instagramUrl?: string | null;
+  telegramUrl?: string | null;
+  youtubeUrl?: string | null;
 }
 
 interface UserData {
@@ -378,9 +385,23 @@ export default function AdminDashboard({
     dojangLat: null,
     dojangLng: null,
     dojangRadius: 50,
-    appApkUrl: null
+    appApkUrl: null,
+    tiktokUrl: "",
+    facebookUrl: "",
+    instagramUrl: "",
+    telegramUrl: "",
+    youtubeUrl: ""
   });
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+
+  // Admin Videos State
+  const [adminVideos, setAdminVideos] = useState<any[]>([]);
+  const [isLoadingAdminVideos, setIsLoadingAdminVideos] = useState(false);
+  const [newVideoTitle, setNewVideoTitle] = useState("");
+  const [newVideoUrl, setNewVideoUrl] = useState("");
+  const [newVideoCategory, setNewVideoCategory] = useState("LATIHAN");
+  const [newVideoDescription, setNewVideoDescription] = useState("");
+  const [isSubmittingVideo, setIsSubmittingVideo] = useState(false);
 
   // Users state
   const [users, setUsers] = useState<UserData[]>([]);
@@ -593,11 +614,83 @@ export default function AdminDashboard({
       fetchCoaches();
     } else if (activeTab === "gallery") {
       fetchGallery();
+    } else if (activeTab === "videos") {
+      fetchAdminVideos();
     } else if (activeTab === "ukt_schedule") {
       fetchUktExams();
       fetchSettings(); // Agar data syarat/biaya terbaru di form terisi
     }
   }, [activeTab]);
+
+  const fetchAdminVideos = async () => {
+    setIsLoadingAdminVideos(true);
+    try {
+      const res = await fetch("/api/videos?all=true");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setAdminVideos(data);
+      }
+    } catch (e) {
+      console.error("Error fetching videos:", e);
+    } finally {
+      setIsLoadingAdminVideos(false);
+    }
+  };
+
+  const handleAddVideo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newVideoTitle.trim() || !newVideoUrl.trim()) {
+      alert("Judul dan Link YouTube wajib diisi!");
+      return;
+    }
+    setIsSubmittingVideo(true);
+    try {
+      const res = await fetch("/api/videos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newVideoTitle.trim(),
+          youtubeUrl: newVideoUrl.trim(),
+          category: newVideoCategory,
+          description: newVideoDescription.trim(),
+          authorName: "Admin Dojang"
+        })
+      });
+      if (res.ok) {
+        alert("Video berhasil ditambahkan!");
+        setNewVideoTitle("");
+        setNewVideoUrl("");
+        setNewVideoDescription("");
+        fetchAdminVideos();
+      } else {
+        const err = await res.json();
+        alert(err.error || "Gagal menambahkan video");
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan saat menghubungi server");
+    } finally {
+      setIsSubmittingVideo(false);
+    }
+  };
+
+  const handleDeleteVideo = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus video ini?")) return;
+    try {
+      const res = await fetch(`/api/videos?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setAdminVideos(prev => prev.filter(v => v.id !== id));
+      } else {
+        alert("Gagal menghapus video");
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan koneksi");
+    }
+  };
+
+  const parseYoutubeThumbnail = (url: string) => {
+    const match = url?.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+    return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : null;
+  };
 
   const fetchSettings = async () => {
     try {
@@ -1191,6 +1284,7 @@ export default function AdminDashboard({
 
     setIsImporting(true);
     try {
+      // @ts-ignore
       const XLSX = await import("xlsx");
       const dataBuffer = await importFile.arrayBuffer();
       const workbook = XLSX.read(dataBuffer, { type: "array" });
@@ -2075,6 +2169,7 @@ export default function AdminDashboard({
         { id: "events", label: "Agenda & Kejuaraan", icon: <FileText className="w-4 h-4 shrink-0" /> },
         { id: "announcements", label: "Pengumuman", icon: <Megaphone className="w-4 h-4 shrink-0" /> },
         { id: "hero_slides", label: "Slider Hero (Juara)", icon: <Sparkles className="w-4 h-4 shrink-0" /> },
+        { id: "videos", label: "Video Publik", icon: <Film className="w-4 h-4 shrink-0" /> },
         { id: "gallery", label: "Galeri Foto", icon: <ImageIcon className="w-4 h-4 shrink-0" /> },
       ]
     }
@@ -4292,6 +4387,86 @@ export default function AdminDashboard({
                   </div>
                 </div>
 
+                {/* Social Media Links Panel */}
+                <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-8 shadow-sm flex flex-col gap-6">
+                  <div>
+                    <h3 className="font-extrabold text-sm text-[#0F172A] border-b border-[#0F172A]/5 pb-3">Tautan Media Sosial (Footer Website)</h3>
+                    <p className="text-gray-400 text-xs mt-1">Akun media sosial resmi dojang yang tampil sebagai ikon di footer landing page.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5 flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-black inline-block"></span>
+                        TikTok URL
+                      </label>
+                      <input 
+                        type="url" 
+                        placeholder="https://www.tiktok.com/@whitetigerkraksaan"
+                        value={settings.tiktokUrl ?? ""}
+                        onChange={(e) => setSettings({ ...settings, tiktokUrl: e.target.value })}
+                        className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5 flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#229ED9] inline-block"></span>
+                        Telegram URL / Channel
+                      </label>
+                      <input 
+                        type="url" 
+                        placeholder="https://t.me/whitetigerkraksaan"
+                        value={settings.telegramUrl ?? ""}
+                        onChange={(e) => setSettings({ ...settings, telegramUrl: e.target.value })}
+                        className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5 flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#1877F2] inline-block"></span>
+                        Facebook URL
+                      </label>
+                      <input 
+                        type="url" 
+                        placeholder="https://facebook.com/whitetigerkraksaan"
+                        value={settings.facebookUrl ?? ""}
+                        onChange={(e) => setSettings({ ...settings, facebookUrl: e.target.value })}
+                        className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5 flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#E4405F] inline-block"></span>
+                        Instagram URL
+                      </label>
+                      <input 
+                        type="url" 
+                        placeholder="https://instagram.com/whitetigerkraksaan"
+                        value={settings.instagramUrl ?? ""}
+                        onChange={(e) => setSettings({ ...settings, instagramUrl: e.target.value })}
+                        className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5 flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#FF0000] inline-block"></span>
+                        YouTube Channel URL
+                      </label>
+                      <input 
+                        type="url" 
+                        placeholder="https://youtube.com/@whitetigerkraksaan"
+                        value={settings.youtubeUrl ?? ""}
+                        onChange={(e) => setSettings({ ...settings, youtubeUrl: e.target.value })}
+                        className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Form submit button */}
                 <div className="flex justify-end gap-3">
                   <button 
@@ -4409,7 +4584,184 @@ export default function AdminDashboard({
             </div>
           )}
 
-          {/* ── TAB: GALERI FOTO ── */}
+          {/* ── TAB: VIDEO PUBLIK (LANDING PAGE) ── */}
+          {activeTab === "videos" && (
+            <div className="flex flex-col gap-8">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 sm:gap-4">
+                <div>
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A] tracking-tight">Manajemen Video Publik</h1>
+                  <p className="text-gray-500 text-sm mt-1">Kelola video YouTube yang tampil di section video Landing Page (bisa ditonton umum).</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1.5 rounded-xl bg-red-50 text-[#E10600] font-black text-xs border border-red-100">
+                    {adminVideos.length} Video Terdaftar
+                  </span>
+                </div>
+              </div>
+
+              {/* Form Input Video Baru */}
+              <div className="bg-white border border-[#0F172A]/5 rounded-2xl p-6 sm:p-8 shadow-sm">
+                <h3 className="font-extrabold text-sm text-[#0F172A] mb-4 flex items-center gap-2">
+                  <Film className="w-4 h-4 text-[#E10600]" /> Tambah Video YouTube Baru
+                </h3>
+
+                <form onSubmit={handleAddVideo} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Judul Video *</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Latihan Tendangan Tornado Kick Atlet Remaja"
+                      value={newVideoTitle}
+                      onChange={(e) => setNewVideoTitle(e.target.value)}
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Link YouTube URL *</label>
+                    <input
+                      type="url"
+                      placeholder="https://www.youtube.com/watch?v=... atau https://youtu.be/..."
+                      value={newVideoUrl}
+                      onChange={(e) => setNewVideoUrl(e.target.value)}
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                      required
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1">Mendukung link reguler YouTube, link pendek youtu.be, ataupun YouTube Shorts.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Kategori Video</label>
+                    <select
+                      value={newVideoCategory}
+                      onChange={(e) => setNewVideoCategory(e.target.value)}
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    >
+                      <option value="LATIHAN">LATIHAN</option>
+                      <option value="KEJUARAAN">KEJUARAAN</option>
+                      <option value="TUTORIAL">TUTORIAL</option>
+                      <option value="PROFIL">PROFIL</option>
+                      <option value="HIGHLIGHT">HIGHLIGHT</option>
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Deskripsi Singkat (Opsional)</label>
+                    <textarea
+                      rows={2}
+                      placeholder="Penjelasan singkat mengenai isi video atau momen berkesan..."
+                      value={newVideoDescription}
+                      onChange={(e) => setNewVideoDescription(e.target.value)}
+                      className="w-full bg-[#F8FAFC] border border-[#0F172A]/10 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] resize-none"
+                    />
+                  </div>
+
+                  {/* Thumbnail Preview */}
+                  {parseYoutubeThumbnail(newVideoUrl) && (
+                    <div className="md:col-span-2 flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                      <div className="w-28 h-16 bg-black rounded-lg overflow-hidden shrink-0 relative">
+                        <img 
+                          src={parseYoutubeThumbnail(newVideoUrl)!} 
+                          alt="Thumbnail preview"
+                          className="w-full h-full object-cover" 
+                        />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <Play className="w-5 h-5 text-white drop-shadow" fill="white" />
+                        </div>
+                      </div>
+                      <div className="min-w-0 flex-1 text-xs">
+                        <p className="font-bold text-emerald-600 flex items-center gap-1">
+                          <CheckCircle className="w-3.5 h-3.5" /> Link YouTube Valid & Terdeteksi
+                        </p>
+                        <p className="text-gray-500 text-[11px] truncate mt-0.5">{newVideoUrl}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="md:col-span-2 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={isSubmittingVideo}
+                      className="bg-[#E10600] hover:bg-red-700 disabled:opacity-50 text-white px-6 py-3 rounded-xl font-bold text-xs transition-all flex items-center gap-2 shadow-md shadow-red-500/20 active:scale-95 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" /> {isSubmittingVideo ? "Menyimpan..." : "Simpan Video ke Landing Page"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Daftar Video Terdaftar */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {adminVideos.map((video) => {
+                  const thumb = parseYoutubeThumbnail(video.youtubeUrl);
+                  return (
+                    <div key={video.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 flex flex-col group">
+                      <div className="aspect-video bg-slate-900 relative overflow-hidden">
+                        {thumb ? (
+                          <img src={thumb} alt={video.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white/40">
+                            <Film className="w-10 h-10" />
+                          </div>
+                        )}
+                        <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm text-white px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider">
+                          {video.category}
+                        </div>
+                        <a
+                          href={video.youtubeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 font-bold text-xs"
+                        >
+                          <Play className="w-6 h-6" fill="white" /> Tonton di YouTube
+                        </a>
+                      </div>
+                      <div className="p-5 flex flex-col justify-between flex-1">
+                        <div>
+                          <h3 className="font-bold text-[#0F172A] text-sm line-clamp-2">{video.title}</h3>
+                          {video.description && (
+                            <p className="text-gray-500 text-xs mt-1.5 line-clamp-2">{video.description}</p>
+                          )}
+                        </div>
+                        <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                          <div className="text-[10px] text-gray-400">
+                            <span>Oleh: <strong className="text-slate-600">{video.authorName || "Pelatih/Admin"}</strong></span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={video.youtubeUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 text-slate-400 hover:text-[#0F172A] hover:bg-slate-100 rounded-lg transition-colors"
+                              title="Buka URL"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                            <button
+                              onClick={() => handleDeleteVideo(video.id)}
+                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                              title="Hapus Video"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {adminVideos.length === 0 && !isLoadingAdminVideos && (
+                  <div className="col-span-full py-16 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-white">
+                    <Film className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-[#0F172A]">Belum ada video publik</h3>
+                    <p className="text-sm text-gray-500 mt-1">Tambahkan link video YouTube di atas untuk mulai menampilkan video di Landing Page.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           {activeTab === "gallery" && (
             <div className="flex flex-col gap-8">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 sm:gap-4">

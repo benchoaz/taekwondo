@@ -18,7 +18,10 @@ import {
   Phone,
   BookOpen,
   User,
-  CalendarOff
+  CalendarOff,
+  Play,
+  Film,
+  Video as VideoIcon
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import HeroSlider from "@/components/HeroSlider";
@@ -29,6 +32,13 @@ function getInitials(name?: string | null): string {
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function getYouTubeId(url?: string | null): string | null {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
 }
 
 export default function LandingPage({ 
@@ -52,6 +62,11 @@ export default function LandingPage({
     phone: "+62 811-1234-5678",
     registrationFee: 75000,
     appApkUrl: null as string | null,
+    tiktokUrl: "https://www.tiktok.com/@whitetigerkraksaan" as string | null,
+    facebookUrl: "https://www.facebook.com/whitetigerkraksaan" as string | null,
+    instagramUrl: "https://www.instagram.com/whitetigerkraksaan" as string | null,
+    telegramUrl: "https://t.me/whitetigerkraksaan" as string | null,
+    youtubeUrl: "https://www.youtube.com/@whitetigerkraksaan" as string | null,
   });
 
   // Dynamic Articles/Events & Coaches State
@@ -59,6 +74,8 @@ export default function LandingPage({
   const [dbCoaches, setDbCoaches] = useState<any[]>([]);
   const [dbGallery, setDbGallery] = useState<any[]>([]);
   const [dbAchievements, setDbAchievements] = useState<any[]>([]);
+  const [dbVideos, setDbVideos] = useState<any[]>([]);
+  const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [dbStats, setDbStats] = useState({ members: 0, coaches: 0, achievements: 0 });
 
@@ -243,6 +260,14 @@ export default function LandingPage({
       })
       .catch(err => console.error("Error fetching achievements:", err));
 
+    // Fetch Videos from Database
+    fetch("/api/videos")
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setDbVideos(data);
+      })
+      .catch(err => console.error("Error fetching videos:", err));
+
     // Fetch Events from Database
     fetch("/api/events")
       .then(res => res.json())
@@ -354,6 +379,7 @@ export default function LandingPage({
             <a href="#achievements" onClick={(e) => { e.preventDefault(); document.getElementById('achievements')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="hover:text-[#E10600] transition-colors font-bold text-[#E10600]">Hall of Fame</a>
             <a href="#coaches" onClick={(e) => { e.preventDefault(); document.getElementById('coaches')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="hover:text-[#E10600] transition-colors">Pelatih</a>
             <a href="#gallery" className="hover:text-[#E10600] transition-colors">Galeri</a>
+            <a href="#videos" onClick={(e) => { e.preventDefault(); document.getElementById('videos')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="hover:text-[#E10600] transition-colors font-bold text-red-600">Video</a>
             <button onClick={() => onNavigate("schedule-view")} className="hover:text-[#E10600] transition-colors cursor-pointer text-left">Jadwal</button>
             <button onClick={() => onNavigate("verify")} className="hover:text-[#E10600] transition-colors cursor-pointer text-left">Verifikasi Sertifikat</button>
           </div>
@@ -390,6 +416,7 @@ export default function LandingPage({
             <a href="#achievements" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-[#E10600]">Hall of Fame</a>
             <a href="#coaches" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-[#0F172A]">Pelatih</a>
             <a href="#gallery" onClick={() => setMobileMenuOpen(false)} className="font-semibold text-[#0F172A]">Galeri</a>
+            <a href="#videos" onClick={() => { setMobileMenuOpen(false); document.getElementById('videos')?.scrollIntoView({ behavior: 'smooth' }); }} className="font-semibold text-red-600">Video Dokumentasi</a>
             <button onClick={() => { setMobileMenuOpen(false); onNavigate("schedule-view"); }} className="font-semibold text-[#0F172A] text-left">Jadwal</button>
             <button onClick={() => { setMobileMenuOpen(false); onNavigate("verify"); }} className="font-semibold text-[#0F172A] text-left">Verifikasi Sertifikat</button>
           </motion.div>
@@ -780,6 +807,187 @@ export default function LandingPage({
         </div>
       </section>
 
+      {/* ── SECTION: VIDEO & DOKUMENTASI AKSI ── */}
+      {(() => {
+        const defaultVideos = [
+          {
+            id: "default-v1",
+            title: "Highlight Aksi Kejuaraan Taekwondo White Tiger Kraksaan",
+            description: "Dokumentasi kejuaraan resmi para atlet White Tiger Kraksaan mengukir prestasi medali emas di ajang tingkat daerah dan provinsi.",
+            youtubeUrl: "https://www.youtube.com/watch?v=kXYiU_JCYtU",
+            category: "KEJUARAAN",
+            authorName: "White Tiger Team"
+          },
+          {
+            id: "default-v2",
+            title: "Demonstrasi Teknik Poomsae & Tendangan Akrobatik",
+            description: "Koreografi jurus Poomsae presisi tinggi, kelenturan fisik, dan teknik tendangan berputar (Twist & Spin Kick).",
+            youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            category: "LATIHAN",
+            authorName: "Coach White Tiger"
+          },
+          {
+            id: "default-v3",
+            title: "Ujian Kenaikan Tingkat (UKT) & Pemecahan Papan",
+            description: "Uji ketangguhan fisik, disiplin mental, dan keberanian murid saat memecahkan papan kayu (Kyukpa) dalam ujian kenaikan sabuk.",
+            youtubeUrl: "https://www.youtube.com/watch?v=J---aiyznGQ",
+            category: "UKT",
+            authorName: "Admin Dojang"
+          }
+        ];
+
+        const displayVideos = dbVideos.length > 0 ? dbVideos : defaultVideos;
+        const currentVideo = displayVideos.find(v => v.id === selectedVideoId) || displayVideos[0];
+        const currentYtId = getYouTubeId(currentVideo?.youtubeUrl) || "dQw4w9WgXcQ";
+
+        return (
+          <section className="py-24 bg-slate-900 text-white relative overflow-hidden" id="videos">
+            {/* Ambient Lighting Background */}
+            <div className="absolute top-1/4 -left-20 w-96 h-96 bg-[#E10600]/10 rounded-full blur-[140px] pointer-events-none" />
+            <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-red-600/10 rounded-full blur-[140px] pointer-events-none" />
+
+            <div className="max-w-7xl mx-auto px-6 relative z-10">
+              <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+                <div>
+                  <span className="text-xs font-black uppercase text-[#E10600] tracking-widest flex items-center gap-2">
+                    <Play className="w-3.5 h-3.5 fill-[#E10600]" /> DOKUMENTASI AKSI & KEJUARAAN
+                  </span>
+                  <h2 className="text-4xl font-extrabold text-white mt-2 font-display">
+                    Galeri Video Publik 🎬
+                  </h2>
+                  <p className="text-slate-400 mt-2 text-sm max-w-xl leading-relaxed">
+                    Tonton cuplikan aksi atlet, video latihan fisik, teknik poomsae, hingga momen kejuaraan Dojang White Tiger Kraksaan.
+                  </p>
+                </div>
+                {settings.youtubeUrl && (
+                  <a 
+                    href={settings.youtubeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 md:mt-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#E10600] hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-lg hover:shadow-red-600/30 active:scale-95 shrink-0"
+                  >
+                    <Play className="w-4 h-4 fill-white" />
+                    <span>Channel YouTube Resmi</span>
+                  </a>
+                )}
+              </div>
+
+              {/* Theater & Playlist Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                {/* Main Video Theater (8 Cols) */}
+                <div className="lg:col-span-8 bg-slate-800/80 rounded-2xl overflow-hidden border border-white/10 shadow-2xl p-4 md:p-6 backdrop-blur-sm">
+                  <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black shadow-inner">
+                    {currentYtId ? (
+                      <iframe
+                        src={`https://www.youtube.com/embed/${currentYtId}?rel=0&modestbranding=1`}
+                        title={currentVideo.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full border-0"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 gap-2">
+                        <Film className="w-12 h-12 stroke-[1.5]" />
+                        <p className="text-xs font-semibold">Video belum tersedia</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-5">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <span className="px-2.5 py-1 bg-[#E10600] text-white text-[10px] font-black uppercase rounded tracking-wider">
+                        {currentVideo.category || "DOKUMENTASI"}
+                      </span>
+                      {currentVideo.authorName && (
+                        <span className="text-xs text-slate-400 font-medium">
+                          Diunggah oleh: <strong className="text-slate-200">{currentVideo.authorName}</strong>
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-extrabold text-white leading-tight">
+                      {currentVideo.title}
+                    </h3>
+                    {currentVideo.description && (
+                      <p className="text-slate-300 text-xs md:text-sm mt-2 leading-relaxed">
+                        {currentVideo.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Video Playlist Selector (4 Cols) */}
+                <div className="lg:col-span-4 flex flex-col gap-3.5">
+                  <div className="flex items-center justify-between px-1 mb-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                      Pilihan Video ({displayVideos.length})
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-3 max-h-[580px] overflow-y-auto pr-1">
+                    {displayVideos.map((vid, idx) => {
+                      const ytId = getYouTubeId(vid.youtubeUrl);
+                      const isPlaying = vid.id === currentVideo.id;
+                      const thumb = ytId ? `https://img.youtube.com/vi/${ytId}/hqdefault.jpg` : null;
+
+                      return (
+                        <div
+                          key={vid.id || idx}
+                          onClick={() => setSelectedVideoId(vid.id)}
+                          className={`group cursor-pointer rounded-xl p-3 transition-all border flex gap-3.5 items-center ${
+                            isPlaying 
+                              ? "bg-red-600/15 border-[#E10600] shadow-[0_0_15px_rgba(225,6,0,0.2)]" 
+                              : "bg-slate-800/60 hover:bg-slate-800 border-white/5 hover:border-white/20"
+                          }`}
+                        >
+                          <div className="relative w-28 h-18 rounded-lg overflow-hidden shrink-0 bg-black">
+                            {thumb ? (
+                              <img 
+                                src={thumb} 
+                                alt={vid.title} 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-slate-700">
+                                <Film className="w-6 h-6 text-slate-400" />
+                              </div>
+                            )}
+                            <div className={`absolute inset-0 flex items-center justify-center transition-colors ${
+                              isPlaying ? "bg-[#E10600]/40" : "bg-black/30 group-hover:bg-black/10"
+                            }`}>
+                              <div className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                                isPlaying ? "bg-white text-[#E10600]" : "bg-black/60 text-white group-hover:bg-[#E10600]"
+                              } transition-all shadow-md`}>
+                                <Play className="w-3.5 h-3.5 fill-current ml-0.5" />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <span className="text-[10px] font-black uppercase text-[#E10600] block mb-0.5">
+                              {vid.category || "VIDEO"}
+                            </span>
+                            <h4 className={`text-xs font-bold leading-snug line-clamp-2 transition-colors ${
+                              isPlaying ? "text-white font-extrabold" : "text-slate-300 group-hover:text-white"
+                            }`}>
+                              {vid.title}
+                            </h4>
+                            {vid.authorName && (
+                              <span className="text-[10px] text-slate-400 block mt-1 line-clamp-1">
+                                {vid.authorName}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })()}
+
       {/* Upcoming Events Section */}
       <section className="py-24 bg-[#0F172A] text-white border-y border-white/10" id="events">
         <div className="max-w-7xl mx-auto px-6">
@@ -867,6 +1075,79 @@ export default function LandingPage({
                 </a>
               </div>
             )}
+
+            {/* Social Media Links */}
+            <div className="mt-6 pt-4 border-t border-white/10">
+              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-3">
+                Media Sosial Kami:
+              </span>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                {/* TikTok */}
+                <a
+                  href={settings.tiktokUrl || "https://www.tiktok.com/@whitetigerkraksaan"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-lg bg-white/10 hover:bg-black text-white hover:text-cyan-300 flex items-center justify-center transition-all hover:scale-110 shadow-sm border border-white/10 hover:border-cyan-400/50 group"
+                  title="TikTok @whitetigerkraksaan"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.29 0 .58.04.85.12V9.41a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.47 6.3 6.3 0 0 0 1.93-4.52V8.53a8.27 8.27 0 0 0 4.84 1.56V6.69h-1z"/>
+                  </svg>
+                </a>
+
+                {/* Telegram */}
+                <a
+                  href={settings.telegramUrl || "https://t.me/whitetigerkraksaan"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-lg bg-white/10 hover:bg-[#229ED9] text-white flex items-center justify-center transition-all hover:scale-110 shadow-sm border border-white/10 hover:border-[#229ED9] group"
+                  title="Telegram White Tiger"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 0 0-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+                  </svg>
+                </a>
+
+                {/* Facebook */}
+                <a
+                  href={settings.facebookUrl || "https://www.facebook.com/whitetigerkraksaan"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-lg bg-white/10 hover:bg-[#1877F2] text-white flex items-center justify-center transition-all hover:scale-110 shadow-sm border border-white/10 hover:border-[#1877F2] group"
+                  title="Facebook White Tiger Kraksaan"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                </a>
+
+                {/* Instagram */}
+                <a
+                  href={settings.instagramUrl || "https://www.instagram.com/whitetigerkraksaan"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-lg bg-white/10 hover:bg-gradient-to-tr hover:from-amber-500 hover:via-pink-500 hover:to-purple-600 text-white flex items-center justify-center transition-all hover:scale-110 shadow-sm border border-white/10 hover:border-pink-500/50 group"
+                  title="Instagram @whitetigerkraksaan"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                  </svg>
+                </a>
+
+                {/* YouTube */}
+                <a
+                  href={settings.youtubeUrl || "https://www.youtube.com/@whitetigerkraksaan"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-9 h-9 rounded-lg bg-white/10 hover:bg-[#FF0000] text-white flex items-center justify-center transition-all hover:scale-110 shadow-sm border border-white/10 hover:border-[#FF0000] group"
+                  title="YouTube White Tiger Kraksaan"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
           </div>
           <div>
             <h4 className="font-bold text-sm uppercase tracking-wider mb-4 text-[#E10600]">Alamat Dojang</h4>

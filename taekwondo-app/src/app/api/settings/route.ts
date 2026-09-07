@@ -68,9 +68,14 @@ export async function POST(request: Request) {
       dojangLng,
       dojangRadius,
       appApkUrl,
+      tiktokUrl,
+      facebookUrl,
+      instagramUrl,
+      telegramUrl,
+      youtubeUrl,
     } = body;
 
-    const setting = await prisma.setting.upsert({
+    const setting = await (prisma as any).setting.upsert({
       where: { id: "default" },
       update: {
         logoUrl,
@@ -93,6 +98,11 @@ export async function POST(request: Request) {
         dojangLng: dojangLng !== undefined ? parseFloat(dojangLng) : undefined,
         dojangRadius: dojangRadius !== undefined ? parseInt(dojangRadius) : undefined,
         appApkUrl: appApkUrl !== undefined ? appApkUrl : undefined,
+        tiktokUrl: tiktokUrl !== undefined ? tiktokUrl : undefined,
+        facebookUrl: facebookUrl !== undefined ? facebookUrl : undefined,
+        instagramUrl: instagramUrl !== undefined ? instagramUrl : undefined,
+        telegramUrl: telegramUrl !== undefined ? telegramUrl : undefined,
+        youtubeUrl: youtubeUrl !== undefined ? youtubeUrl : undefined,
       },
       create: {
         id: "default",
@@ -116,6 +126,11 @@ export async function POST(request: Request) {
         dojangLng: dojangLng !== undefined ? parseFloat(dojangLng) : undefined,
         dojangRadius: dojangRadius !== undefined ? parseInt(dojangRadius) : 50,
         appApkUrl: appApkUrl || null,
+        tiktokUrl: tiktokUrl || null,
+        facebookUrl: facebookUrl || null,
+        instagramUrl: instagramUrl || null,
+        telegramUrl: telegramUrl || null,
+        youtubeUrl: youtubeUrl || null,
       },
     });
 

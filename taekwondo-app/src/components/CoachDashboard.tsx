@@ -36,7 +36,12 @@ import {
   EyeOff,
   DollarSign,
   Menu,
-  X
+  X,
+  Film,
+  Play,
+  Trash2,
+  ExternalLink,
+  Video as VideoIcon
 } from "lucide-react";
 
 export default function CoachDashboard({ 
@@ -88,6 +93,15 @@ export default function CoachDashboard({
   const [announceTitle, setAnnounceTitle] = useState("");
   const [announceMessage, setAnnounceMessage] = useState("");
   const [announceSendWA, setAnnounceSendWA] = useState(false);
+
+  // States for Coach Videos
+  const [coachVideos, setCoachVideos] = useState<any[]>([]);
+  const [isLoadingCoachVideos, setIsLoadingCoachVideos] = useState(false);
+  const [coachVideoTitle, setCoachVideoTitle] = useState("");
+  const [coachVideoUrl, setCoachVideoUrl] = useState("");
+  const [coachVideoCategory, setCoachVideoCategory] = useState("LATIHAN");
+  const [coachVideoDesc, setCoachVideoDesc] = useState("");
+  const [isSubmittingCoachVideo, setIsSubmittingCoachVideo] = useState(false);
   const [announceExpiryDate, setAnnounceExpiryDate] = useState("");
   const [isSubmittingAnnounce, setIsSubmittingAnnounce] = useState(false);
 
@@ -414,8 +428,82 @@ export default function CoachDashboard({
       fetchQuestLogs();
     } else if (activeTab === "belt_claims") {
       fetchBeltClaims();
+    } else if (activeTab === "videos") {
+      fetchCoachVideos();
     }
   }, [activeTab, questFilterCompleted]);
+
+  const fetchCoachVideos = async () => {
+    setIsLoadingCoachVideos(true);
+    try {
+      const res = await fetch("/api/videos?all=true");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setCoachVideos(data);
+      }
+    } catch (e) {
+      console.error("Error fetching coach videos:", e);
+    } finally {
+      setIsLoadingCoachVideos(false);
+    }
+  };
+
+  const handleCoachAddVideo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!coachVideoTitle.trim() || !coachVideoUrl.trim()) {
+      alert("Judul dan Link YouTube wajib diisi!");
+      return;
+    }
+    setIsSubmittingCoachVideo(true);
+    try {
+      const currentCoach = coaches.find((c: any) => c.user?.email?.toLowerCase() === userEmail?.toLowerCase());
+      const author = currentCoach ? (currentCoach.fullName || currentCoach.user?.name) : "Pelatih White Tiger";
+      const res = await fetch("/api/videos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: coachVideoTitle.trim(),
+          youtubeUrl: coachVideoUrl.trim(),
+          category: coachVideoCategory,
+          description: coachVideoDesc.trim(),
+          authorName: author
+        })
+      });
+      if (res.ok) {
+        alert("Video berhasil ditambahkan ke landing page!");
+        setCoachVideoTitle("");
+        setCoachVideoUrl("");
+        setCoachVideoDesc("");
+        fetchCoachVideos();
+      } else {
+        const err = await res.json();
+        alert(err.error || "Gagal menambahkan video");
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan koneksi");
+    } finally {
+      setIsSubmittingCoachVideo(false);
+    }
+  };
+
+  const handleCoachDeleteVideo = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus video ini dari Landing Page?")) return;
+    try {
+      const res = await fetch(`/api/videos?id=${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setCoachVideos(prev => prev.filter(v => v.id !== id));
+      } else {
+        alert("Gagal menghapus video");
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan jaringan");
+    }
+  };
+
+  const parseYoutubeThumbnail = (url: string) => {
+    const match = url?.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+    return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : null;
+  };
 
   const handleScoreChange = (field: string, val: number) => {
     setSelectedCandidate((prev: any) => ({ ...prev, [field]: val }));
@@ -884,7 +972,8 @@ export default function CoachDashboard({
       items: [
         { id: "finance", label: "Keuangan & SPP", icon: <DollarSign className="w-4 h-4" /> },
         { id: "certificates", label: "Sertifikat", icon: <FileText className="w-4 h-4" /> },
-        { id: "announcements", label: "Buat Pengumuman", icon: <Send className="w-4 h-4" /> }
+        { id: "announcements", label: "Buat Pengumuman", icon: <Send className="w-4 h-4" /> },
+        { id: "videos", label: "Video Dokumentasi", icon: <Film className="w-4 h-4" /> }
       ]
     }
   ];
@@ -2722,6 +2811,185 @@ export default function CoachDashboard({
                   </div>
                 );
               })()}
+            </div>
+          )}
+
+          {/* ══════════════ TAB: VIDEOS (DOKUMENTASI KEGIATAN) ══════════════ */}
+          {activeTab === "videos" && (
+            <div className="flex flex-col gap-8">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3 sm:gap-4">
+                <div>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#0F172A]">Video Kegiatan & Latihan</h2>
+                  <p className="text-gray-400 text-xs mt-1">Unggah link video dokumentasi latihan, turnamen, ataupun tutorial atlet untuk ditampilkan di Landing Page publik.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1.5 rounded-xl bg-red-50 text-[#E10600] font-black text-xs border border-red-100">
+                    {coachVideos.length} Video Aktif
+                  </span>
+                </div>
+              </div>
+
+              {/* Form Input Video YouTube */}
+              <div className="bg-white border border-[#0F172A]/5 rounded-[24px] p-6 sm:p-8 shadow-sm">
+                <h3 className="font-extrabold text-sm text-[#0F172A] mb-4 flex items-center gap-2">
+                  <Film className="w-4 h-4 text-[#E10600]" /> Tambah Video Baru
+                </h3>
+
+                <form onSubmit={handleCoachAddVideo} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Judul Video *</label>
+                    <input
+                      type="text"
+                      placeholder="Contoh: Highlight Kejuaraan Daerah Taekwondo Jawa Timur 2026"
+                      value={coachVideoTitle}
+                      onChange={(e) => setCoachVideoTitle(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Link YouTube URL *</label>
+                    <input
+                      type="url"
+                      placeholder="https://www.youtube.com/watch?v=... atau https://youtu.be/..."
+                      value={coachVideoUrl}
+                      onChange={(e) => setCoachVideoUrl(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                      required
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1">Bisa link video YouTube biasa, link pendek youtu.be, atau YouTube Shorts.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Kategori Video</label>
+                    <select
+                      value={coachVideoCategory}
+                      onChange={(e) => setCoachVideoCategory(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600]"
+                    >
+                      <option value="LATIHAN">LATIHAN (Teknik & Fisik)</option>
+                      <option value="KEJUARAAN">KEJUARAAN (Turnamen & Medali)</option>
+                      <option value="TUTORIAL">TUTORIAL (Poomsae / Kyorugi)</option>
+                      <option value="PROFIL">PROFIL (Dojang & Atlet)</option>
+                      <option value="HIGHLIGHT">HIGHLIGHT (Aksi Terbaik)</option>
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-bold text-[#0F172A] uppercase mb-1.5">Keterangan / Momen Menarik (Opsional)</label>
+                    <textarea
+                      rows={2}
+                      placeholder="Catatan pelatih mengenai video atau prestasi yang diraih..."
+                      value={coachVideoDesc}
+                      onChange={(e) => setCoachVideoDesc(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-[#E10600] resize-none"
+                    />
+                  </div>
+
+                  {/* Thumbnail Preview */}
+                  {parseYoutubeThumbnail(coachVideoUrl) && (
+                    <div className="md:col-span-2 flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                      <div className="w-28 h-16 bg-black rounded-lg overflow-hidden shrink-0 relative">
+                        <img 
+                          src={parseYoutubeThumbnail(coachVideoUrl)!} 
+                          alt="Thumbnail preview"
+                          className="w-full h-full object-cover" 
+                        />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <Play className="w-5 h-5 text-white drop-shadow" fill="white" />
+                        </div>
+                      </div>
+                      <div className="min-w-0 flex-1 text-xs">
+                        <p className="font-bold text-emerald-600 flex items-center gap-1">
+                          <CheckCircle className="w-3.5 h-3.5" /> Link YouTube Valid & Terdeteksi
+                        </p>
+                        <p className="text-gray-500 text-[11px] truncate mt-0.5">{coachVideoUrl}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="md:col-span-2 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={isSubmittingCoachVideo}
+                      className="bg-[#E10600] hover:bg-red-700 disabled:opacity-50 text-white px-6 py-3 rounded-xl font-bold text-xs transition-all flex items-center gap-2 shadow-md shadow-red-500/20 active:scale-95 cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4" /> {isSubmittingCoachVideo ? "Menyimpan..." : "Publikasikan Video"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Daftar Video Terunggah */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {coachVideos.map((video) => {
+                  const thumb = parseYoutubeThumbnail(video.youtubeUrl);
+                  return (
+                    <div key={video.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 flex flex-col group">
+                      <div className="aspect-video bg-slate-900 relative overflow-hidden">
+                        {thumb ? (
+                          <img src={thumb} alt={video.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white/40">
+                            <Film className="w-10 h-10" />
+                          </div>
+                        )}
+                        <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm text-white px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider">
+                          {video.category}
+                        </div>
+                        <a
+                          href={video.youtubeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 font-bold text-xs"
+                        >
+                          <Play className="w-6 h-6" fill="white" /> Tonton di YouTube
+                        </a>
+                      </div>
+                      <div className="p-5 flex flex-col justify-between flex-1">
+                        <div>
+                          <h3 className="font-bold text-[#0F172A] text-sm line-clamp-2">{video.title}</h3>
+                          {video.description && (
+                            <p className="text-gray-500 text-xs mt-1.5 line-clamp-2">{video.description}</p>
+                          )}
+                        </div>
+                        <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                          <div className="text-[10px] text-gray-400">
+                            <span>Diunggah: <strong className="text-slate-600">{video.authorName || "Pelatih"}</strong></span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={video.youtubeUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 text-slate-400 hover:text-[#0F172A] hover:bg-slate-100 rounded-lg transition-colors"
+                              title="Buka URL"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </a>
+                            <button
+                              onClick={() => handleCoachDeleteVideo(video.id)}
+                              className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                              title="Hapus Video"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {coachVideos.length === 0 && !isLoadingCoachVideos && (
+                  <div className="col-span-full py-16 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-white">
+                    <Film className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                    <h3 className="text-lg font-bold text-[#0F172A]">Belum ada video dokumentasi</h3>
+                    <p className="text-sm text-gray-500 mt-1">Masukkan link video YouTube di atas untuk menambahkan video ke galeri publik.</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

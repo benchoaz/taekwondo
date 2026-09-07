@@ -216,6 +216,19 @@ model Gallery {
   createdAt DateTime @default(now())
 }
 
+model Video {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  youtubeUrl  String   @map("youtube_url")
+  category    String   @default("DOKUMENTASI") // "DOKUMENTASI", "KEJUARAAN", "LATIHAN", "UKT"
+  order       Int      @default(0)
+  isActive    Boolean  @default(true) @map("is_active")
+  authorName  String?  @map("author_name")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
 model Achievement {
   id          String   @id @default(uuid())
   memberId    String   @map("member_id")
@@ -332,6 +345,11 @@ model Setting {
   dojangLng       Float?   @map("dojang_lng")
   dojangRadius    Int      @default(100) @map("dojang_radius")
   appApkUrl       String?  @map("app_apk_url")
+  tiktokUrl       String?  @map("tiktok_url")
+  facebookUrl     String?  @map("facebook_url")
+  instagramUrl    String?  @map("instagram_url")
+  telegramUrl     String?  @map("telegram_url")
+  youtubeUrl      String?  @map("youtube_url")
   updatedAt       DateTime @updatedAt
 }
 

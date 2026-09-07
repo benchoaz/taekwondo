@@ -43,5 +43,6 @@ sshpass -p "$PASS" ssh $SSH_OPTS $HOST "
   
   # Eksekusi migrasi database di dalam container dengan sudo
   echo '$PASS' | sudo -S podman exec taekwondo_web_v3 npx prisma migrate deploy || true
+  echo '$PASS' | sudo -S podman exec taekwondo_web_v3 node scripts/migrate_video_and_social.js || true
 "
 echo "Deployment Selesai!"

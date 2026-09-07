@@ -31,7 +31,9 @@ import {
   Eye,
   EyeOff,
   Menu,
-  Play
+  Play,
+  Edit,
+  Trash2
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import confetti from "canvas-confetti";
@@ -136,6 +138,7 @@ export default function MemberDashboard({
 
   // Self-Upload Achievement States
   const [showAchievementModal, setShowAchievementModal] = useState(false);
+  const [editingAchievement, setEditingAchievement] = useState<any | null>(null);
   const [achTitle, setAchTitle] = useState("");
   const [achEventName, setAchEventName] = useState("");
   const [achDate, setAchDate] = useState("");
@@ -1841,13 +1844,56 @@ export default function MemberDashboard({
     p => (p.purpose.toLowerCase().includes("lomba") || p.purpose.toLowerCase().includes("kejuaraan")) && p.status === "PENDING"
   );
 
+  const handleOpenAchievementModal = (ach?: any) => {
+    if (ach) {
+      setEditingAchievement(ach);
+      setAchTitle(ach.title || "");
+      setAchEventName(ach.eventName || "");
+      setAchDate(ach.date ? new Date(ach.date).toISOString().split("T")[0] : "");
+      setAchRank(ach.rank || "Emas");
+      setAchPhotoUrl(ach.photoUrl || null);
+      setAchCertificateUrl(ach.certificateUrl || null);
+    } else {
+      setEditingAchievement(null);
+      setAchTitle("");
+      setAchEventName("");
+      setAchDate("");
+      setAchRank("Emas");
+      setAchPhotoUrl(null);
+      setAchCertificateUrl(null);
+    }
+    setShowAchievementModal(true);
+  };
+
+  const handleDeleteAchievement = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus data prestasi ini?")) return;
+    try {
+      const res = await fetch(`/api/achievements/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        setAchievements(prev => prev.filter(a => a.id !== id));
+      } else {
+        const err = await res.json();
+        alert(err.error || "Gagal menghapus prestasi");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Terjadi kesalahan saat menghapus prestasi");
+    }
+  };
+
   const handleSaveAchievement = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile) return;
     setIsSavingAchievement(true);
     try {
-      const res = await fetch("/api/achievements", {
-        method: "POST",
+      const url = editingAchievement ? `/api/achievements/${editingAchievement.id}` : "/api/achievements";
+      const method = editingAchievement ? "PUT" : "POST";
+      const targetStatus = editingAchievement 
+        ? (editingAchievement.status === "REJECTED" ? "PENDING" : editingAchievement.status)
+        : "PENDING";
+
+      const res = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           memberId: profile.id,
@@ -1857,13 +1903,14 @@ export default function MemberDashboard({
           rank: achRank,
           photoUrl: achPhotoUrl,
           certificateUrl: achCertificateUrl,
-          status: "PENDING"
+          status: targetStatus
         })
       });
 
       if (res.ok) {
         fetchDashboardData();
         setShowAchievementModal(false);
+        setEditingAchievement(null);
         // Reset forms
         setAchTitle("");
         setAchEventName("");
@@ -3604,7 +3651,7 @@ export default function MemberDashboard({
                   <p className="text-sm text-gray-500 mt-1">Galeri pencapaian pribadi Anda (Hall of Fame). Banggalah dengan apa yang telah Anda raih!</p>
                 </div>
                 <button 
-                  onClick={() => setShowAchievementModal(true)} 
+                  onClick={() => handleOpenAchievementModal()} 
                   className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white px-6 py-3 rounded-2xl text-sm font-black shadow-xl shadow-yellow-500/30 flex items-center gap-2 transition-all hover:scale-105"
                 >
                   <Plus className="w-5 h-5" /> Unggah Prestasi
@@ -3668,11 +3715,35 @@ export default function MemberDashboard({
                             <Calendar className="w-3.5 h-3.5 text-yellow-500" />
                             {new Date(ach.date).toLocaleDateString("id-ID", { day: 'numeric', month: "long", year: "numeric" })}
                           </div>
-                          {ach.certificateUrl && (
-                            <a href={ach.certificateUrl} target="_blank" rel="noreferrer" className="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20 transition-colors">
-                              <FileText className="w-3.5 h-3.5" /> Piagam
-                            </a>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {ach.certificateUrl && (
+                              <a 
+                                href={ach.certificateUrl} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1 bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20 transition-colors"
+                                title="Lihat Dokumen Piagam"
+                              >
+                                <FileText className="w-3.5 h-3.5" /> Piagam
+                              </a>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenAchievementModal(ach)}
+                              className="px-2.5 py-1.5 bg-slate-700/80 hover:bg-slate-700 text-amber-400 hover:text-amber-300 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer border border-slate-600 shadow-sm"
+                              title="Edit data prestasi / Ganti foto & piagam"
+                            >
+                              <Edit className="w-3.5 h-3.5" /> Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteAchievement(ach.id)}
+                              className="p-1.5 bg-slate-700/80 hover:bg-red-500/20 text-red-400 hover:text-red-300 rounded-lg transition-all flex items-center cursor-pointer border border-slate-600 shadow-sm"
+                              title="Hapus Prestasi"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -4237,12 +4308,39 @@ export default function MemberDashboard({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0F172A]/40 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-slide-up max-h-[90vh] flex flex-col">
             <div className="bg-[#E10600] px-6 py-4 flex items-center justify-between shrink-0">
-              <h3 className="font-display font-black text-white text-lg">Tambah Prestasi</h3>
-              <button onClick={() => setShowAchievementModal(false)} className="text-white/80 hover:text-white transition-colors cursor-pointer">
+              <h3 className="font-display font-black text-white text-lg">
+                {editingAchievement ? "Edit Prestasi & Ganti Berkas" : "Tambah Prestasi"}
+              </h3>
+              <button 
+                onClick={() => {
+                  setShowAchievementModal(false);
+                  setEditingAchievement(null);
+                }} 
+                className="text-white/80 hover:text-white transition-colors cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleSaveAchievement} className="p-5 flex flex-col gap-3.5 overflow-y-auto">
+              {editingAchievement && (
+                <div className={`p-3 rounded-xl text-xs flex items-start gap-2.5 border ${
+                  editingAchievement.status === "APPROVED" 
+                    ? "bg-amber-50/90 border-amber-200 text-amber-950" 
+                    : "bg-blue-50/90 border-blue-200 text-blue-950"
+                }`}>
+                  <Award className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="text-[11px] leading-relaxed">
+                    <strong className="block font-black mb-0.5">
+                      {editingAchievement.status === "APPROVED" ? "Prestasi Terverifikasi" : "Mode Edit Prestasi"}
+                    </strong>
+                    <p className="text-slate-600">
+                      {editingAchievement.status === "APPROVED" 
+                        ? "Prestasi ini telah disetujui Pelatih. Anda dapat mengganti foto podium atau scan piagam jika ada kesalahan upload, dan perubahan akan langsung sinkron di Galeri & Hall of Fame."
+                        : "Perbarui data atau ganti foto/piagam yang salah sebelum diverifikasi oleh Pelatih."}
+                    </p>
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="text-xs font-bold text-gray-500 mb-1 block">Kategori / Medali</label>
                 <select 
@@ -4372,7 +4470,10 @@ export default function MemberDashboard({
               <div className="flex gap-3 mt-3 pt-2 border-t border-slate-100 sticky bottom-0 bg-white z-10">
                 <button 
                   type="button" 
-                  onClick={() => setShowAchievementModal(false)}
+                  onClick={() => {
+                    setShowAchievementModal(false);
+                    setEditingAchievement(null);
+                  }}
                   className="w-full bg-slate-100 text-gray-500 py-2.5 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-200 transition-colors"
                 >
                   Batal
@@ -4382,7 +4483,7 @@ export default function MemberDashboard({
                   disabled={isSavingAchievement}
                   className="w-full bg-[#E10600] text-white py-2.5 rounded-xl font-bold text-xs shadow-md active:scale-95 transition-all cursor-pointer disabled:opacity-50 hover:bg-red-700"
                 >
-                  {isSavingAchievement ? "Menyimpan..." : "Simpan Prestasi"}
+                  {isSavingAchievement ? "Menyimpan..." : (editingAchievement ? "Simpan Perubahan" : "Simpan Prestasi")}
                 </button>
               </div>
             </form>

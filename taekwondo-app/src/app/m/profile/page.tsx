@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ArrowLeft, User, Mail, Hash, Scale, Ruler, Trophy, Star, LogOut, Loader2, Sparkles, LineChart as ChartIcon, FileBadge, Calendar } from "lucide-react";
 import BottomNav from "../_components/BottomNav";
 import { getLevelInfo } from "@/lib/level";
@@ -10,7 +11,16 @@ interface Profile {
   name: string; email: string; memberNumber: string;
   currentBelt: string; progress: number; age: number;
   weight?: number; height?: number;
-  achievements: { id: string; title: string; eventName: string; rank: string; date: string }[];
+  achievements: { 
+    id: string; 
+    title: string; 
+    eventName: string; 
+    rank: string; 
+    date: string;
+    photoUrl?: string | null;
+    certificateUrl?: string | null;
+    status?: string | null;
+  }[];
   physicalLogs: any[];
   beltHistory: any[];
   certificates: any[];
@@ -309,28 +319,47 @@ export default function ProfilePage() {
 
         {/* Achievements / Medals */}
         <div className="game-card p-4 border-slate-800">
-          <div className="flex items-center gap-2 mb-3">
-            <Trophy className="w-4 h-4 text-[#FFD700] fill-[#FFD700]" />
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lemari Medali & Prestasi</p>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-[#FFD700] fill-[#FFD700]" />
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Lemari Medali & Prestasi</p>
+            </div>
+            <Link href="/hall-of-fame" className="text-[10px] font-bold text-yellow-400 hover:text-yellow-300 flex items-center gap-1">
+              Hall of Fame ↗
+            </Link>
           </div>
           {(profile?.achievements?.length ?? 0) === 0 ? (
             <p className="text-xs text-slate-500 text-center py-4 font-bold">Belum ada medali yang diklaim</p>
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2.5">
               {profile?.achievements.map(a => (
                 <div key={a.id} className="flex items-start gap-3 p-3 bg-black/20 border border-white/5 rounded-2xl">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border border-white/10"
-                    style={{ backgroundColor: `${RANK_COLORS[a.rank] || "#94a3b8"}15` }}>
-                    <Star className="w-5 h-5 fill-current" style={{ color: RANK_COLORS[a.rank] || "#94a3b8" }} />
-                  </div>
+                  {a.photoUrl ? (
+                    <img src={a.photoUrl} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 border border-white/10" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-white/10"
+                      style={{ backgroundColor: `${RANK_COLORS[a.rank] || "#94a3b8"}15` }}>
+                      <Star className="w-5 h-5 fill-current" style={{ color: RANK_COLORS[a.rank] || "#94a3b8" }} />
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-black text-white leading-snug truncate">{a.title}</p>
                     <p className="text-[10px] text-slate-400 truncate">{a.eventName}</p>
-                    <div className="mt-1">
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
                       <span className="text-[9px] font-black px-2 py-0.5 rounded-full border border-white/5 uppercase"
                         style={{ backgroundColor: `${RANK_COLORS[a.rank] || "#94a3b8"}15`, color: RANK_COLORS[a.rank] || "#94a3b8" }}>
                         {a.rank}
                       </span>
+                      {a.certificateUrl && (
+                        <a 
+                          href={a.certificateUrl} 
+                          target="_blank" 
+                          rel="noreferrer" 
+                          className="text-[9px] font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-2.5 py-0.5 rounded-full border border-blue-500/20 inline-flex items-center gap-1 transition-colors"
+                        >
+                          📜 Piagam ↗
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -75,6 +75,25 @@ export async function POST(request: Request) {
       youtubeUrl,
     } = body;
 
+    const sanitizeSocialUrl = (url?: string | null, type?: string) => {
+      if (!url) return null;
+      const clean = url.trim();
+      if (!clean) return null;
+      if (clean.startsWith('http://') || clean.startsWith('https://')) {
+        return clean;
+      }
+      if (clean.startsWith('@') && type === 'tiktok') {
+        return `https://www.tiktok.com/${clean}`;
+      }
+      return `https://${clean}`;
+    };
+
+    const cleanTiktok = tiktokUrl !== undefined ? sanitizeSocialUrl(tiktokUrl, 'tiktok') : undefined;
+    const cleanFacebook = facebookUrl !== undefined ? sanitizeSocialUrl(facebookUrl) : undefined;
+    const cleanInstagram = instagramUrl !== undefined ? sanitizeSocialUrl(instagramUrl) : undefined;
+    const cleanTelegram = telegramUrl !== undefined ? sanitizeSocialUrl(telegramUrl) : undefined;
+    const cleanYoutube = youtubeUrl !== undefined ? sanitizeSocialUrl(youtubeUrl) : undefined;
+
     const setting = await (prisma as any).setting.upsert({
       where: { id: "default" },
       update: {
@@ -98,11 +117,11 @@ export async function POST(request: Request) {
         dojangLng: dojangLng !== undefined ? parseFloat(dojangLng) : undefined,
         dojangRadius: dojangRadius !== undefined ? parseInt(dojangRadius) : undefined,
         appApkUrl: appApkUrl !== undefined ? appApkUrl : undefined,
-        tiktokUrl: tiktokUrl !== undefined ? tiktokUrl : undefined,
-        facebookUrl: facebookUrl !== undefined ? facebookUrl : undefined,
-        instagramUrl: instagramUrl !== undefined ? instagramUrl : undefined,
-        telegramUrl: telegramUrl !== undefined ? telegramUrl : undefined,
-        youtubeUrl: youtubeUrl !== undefined ? youtubeUrl : undefined,
+        tiktokUrl: cleanTiktok,
+        facebookUrl: cleanFacebook,
+        instagramUrl: cleanInstagram,
+        telegramUrl: cleanTelegram,
+        youtubeUrl: cleanYoutube,
       },
       create: {
         id: "default",
@@ -126,11 +145,11 @@ export async function POST(request: Request) {
         dojangLng: dojangLng !== undefined ? parseFloat(dojangLng) : undefined,
         dojangRadius: dojangRadius !== undefined ? parseInt(dojangRadius) : 50,
         appApkUrl: appApkUrl || null,
-        tiktokUrl: tiktokUrl || null,
-        facebookUrl: facebookUrl || null,
-        instagramUrl: instagramUrl || null,
-        telegramUrl: telegramUrl || null,
-        youtubeUrl: youtubeUrl || null,
+        tiktokUrl: cleanTiktok || null,
+        facebookUrl: cleanFacebook || null,
+        instagramUrl: cleanInstagram || null,
+        telegramUrl: cleanTelegram || null,
+        youtubeUrl: cleanYoutube || null,
       },
     });
 

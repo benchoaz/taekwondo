@@ -43,8 +43,8 @@ export default function Home() {
       setShowIntro(true);
       setLoadingSettings(false);
       
-      // Fetch settings in background
-      fetch("/api/settings")
+      // Fetch settings in background with cache buster
+      fetch(`/api/settings?_t=${Date.now()}`, { cache: "no-store" })
         .then(res => res.json())
         .then(data => {
           if (data && data.showIntro === false) {
